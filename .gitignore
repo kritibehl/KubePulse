@@ -1,1 +1,16 @@
+# Terraform state files
+*.tfstate
+*.tfstate.*
+.terraform/
+
+# AWS credentials (if you use environment variables, don't store them here)
+~/.aws/
+
+# Python virtual environment
 venv/
+
+# IDE or editor specific files (optional)
+.vscode/
+
+# Any other sensitive files you want to ignore (such as .env files)
+.env
