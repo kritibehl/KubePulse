@@ -36,10 +36,17 @@ def _run_kubectl_command(command_parts: list[str]) -> dict:
         "stdout": completed.stdout if hasattr(completed, "stdout") else "",
         "stderr": completed.stderr if hasattr(completed, "stderr") else "",
         "error": error,
+        "readiness_before": "ready",
+        "readiness_after": "ready" if success else "not_ready",
+        "readiness_false_positive": False,
     }
 
 
-def inject_cpu_stress(pod_name: str, namespace: str = "default", dry_run: bool = False) -> dict:
+def inject_cpu_stress(
+    pod_name: str,
+    namespace: str = "default",
+    dry_run: bool = False,
+) -> dict:
     if not pod_name:
         raise ValueError("Invalid pod name provided.")
 
@@ -58,6 +65,9 @@ def inject_cpu_stress(pod_name: str, namespace: str = "default", dry_run: bool =
             "stdout": "Dry run: simulated CPU stress injection",
             "stderr": "",
             "error": None,
+            "readiness_before": "ready",
+            "readiness_after": "ready",
+            "readiness_false_positive": False,
         }
 
     command = [
@@ -85,7 +95,11 @@ def inject_cpu_stress(pod_name: str, namespace: str = "default", dry_run: bool =
     return result
 
 
-def inject_memory_stress(pod_name: str, namespace: str = "default", dry_run: bool = False) -> dict:
+def inject_memory_stress(
+    pod_name: str,
+    namespace: str = "default",
+    dry_run: bool = False,
+) -> dict:
     if not pod_name:
         raise ValueError("Invalid pod name provided.")
 
@@ -104,6 +118,9 @@ def inject_memory_stress(pod_name: str, namespace: str = "default", dry_run: boo
             "stdout": "Dry run: simulated memory stress injection",
             "stderr": "",
             "error": None,
+            "readiness_before": "ready",
+            "readiness_after": "ready",
+            "readiness_false_positive": False,
         }
 
     command = [
