@@ -5,6 +5,7 @@ from app.chaos_injector import (
     inject_memory_stress,
     inject_readiness_false_positive,
 )
+from app.report_exporter import export_report_markdown
 from app.report_store import list_reports, read_report, save_report
 from app.scenario_loader import list_scenarios, load_scenario
 from app.scenario_runner import run_scenario_definition
@@ -103,6 +104,20 @@ def get_latest_report() -> dict:
 
     latest = reports[-1]
     return read_report(latest)
+
+
+@app.get("/reports/export/latest")
+def export_latest_report() -> dict:
+    reports = list_reports()
+    if not reports:
+        raise HTTPException(status_code=404, detail="No reports found")
+
+    latest = reports[-1]
+    export_path = export_report_markdown(latest)
+    return {
+        "source_report": latest,
+        "export_path": export_path,
+    }
 
 
 @app.get("/scorecard/latest")
