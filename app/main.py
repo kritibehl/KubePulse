@@ -20,10 +20,8 @@ def run_cpu_stress(request: ScenarioRequest) -> ResilienceReport:
             namespace=request.namespace,
             dry_run=request.dry_run,
         )
-        result["report_path"] = "pending"
         report_path = save_report(result)
         result["report_path"] = report_path
-        save_report(result)
         return ResilienceReport(**result)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -37,10 +35,8 @@ def run_memory_stress(request: ScenarioRequest) -> ResilienceReport:
             namespace=request.namespace,
             dry_run=request.dry_run,
         )
-        result["report_path"] = "pending"
         report_path = save_report(result)
         result["report_path"] = report_path
-        save_report(result)
         return ResilienceReport(**result)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -60,6 +56,7 @@ def get_latest_report() -> dict:
     latest = reports[-1]
     return read_report(latest)
 
+
 @app.get("/scorecard/latest")
 def get_latest_scorecard() -> dict:
     reports = list_reports()
@@ -75,3 +72,24 @@ def get_latest_scorecard() -> dict:
         "probe_mismatch": latest["probe_mismatch"],
         "report_path": latest.get("report_path"),
     }
+    
+@app.get("/scorecards")
+def get_scorecards() -> dict:
+    reports = list_reports()
+    scorecards = []
+
+    for report_path in reports:
+        report = read_report(report_path)
+        scorecards.append(
+            {
+                "scenario": report["scenario"],
+                "status": report["status"],
+                "recovery_window_seconds": report["recovery_window_seconds"],
+                "restart_count": report["restart_count"],
+                "probe_mismatch": report["probe_mismatch"],
+                "report_path": report.get("report_path", report_path),
+                "started_at": report["started_at"],
+            }
+        )
+
+    return {"scorecards": scorecards}
