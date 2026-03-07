@@ -8,11 +8,14 @@ from app.chaos_injector import (
 )
 from app.report_exporter import export_report_markdown
 from app.report_store import list_reports, read_report, save_report
+from app.resilience_score import compute_resilience_score
 from app.scenario_loader import list_scenarios, load_scenario
 from app.scenario_runner import run_scenario_definition
 from app.schemas import ResilienceReport, ScenarioRequest
 
 app = FastAPI(title="KubePulse")
+metrics_app = make_asgi_app()
+app.mount("/metrics", metrics_app)
 
 
 @app.get("/health")
@@ -38,6 +41,7 @@ def run_scenario_by_name(name: str) -> ResilienceReport:
     try:
         scenario = load_scenario(name)
         result = run_scenario_definition(scenario)
+        result.update(compute_resilience_score(result))
         report_path = save_report(result)
         result["report_path"] = report_path
         return ResilienceReport(**result)
@@ -55,6 +59,7 @@ def run_cpu_stress(request: ScenarioRequest) -> ResilienceReport:
             namespace=request.namespace,
             dry_run=request.dry_run,
         )
+        result.update(compute_resilience_score(result))
         report_path = save_report(result)
         result["report_path"] = report_path
         return ResilienceReport(**result)
@@ -70,6 +75,7 @@ def run_memory_stress(request: ScenarioRequest) -> ResilienceReport:
             namespace=request.namespace,
             dry_run=request.dry_run,
         )
+        result.update(compute_resilience_score(result))
         report_path = save_report(result)
         result["report_path"] = report_path
         return ResilienceReport(**result)
@@ -85,6 +91,7 @@ def run_readiness_false_positive(request: ScenarioRequest) -> ResilienceReport:
             namespace=request.namespace,
             dry_run=request.dry_run,
         )
+        result.update(compute_resilience_score(result))
         report_path = save_report(result)
         result["report_path"] = report_path
         return ResilienceReport(**result)
@@ -102,7 +109,6 @@ def get_latest_report() -> dict:
     reports = list_reports()
     if not reports:
         raise HTTPException(status_code=404, detail="No reports found")
-
     latest = reports[-1]
     return read_report(latest)
 
@@ -112,7 +118,6 @@ def export_latest_report() -> dict:
     reports = list_reports()
     if not reports:
         raise HTTPException(status_code=404, detail="No reports found")
-
     latest = reports[-1]
     export_path = export_report_markdown(latest)
     return {
@@ -135,6 +140,13 @@ def get_latest_scorecard() -> dict:
         "restart_count": latest["restart_count"],
         "probe_mismatch": latest["probe_mismatch"],
         "readiness_false_positive": latest.get("readiness_false_positive", False),
+        "latency_p95_ms": latest.get("latency_p95_ms", 0.0),
+        "error_rate": latest.get("error_rate", 0.0),
+        "resilience_score": latest.get("resilience_score", 0),
+        "recovery_score": latest.get("recovery_score", 0),
+        "latency_score": latest.get("latency_score", 0),
+        "error_score": latest.get("error_score", 0),
+        "probe_integrity_score": latest.get("probe_integrity_score", 0),
         "pass_fail_reason": latest.get(
             "pass_fail_reason",
             "No validation reason available.",
@@ -165,6 +177,13 @@ def get_scorecards() -> dict:
                     "readiness_false_positive",
                     False,
                 ),
+                "latency_p95_ms": report.get("latency_p95_ms", 0.0),
+                "error_rate": report.get("error_rate", 0.0),
+                "resilience_score": report.get("resilience_score", 0),
+                "recovery_score": report.get("recovery_score", 0),
+                "latency_score": report.get("latency_score", 0),
+                "error_score": report.get("error_score", 0),
+                "probe_integrity_score": report.get("probe_integrity_score", 0),
                 "pass_fail_reason": report.get(
                     "pass_fail_reason",
                     "No validation reason available.",
@@ -179,6 +198,3 @@ def get_scorecards() -> dict:
         )
 
     return {"scorecards": scorecards}
-
-metrics_app = make_asgi_app()
-app.mount("/metrics", metrics_app)

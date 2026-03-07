@@ -41,6 +41,12 @@ class ResilienceReport(BaseModel):
     latency_p99_drift_pct: float = 0.0
     error_rate_delta: float = 0.0
 
+    resilience_score: int = 0
+    recovery_score: int = 0
+    latency_score: int = 0
+    error_score: int = 0
+    probe_integrity_score: int = 0
+
     stdout: str = ""
     stderr: str = ""
     error: Optional[str] = None
