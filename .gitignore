@@ -6,4 +6,5 @@ terraform.tfstate
 terraform.tfstate.backup
 .terraform/
 reports/*.json
+!reports/sample_cpu_stress_report.jsonreports/*.json
 !reports/sample_cpu_stress_report.json
