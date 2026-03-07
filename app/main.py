@@ -7,6 +7,7 @@ from app.chaos_injector import (
 )
 from app.report_store import list_reports, read_report, save_report
 from app.scenario_loader import list_scenarios, load_scenario
+from app.scenario_runner import run_scenario_definition
 from app.schemas import ResilienceReport, ScenarioRequest
 
 app = FastAPI(title="KubePulse")
@@ -28,6 +29,20 @@ def get_scenario(name: str) -> dict:
         return load_scenario(name)
     except FileNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
+
+
+@app.post("/scenarios/run/{name}", response_model=ResilienceReport)
+def run_scenario_by_name(name: str) -> ResilienceReport:
+    try:
+        scenario = load_scenario(name)
+        result = run_scenario_definition(scenario)
+        report_path = save_report(result)
+        result["report_path"] = report_path
+        return ResilienceReport(**result)
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.post("/scenarios/cpu-stress", response_model=ResilienceReport)
