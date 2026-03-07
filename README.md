@@ -1,23 +1,24 @@
-# ⚙️ KubePulse
+# KubePulse — Kubernetes Resilience Validation Framework
 
-Kubernetes Chaos Engineering and Monitoring tool. Simulate faults and monitor system resilience using FastAPI and Prometheus.
+KubePulse is a Kubernetes resilience validation framework for running controlled disruption scenarios and measuring whether services recover correctly. It uses FastAPI, Prometheus, and Grafana to track recovery behavior, restart activity, and service health under failure.
 
-## 📊 Grafana Dashboard
+## Grafana Dashboard
 
-KubePulse comes with a pre-built Grafana dashboard to visualize CI/CD health metrics, including:
+KubePulse includes a Grafana dashboard for visualizing resilience and cluster health signals, including:
 
-- 🔵 `pods_running` — number of active pods
-- 🔴 `cluster_errors` — simulated or real-time error count
-- 🟡 `chaos_mode` — indicates if chaos injection is active
+- `pods_running` — number of active pods
+- `cluster_errors` — simulated or observed error count
+- `chaos_mode` — whether a disruption scenario is currently active
 
-## 🎯 Goals
+## Goals
 
-- Inject simulated chaos into clusters
-- Monitor container-level metrics
-- Validate fault-tolerance strategies
+- Run controlled disruption scenarios in Kubernetes environments
+- Monitor service and container-level health signals
+- Measure recovery behavior under failure
+- Validate resilience and fault-tolerance strategies
+- Detect misleading or incomplete health signals
 
-## ▶️ Run Locally
+## Run Locally
 
 ```bash
 uvicorn main:app --reload
-```
