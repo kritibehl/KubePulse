@@ -1,0 +1,12 @@
+{
+  "scenario": "cpu_stress",
+  "pod_name": "demo-pod",
+  "namespace": "default",
+  "started_at": "2026-03-07T19:41:11.029151+00:00",
+  "ended_at": "2026-03-07T19:41:11.029160+00:00",
+  "success": true,
+  "stdout": "Dry run: simulated CPU stress injection",
+  "stderr": "",
+  "error": null,
+  "report_path": "reports/cpu_stress_demo-pod_20260307T194111Z.json"
+}

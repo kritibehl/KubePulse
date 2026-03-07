@@ -15,6 +15,12 @@ class ResilienceReport(BaseModel):
     started_at: str
     ended_at: str
     success: bool
+
+    recovery_window_seconds: float = 0.0
+    restart_count: int = 0
+    probe_mismatch: bool = False
+    status: str = "pass"
+
     stdout: str = ""
     stderr: str = ""
     error: Optional[str] = None
