@@ -21,6 +21,26 @@ class ResilienceReport(BaseModel):
     probe_mismatch: bool = False
     status: str = "pass"
 
+    latency_p50_ms: float = 0.0
+    latency_p95_ms: float = 0.0
+    latency_p99_ms: float = 0.0
+    error_rate: float = 0.0
+
+    baseline_latency_p50_ms: float = 0.0
+    baseline_latency_p95_ms: float = 0.0
+    baseline_latency_p99_ms: float = 0.0
+    baseline_error_rate: float = 0.0
+
+    observed_latency_p50_ms: float = 0.0
+    observed_latency_p95_ms: float = 0.0
+    observed_latency_p99_ms: float = 0.0
+    observed_error_rate: float = 0.0
+
+    latency_p50_drift_pct: float = 0.0
+    latency_p95_drift_pct: float = 0.0
+    latency_p99_drift_pct: float = 0.0
+    error_rate_delta: float = 0.0
+
     stdout: str = ""
     stderr: str = ""
     error: Optional[str] = None

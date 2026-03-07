@@ -1,6 +1,9 @@
 import subprocess
 from datetime import datetime, timezone
 
+from app.baseline_compare import collect_baseline, compare_to_baseline
+from app.metrics_probe import probe_endpoint
+
 
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
@@ -39,7 +42,9 @@ def _run_kubectl_command(command_parts: list[str]) -> dict:
         "readiness_before": "ready",
         "readiness_after": "ready" if success else "not_ready",
         "readiness_false_positive": False,
+        "latency_p50_ms": 120.0 if success else 700.0,
         "latency_p95_ms": 120.0 if success else 800.0,
+        "latency_p99_ms": 140.0 if success else 900.0,
         "error_rate": 0.01 if success else 0.10,
     }
 
@@ -70,7 +75,9 @@ def inject_cpu_stress(
             "readiness_before": "ready",
             "readiness_after": "ready",
             "readiness_false_positive": False,
+            "latency_p50_ms": 180.0,
             "latency_p95_ms": 210.0,
+            "latency_p99_ms": 240.0,
             "error_rate": 0.02,
         }
 
@@ -125,7 +132,9 @@ def inject_memory_stress(
             "readiness_before": "ready",
             "readiness_after": "ready",
             "readiness_false_positive": False,
+            "latency_p50_ms": 200.0,
             "latency_p95_ms": 240.0,
+            "latency_p99_ms": 280.0,
             "error_rate": 0.03,
         }
 
@@ -165,11 +174,11 @@ def inject_readiness_false_positive(
         raise ValueError("Invalid pod name provided.")
 
     if dry_run:
-        from app.metrics_probe import probe_endpoint
-
+        baseline = collect_baseline("http://127.0.0.1:9000/work")
         metrics = probe_endpoint("http://127.0.0.1:9000/work", requests_count=25)
+        comparison = compare_to_baseline(baseline, metrics)
 
-        return {
+        result = {
             "scenario": "readiness_false_positive",
             "pod_name": pod_name,
             "namespace": namespace,
@@ -191,5 +200,8 @@ def inject_readiness_false_positive(
             "latency_p99_ms": metrics["latency_p99_ms"],
             "error_rate": metrics["error_rate"],
         }
+
+        result.update(comparison)
+        return result
 
     raise NotImplementedError("Real readiness false-positive scenario not implemented yet.")
