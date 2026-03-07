@@ -1,0 +1,5 @@
+name: lightweight_pack
+scenarios:
+  - cpu_stress
+  - memory_stress
+  - readiness_false_positive

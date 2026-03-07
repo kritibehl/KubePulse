@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from prometheus_client import make_asgi_app
 
 from app.chaos_injector import (
     inject_cpu_stress,
@@ -178,3 +179,6 @@ def get_scorecards() -> dict:
         )
 
     return {"scorecards": scorecards}
+
+metrics_app = make_asgi_app()
+app.mount("/metrics", metrics_app)

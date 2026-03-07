@@ -1,15 +1,5 @@
-name: cpu_pressure
-type: stress
-
-target:
-  pod: demo-pod
-  namespace: default
-
-stress:
-  cpu: 1
-  duration: 60s
-
-thresholds:
-  max_recovery_seconds: 15
-  allow_readiness_false_positive: false
-  max_restart_count: 1
+scenario: cpu_stress
+description: CPU pressure resilience test
+expected_recovery_seconds: 20
+allowed_restart_count: 1
+detect_readiness_false_positive: true
