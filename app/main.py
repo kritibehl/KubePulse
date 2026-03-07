@@ -119,6 +119,14 @@ def get_latest_scorecard() -> dict:
         "restart_count": latest["restart_count"],
         "probe_mismatch": latest["probe_mismatch"],
         "readiness_false_positive": latest.get("readiness_false_positive", False),
+        "pass_fail_reason": latest.get(
+            "pass_fail_reason",
+            "No validation reason available.",
+        ),
+        "recommendation": latest.get(
+            "recommendation",
+            "No recommendation available.",
+        ),
         "report_path": latest.get("report_path"),
     }
 
@@ -137,7 +145,18 @@ def get_scorecards() -> dict:
                 "recovery_window_seconds": report["recovery_window_seconds"],
                 "restart_count": report["restart_count"],
                 "probe_mismatch": report["probe_mismatch"],
-                "readiness_false_positive": report.get("readiness_false_positive", False),
+                "readiness_false_positive": report.get(
+                    "readiness_false_positive",
+                    False,
+                ),
+                "pass_fail_reason": report.get(
+                    "pass_fail_reason",
+                    "No validation reason available.",
+                ),
+                "recommendation": report.get(
+                    "recommendation",
+                    "No recommendation available.",
+                ),
                 "report_path": report.get("report_path", report_path),
                 "started_at": report["started_at"],
             }
