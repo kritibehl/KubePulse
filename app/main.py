@@ -18,6 +18,7 @@ def run_cpu_stress(request: ScenarioRequest) -> ResilienceReport:
         result = inject_cpu_stress(
             pod_name=request.pod_name,
             namespace=request.namespace,
+            dry_run=request.dry_run,
         )
         report_path = save_report(result)
         result["report_path"] = report_path
@@ -32,6 +33,7 @@ def run_memory_stress(request: ScenarioRequest) -> ResilienceReport:
         result = inject_memory_stress(
             pod_name=request.pod_name,
             namespace=request.namespace,
+            dry_run=request.dry_run,
         )
         report_path = save_report(result)
         result["report_path"] = report_path

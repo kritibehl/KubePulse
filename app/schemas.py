@@ -5,6 +5,7 @@ from pydantic import BaseModel
 class ScenarioRequest(BaseModel):
     pod_name: str
     namespace: str = "default"
+    dry_run: bool = False
 
 
 class ResilienceReport(BaseModel):

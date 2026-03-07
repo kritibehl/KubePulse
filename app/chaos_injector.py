@@ -2,8 +2,12 @@ import subprocess
 from datetime import datetime, timezone
 
 
+def _now() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
 def _run_kubectl_command(command_parts: list[str]) -> dict:
-    start_time = datetime.now(timezone.utc)
+    start_time = _now()
 
     try:
         completed = subprocess.run(
@@ -19,11 +23,11 @@ def _run_kubectl_command(command_parts: list[str]) -> dict:
         success = False
         error = str(e)
 
-    end_time = datetime.now(timezone.utc)
+    end_time = _now()
 
     return {
-        "started_at": start_time.isoformat(),
-        "ended_at": end_time.isoformat(),
+        "started_at": start_time,
+        "ended_at": end_time,
         "success": success,
         "stdout": completed.stdout if hasattr(completed, "stdout") else "",
         "stderr": completed.stderr if hasattr(completed, "stderr") else "",
@@ -31,9 +35,22 @@ def _run_kubectl_command(command_parts: list[str]) -> dict:
     }
 
 
-def inject_cpu_stress(pod_name: str, namespace: str = "default") -> dict:
+def inject_cpu_stress(pod_name: str, namespace: str = "default", dry_run: bool = False) -> dict:
     if not pod_name:
         raise ValueError("Invalid pod name provided.")
+
+    if dry_run:
+        return {
+            "scenario": "cpu_stress",
+            "pod_name": pod_name,
+            "namespace": namespace,
+            "started_at": _now(),
+            "ended_at": _now(),
+            "success": True,
+            "stdout": "Dry run: simulated CPU stress injection",
+            "stderr": "",
+            "error": None,
+        }
 
     command = [
         "kubectl",
@@ -60,9 +77,22 @@ def inject_cpu_stress(pod_name: str, namespace: str = "default") -> dict:
     return result
 
 
-def inject_memory_stress(pod_name: str, namespace: str = "default") -> dict:
+def inject_memory_stress(pod_name: str, namespace: str = "default", dry_run: bool = False) -> dict:
     if not pod_name:
         raise ValueError("Invalid pod name provided.")
+
+    if dry_run:
+        return {
+            "scenario": "memory_stress",
+            "pod_name": pod_name,
+            "namespace": namespace,
+            "started_at": _now(),
+            "ended_at": _now(),
+            "success": True,
+            "stdout": "Dry run: simulated memory stress injection",
+            "stderr": "",
+            "error": None,
+        }
 
     command = [
         "kubectl",
