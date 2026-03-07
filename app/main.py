@@ -1,7 +1,12 @@
 from fastapi import FastAPI, HTTPException
 
-from app.chaos_injector import inject_cpu_stress, inject_memory_stress
+from app.chaos_injector import (
+    inject_cpu_stress,
+    inject_memory_stress,
+    inject_readiness_false_positive,
+)
 from app.report_store import list_reports, read_report, save_report
+from app.scenario_loader import list_scenarios, load_scenario
 from app.schemas import ResilienceReport, ScenarioRequest
 
 app = FastAPI(title="KubePulse")
@@ -10,6 +15,19 @@ app = FastAPI(title="KubePulse")
 @app.get("/health")
 def health() -> dict:
     return {"status": "ok"}
+
+
+@app.get("/scenarios")
+def get_scenarios() -> dict:
+    return {"scenarios": list_scenarios()}
+
+
+@app.get("/scenarios/{name}")
+def get_scenario(name: str) -> dict:
+    try:
+        return load_scenario(name)
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
 
 
 @app.post("/scenarios/cpu-stress", response_model=ResilienceReport)
@@ -31,6 +49,21 @@ def run_cpu_stress(request: ScenarioRequest) -> ResilienceReport:
 def run_memory_stress(request: ScenarioRequest) -> ResilienceReport:
     try:
         result = inject_memory_stress(
+            pod_name=request.pod_name,
+            namespace=request.namespace,
+            dry_run=request.dry_run,
+        )
+        report_path = save_report(result)
+        result["report_path"] = report_path
+        return ResilienceReport(**result)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/scenarios/readiness-false-positive", response_model=ResilienceReport)
+def run_readiness_false_positive(request: ScenarioRequest) -> ResilienceReport:
+    try:
+        result = inject_readiness_false_positive(
             pod_name=request.pod_name,
             namespace=request.namespace,
             dry_run=request.dry_run,
