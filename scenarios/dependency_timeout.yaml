@@ -1,0 +1,13 @@
+name: dependency_timeout
+type: network_delay
+
+target:
+  pod: demo-pod
+  namespace: default
+
+network:
+  latency_ms: 300
+
+thresholds:
+  max_recovery_seconds: 20
+  allow_readiness_false_positive: false

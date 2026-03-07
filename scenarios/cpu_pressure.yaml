@@ -1,0 +1,15 @@
+name: cpu_pressure
+type: stress
+
+target:
+  pod: demo-pod
+  namespace: default
+
+stress:
+  cpu: 1
+  duration: 60s
+
+thresholds:
+  max_recovery_seconds: 15
+  allow_readiness_false_positive: false
+  max_restart_count: 1

@@ -1,0 +1,13 @@
+name: packet_loss
+type: network_loss
+
+target:
+  pod: demo-pod
+  namespace: default
+
+network:
+  loss_percent: 20
+
+thresholds:
+  max_recovery_seconds: 25
+  allow_readiness_false_positive: false

@@ -1,0 +1,11 @@
+name: pod_kill
+type: pod_kill
+
+target:
+  pod: demo-pod
+  namespace: default
+
+thresholds:
+  max_recovery_seconds: 30
+  allow_readiness_false_positive: false
+  max_restart_count: 2

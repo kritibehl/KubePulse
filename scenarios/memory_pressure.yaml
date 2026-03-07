@@ -1,0 +1,15 @@
+name: memory_pressure
+type: stress
+
+target:
+  pod: demo-pod
+  namespace: default
+
+stress:
+  memory: 50M
+  duration: 60s
+
+thresholds:
+  max_recovery_seconds: 20
+  allow_readiness_false_positive: false
+  max_restart_count: 1
