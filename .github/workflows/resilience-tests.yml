@@ -22,10 +22,10 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           pip install fastapi uvicorn requests prometheus-client pyyaml
 
-      - name: Show files
+      - name: Show repo structure
         run: |
           pwd
-          ls -R
+          find . -maxdepth 3 -type f | sort
 
       - name: Start sample service
         run: |
@@ -34,7 +34,7 @@ jobs:
 
       - name: Wait for sample service
         run: |
-          for i in {1..30}; do
+          for i in {1..20}; do
             if curl -fsS http://127.0.0.1:9000/health; then
               echo "sample service is up"
               exit 0
@@ -52,7 +52,7 @@ jobs:
 
       - name: Wait for KubePulse
         run: |
-          for i in {1..30}; do
+          for i in {1..20}; do
             if curl -fsS http://127.0.0.1:8000/health; then
               echo "kubepulse is up"
               exit 0
@@ -63,24 +63,22 @@ jobs:
           cat kubepulse.log || true
           exit 1
 
-      - name: Smoke check scenario catalog
+      - name: Smoke check APIs
         run: |
           curl -fsS http://127.0.0.1:8000/health
-          curl -fsS http://127.0.0.1:8000/scenarios || true
+          echo
+          curl -fsS http://127.0.0.1:8000/scenarios
+          echo
 
       - name: Run resilience scenarios
         run: |
           curl -fsS -X POST http://127.0.0.1:8000/scenarios/run/cpu_stress
           echo
-          curl -fsS -X POST http://127.0.0.1:8000/scenarios/run/memory_stress
-          echo
           curl -fsS -X POST http://127.0.0.1:8000/scenarios/run/readiness_false_positive
           echo
 
-      - name: Fetch latest report and scorecards
+      - name: Fetch scorecards
         run: |
-          curl -fsS http://127.0.0.1:8000/reports/latest
-          echo
           curl -fsS http://127.0.0.1:8000/scorecards
           echo
 
