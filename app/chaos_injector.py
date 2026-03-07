@@ -165,6 +165,10 @@ def inject_readiness_false_positive(
         raise ValueError("Invalid pod name provided.")
 
     if dry_run:
+        from app.metrics_probe import probe_endpoint
+
+        metrics = probe_endpoint("http://127.0.0.1:9000/work", requests_count=25)
+
         return {
             "scenario": "readiness_false_positive",
             "pod_name": pod_name,
@@ -182,8 +186,10 @@ def inject_readiness_false_positive(
             "readiness_before": "ready",
             "readiness_after": "ready",
             "readiness_false_positive": True,
-            "latency_p95_ms": 650.0,
-            "error_rate": 0.08,
+            "latency_p50_ms": metrics["latency_p50_ms"],
+            "latency_p95_ms": metrics["latency_p95_ms"],
+            "latency_p99_ms": metrics["latency_p99_ms"],
+            "error_rate": metrics["error_rate"],
         }
 
     raise NotImplementedError("Real readiness false-positive scenario not implemented yet.")
