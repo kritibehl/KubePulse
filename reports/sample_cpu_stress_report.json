@@ -12,5 +12,5 @@
   "stdout": "Dry run: simulated CPU stress injection",
   "stderr": "",
   "error": null,
-  "report_path": "reports/cpu_stress_demo-pod_20260307T194227Z.json"
+  "report_path": "reports/sample_cpu_stress_report.json"
 }
