@@ -59,3 +59,19 @@ def get_latest_report() -> dict:
 
     latest = reports[-1]
     return read_report(latest)
+
+@app.get("/scorecard/latest")
+def get_latest_scorecard() -> dict:
+    reports = list_reports()
+    if not reports:
+        raise HTTPException(status_code=404, detail="No reports found")
+
+    latest = read_report(reports[-1])
+    return {
+        "scenario": latest["scenario"],
+        "status": latest["status"],
+        "recovery_window_seconds": latest["recovery_window_seconds"],
+        "restart_count": latest["restart_count"],
+        "probe_mismatch": latest["probe_mismatch"],
+        "report_path": latest.get("report_path"),
+    }
