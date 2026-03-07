@@ -9,33 +9,67 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
       - name: Install dependencies
         run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           pip install fastapi uvicorn requests prometheus-client pyyaml
 
       - name: Start sample service
         run: |
-          ARTIFICIAL_DELAY_MS=0 ERROR_MODE=false uvicorn sample_app.main:app --port 9000 &
-          sleep 5
+          ARTIFICIAL_DELAY_MS=0 ERROR_MODE=false python -m uvicorn sample_app.main:app --host 127.0.0.1 --port 9000 > sample_app.log 2>&1 &
+          echo $! > sample_app.pid
+
+      - name: Wait for sample service
+        run: |
+          for i in {1..20}; do
+            if curl -fsS http://127.0.0.1:9000/health; then
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Sample service failed to start"
+          cat sample_app.log || true
+          exit 1
 
       - name: Start KubePulse
         run: |
-          uvicorn app.main:app &
-          sleep 5
+          python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 > kubepulse.log 2>&1 &
+          echo $! > kubepulse.pid
+
+      - name: Wait for KubePulse
+        run: |
+          for i in {1..20}; do
+            if curl -fsS http://127.0.0.1:8000/health; then
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "KubePulse failed to start"
+          cat kubepulse.log || true
+          exit 1
 
       - name: Run resilience scenarios
         run: |
-          curl -X POST http://127.0.0.1:8000/scenarios/run/cpu_stress
-          curl -X POST http://127.0.0.1:8000/scenarios/run/memory_stress
-          curl -X POST http://127.0.0.1:8000/scenarios/run/readiness_false_positive
+          curl -fsS -X POST http://127.0.0.1:8000/scenarios/run/cpu_stress
+          curl -fsS -X POST http://127.0.0.1:8000/scenarios/run/memory_stress
+          curl -fsS -X POST http://127.0.0.1:8000/scenarios/run/readiness_false_positive
 
       - name: Fetch scorecards
         run: |
-          curl http://127.0.0.1:8000/scorecards
+          curl -fsS http://127.0.0.1:8000/scorecards
+
+      - name: Show logs on failure
+        if: failure()
+        run: |
+          echo "==== sample_app.log ===="
+          cat sample_app.log || true
+          echo "==== kubepulse.log ===="
+          cat kubepulse.log || true
