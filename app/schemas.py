@@ -25,3 +25,10 @@ class ResilienceReport(BaseModel):
     stderr: str = ""
     error: Optional[str] = None
     report_path: Optional[str] = None
+
+    readiness_before: str = "ready"
+    readiness_after: str = "ready"
+    readiness_false_positive: bool = False
+
+    pass_fail_reason: str = "Scenario satisfied configured thresholds."
+    recommendation: str = "No action required."
