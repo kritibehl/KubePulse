@@ -11,15 +11,31 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: install dependencies
-        run: |
-          pip install fastapi uvicorn requests prometheus-client
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
 
-      - name: start kubepulse
+      - name: Install dependencies
+        run: |
+          pip install fastapi uvicorn requests prometheus-client pyyaml
+
+      - name: Start sample service
+        run: |
+          ARTIFICIAL_DELAY_MS=0 ERROR_MODE=false uvicorn sample_app.main:app --port 9000 &
+          sleep 5
+
+      - name: Start KubePulse
         run: |
           uvicorn app.main:app &
           sleep 5
 
-      - name: run resilience scenarios
+      - name: Run resilience scenarios
         run: |
-          bash scripts/ci_resilience_pack.sh
+          curl -X POST http://127.0.0.1:8000/scenarios/run/cpu_stress
+          curl -X POST http://127.0.0.1:8000/scenarios/run/memory_stress
+          curl -X POST http://127.0.0.1:8000/scenarios/run/readiness_false_positive
+
+      - name: Fetch scorecards
+        run: |
+          curl http://127.0.0.1:8000/scorecards
