@@ -1,0 +1,13 @@
+name: cpu_stress
+type: cpu_stress
+target:
+  namespace: default
+  pod_name: demo-pod
+execution:
+  dry_run: true
+thresholds:
+  recovery_window_seconds_max: 15
+  restart_count_max: 1
+  readiness_false_positive_allowed: false
+expected:
+  status: pass
