@@ -14,12 +14,12 @@
 [![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![Kubernetes](https://img.shields.io/badge/Kubernetes-1.27+-326CE5?style=flat-square&logo=kubernetes&logoColor=white)](https://kubernetes.io)
-[![Prometheus](https://img.shields.io/badge/Prometheus-integrated-E6522C?style=flat-square&logo=prometheus&logoColor=white)](https://prometheus.io)
-[![Grafana](https://img.shields.io/badge/Grafana-integrated-F46800?style=flat-square&logo=grafana&logoColor=white)](https://grafana.com)
+[![Prometheus](https://img.shields.io/badge/Prometheus-implemented-E6522C?style=flat-square&logo=prometheus&logoColor=white)](https://prometheus.io)
+[![Grafana](https://img.shields.io/badge/Grafana-ready-F46800?style=flat-square&logo=grafana&logoColor=white)](https://grafana.com)
 [![CI](https://img.shields.io/badge/CI-passing-22C55E?style=flat-square&logo=githubactions&logoColor=white)](.github/workflows/resilience-tests.yml)
 [![License](https://img.shields.io/badge/License-MIT-6366F1?style=flat-square)](LICENSE)
 
-*Validate recovery. Expose health-check blind spots. Ship with confidence.*
+*Automated resilience validation for Kubernetes — measure recovery behavior, detect probe-signal blind spots, and surface reliability regressions before production.*
 
 </div>
 
@@ -42,10 +42,49 @@ KubePulse answers all of these.
 
 ## What is KubePulse?
 
-KubePulse is a **resilience validation framework** for Kubernetes services. It executes controlled disruption scenarios, measures real service behavior, compares against a pre-disruption baseline, and produces structured scorecarded reports that expose reliability blind spots before they reach production.
+KubePulse is a **resilience validation framework** for Kubernetes services. It executes controlled disruption scenarios, measures real service behavior, compares against a pre-disruption baseline, computes a composite resilience score, and produces structured scorecarded reports that expose reliability blind spots before they reach production.
 
 ```
-Disruption → Metrics Probe → Baseline Comparison → Signal Validation → Scorecard → Report
+Scenario YAML → Chaos Injector → Metrics Probe → Baseline Comparison
+      → Readiness Validation → Resilience Score → Scorecard → Report
+```
+
+---
+
+## Project Structure
+
+```
+KubePulse
+│
+├── app
+│   ├── main.py                   # FastAPI control plane
+│   ├── chaos_injector.py         # Scenario execution engine
+│   ├── scenario_runner.py        # Orchestrates execution pipeline
+│   ├── scenario_loader.py        # YAML scenario catalog loader
+│   ├── metrics_probe.py          # Real request metrics collection
+│   ├── baseline_compare.py       # Baseline vs degraded comparison
+│   ├── resilience_score.py       # Composite resilience scoring
+│   ├── prom_metrics.py           # Prometheus instrumentation
+│   ├── report_store.py           # Experiment artifact persistence
+│   └── report_exporter.py        # Markdown report exporter
+│
+├── scenarios
+│   ├── cpu_stress.yaml
+│   ├── cpu_pressure.yaml
+│   ├── memory_pressure.yaml
+│   ├── readiness_false_positive.yaml
+│   ├── packet_loss.yaml
+│   ├── pod_kill.yaml
+│   └── dependency_timeout.yaml
+│
+├── sample_app
+│   └── main.py                   # Fault-injectable test service
+│
+├── reports                       # JSON experiment artifacts
+├── exports                       # Markdown resilience summaries
+│
+└── .github/workflows
+    └── resilience-tests.yml
 ```
 
 ---
@@ -53,81 +92,71 @@ Disruption → Metrics Probe → Baseline Comparison → Signal Validation → S
 ## Architecture
 
 ```
-┌──────────────────────────────────────────────────────────────────────┐
-│                         KubePulse Platform                           │
-│                                                                      │
-│  ┌──────────────────┐    ┌───────────────────────────────────────┐   │
-│  │  FastAPI          │    │           Validation Pipeline         │   │
-│  │  Control Plane    │───▶│                                       │   │
-│  │  app/main.py      │    │  ┌─────────────────────────────────┐  │   │
-│  │                   │    │  │   Scenario Execution Engine      │  │   │
-│  │  /health          │    │  │   app/chaos_injector.py          │  │   │
-│  │  /scenarios/run/  │    │  │   inject_cpu_stress()            │  │   │
-│  │  /scorecards      │    │  │   inject_memory_stress()         │  │   │
-│  │  /scorecard/latest│    │  │   inject_readiness_false_pos()   │  │   │
-│  │  /reports         │    │  └──────────────┬──────────────────┘  │   │
-│  │  /reports/latest  │    │                 │                     │   │
-│  │  /metrics         │    │  ┌──────────────▼──────────────────┐  │   │
-│  └──────────────────┘    │  │   Real Metrics Probe             │  │   │
-│                           │  │   app/metrics_probe.py           │  │   │
-│                           │  │   probe_endpoint(url, n)         │  │   │
-│                           │  │   p50 / p95 / p99 / error_rate   │  │   │
-│                           │  └──────────────┬──────────────────┘  │   │
-│                           │                 │                     │   │
-│                           │  ┌──────────────▼──────────────────┐  │   │
-│                           │  │   Baseline Comparison Engine     │  │   │
-│                           │  │   app/baseline_compare.py        │  │   │
-│                           │  │   drift % / error delta          │  │   │
-│                           │  └──────────────┬──────────────────┘  │   │
-│                           │                 │                     │   │
-│                           │  ┌──────────────▼──────────────────┐  │   │
-│                           │  │   Readiness Integrity Validator  │  │   │
-│                           │  │   probe mismatch detection       │  │   │
-│                           │  └──────────────┬──────────────────┘  │   │
-│                           │                 │                     │   │
-│                           │  ┌──────────────▼──────────────────┐  │   │
-│                           │  │   Resilience Scorecard Engine    │  │   │
-│                           │  │   pass/fail + recommendation     │  │   │
-│                           │  └──────────────┬──────────────────┘  │   │
-│                           └─────────────────┼─────────────────────┘   │
-│                                             │                         │
-│                  ┌──────────────────────────┼─────────────────┐       │
-│                  ▼                          ▼                 ▼       │
-│        ┌─────────────────┐    ┌──────────────────┐   ┌─────────────┐ │
-│        │  Report Store   │    │  Markdown Report  │   │  Prometheus │ │
-│        │  app/report_    │    │  Exporter         │   │  Exporter   │ │
-│        │  store.py       │    │  app/report_      │   │  app/prom_  │ │
-│        │  reports/*.json │    │  exporter.py      │   │  metrics.py │ │
-│        └─────────────────┘    │  exports/*.md     │   │  /metrics   │ │
-│                                └──────────────────┘   └─────────────┘ │
-└──────────────────────────────────────────────────────────────────────┘
-          │                                            │
-┌─────────▼──────────┐                    ┌───────────▼────────┐
-│     Prometheus     │                    │       Grafana       │
-└────────────────────┘                    └────────────────────┘
+┌───────────────────────────────────────────────────────────────────────┐
+│                          KubePulse Platform                           │
+│                                                                       │
+│  ┌───────────────────┐    ┌────────────────────────────────────────┐  │
+│  │  FastAPI           │    │            Validation Pipeline         │  │
+│  │  Control Plane     │───▶│                                        │  │
+│  │  app/main.py       │    │  ┌──────────────────────────────────┐  │  │
+│  │                    │    │  │  Scenario Loader                  │  │  │
+│  │  /health           │    │  │  app/scenario_loader.py           │  │  │
+│  │  /scenarios        │    │  │  list_scenarios() / load()        │  │  │
+│  │  /scenarios/run/   │    │  └──────────────┬───────────────────┘  │  │
+│  │  /scorecard/latest │    │                 │                      │  │
+│  │  /scorecards       │    │  ┌──────────────▼───────────────────┐  │  │
+│  │  /reports          │    │  │  Chaos Injector                   │  │  │
+│  │  /reports/latest   │    │  │  app/chaos_injector.py            │  │  │
+│  │  /reports/export/  │    │  │  inject_cpu_stress()              │  │  │
+│  │  /metrics          │    │  │  inject_memory_stress()           │  │  │
+│  └───────────────────┘    │  │  inject_readiness_false_pos()     │  │  │
+│                            │  └──────────────┬───────────────────┘  │  │
+│                            │                 │                      │  │
+│                            │  ┌──────────────▼───────────────────┐  │  │
+│                            │  │  Real Metrics Probe               │  │  │
+│                            │  │  app/metrics_probe.py             │  │  │
+│                            │  │  p50 / p95 / p99 / error_rate     │  │  │
+│                            │  └──────────────┬───────────────────┘  │  │
+│                            │                 │                      │  │
+│                            │  ┌──────────────▼───────────────────┐  │  │
+│                            │  │  Baseline Comparison Engine       │  │  │
+│                            │  │  app/baseline_compare.py          │  │  │
+│                            │  │  latency drift % / error delta    │  │  │
+│                            │  └──────────────┬───────────────────┘  │  │
+│                            │                 │                      │  │
+│                            │  ┌──────────────▼───────────────────┐  │  │
+│                            │  │  Readiness Integrity Validator    │  │  │
+│                            │  │  probe mismatch detection         │  │  │
+│                            │  └──────────────┬───────────────────┘  │  │
+│                            │                 │                      │  │
+│                            │  ┌──────────────▼───────────────────┐  │  │
+│                            │  │  Resilience Score Engine          │  │  │
+│                            │  │  app/resilience_score.py          │  │  │
+│                            │  │  composite score / sub-scores     │  │  │
+│                            │  └──────────────┬───────────────────┘  │  │
+│                            └─────────────────┼──────────────────────┘  │
+│                                              │                         │
+│               ┌──────────────────────────────┼──────────────────┐      │
+│               ▼                              ▼                  ▼      │
+│     ┌──────────────────┐      ┌──────────────────┐    ┌───────────────┐│
+│     │  Report Store    │      │  Markdown Report  │    │  Prometheus   ││
+│     │  report_store.py │      │  report_exporter  │    │  prom_        ││
+│     │  reports/*.json  │      │  exports/*.md     │    │  metrics.py   ││
+│     └──────────────────┘      └──────────────────┘    │  /metrics     ││
+│                                                        └───────┬───────┘│
+└────────────────────────────────────────────────────────────────┼────────┘
+                                                                 │
+                                                     ┌───────────▼──────────┐
+                                                     │  Prometheus scraping  │
+                                                     │  Grafana-compatible   │
+                                                     └──────────────────────┘
 ```
-
-**Module reference:**
-
-| Module | File | Responsibility |
-|---|---|---|
-| FastAPI Control Plane | `app/main.py` | API surface, pipeline orchestration |
-| Scenario Execution Engine | `app/chaos_injector.py` | Stress commands, execution metadata |
-| Metrics Probe | `app/metrics_probe.py` | Real HTTP request measurement — p50/p95/p99/error_rate |
-| Baseline Comparison | `app/baseline_compare.py` | Healthy vs degraded drift analysis |
-| Readiness Validator | *(integrated)* | Probe-signal mismatch detection |
-| Scorecard Engine | *(integrated)* | Pass/fail evaluation + recommendations |
-| Scenario Catalog Loader | `app/scenario_loader.py` | YAML scenario parsing |
-| Report Store | `app/report_store.py` | Experiment artifact persistence |
-| Markdown Exporter | `app/report_exporter.py` | JSON → human-readable reports |
-| Prometheus Instrumentation | `app/prom_metrics.py` | Metrics endpoint for scraping |
-| Sample Fault-Injectable Service | `sample_app/main.py` | Controlled degradation target |
 
 ---
 
 ## Scenario Catalog
 
-Scenarios are defined declaratively as YAML in the `scenarios/` directory and loaded dynamically by `app/scenario_loader.py`.
+Scenarios are defined declaratively as YAML in `scenarios/` and loaded dynamically by `app/scenario_loader.py`. This makes the framework extensible without code changes.
 
 ```yaml
 # scenarios/cpu_stress.yaml
@@ -146,23 +175,21 @@ expected:
   status: pass
 ```
 
-**Available scenarios:**
-
-| Scenario | File | Description |
-|---|---|---|
-| `cpu_stress` | `scenarios/cpu_stress.yaml` | CPU starvation and thread contention |
-| `cpu_pressure` | `scenarios/cpu_pressure.yaml` | Sustained CPU saturation |
-| `memory_pressure` | `scenarios/memory_pressure.yaml` | Heap pressure and OOM-adjacent behavior |
-| `readiness_false_positive` | `scenarios/readiness_false_positive.yaml` | Probe-signal mismatch detection |
-| `packet_loss` | `scenarios/packet_loss.yaml` | Network instability and retry storms |
-| `pod_kill` | `scenarios/pod_kill.yaml` | Pod termination and rescheduling |
-| `dependency_timeout` | `scenarios/dependency_timeout.yaml` | Downstream dependency failure |
+| Scenario | Description |
+|---|---|
+| `cpu_stress` | CPU starvation and thread contention |
+| `cpu_pressure` | Sustained CPU saturation |
+| `memory_pressure` | Heap pressure and OOM-adjacent behavior |
+| `readiness_false_positive` | Probe-signal mismatch detection |
+| `packet_loss` | Network instability and retry storms |
+| `pod_kill` | Pod termination and rescheduling |
+| `dependency_timeout` | Downstream dependency failure |
 
 ---
 
 ## Real Metrics Collection
 
-KubePulse doesn't assume degradation — it measures it. `app/metrics_probe.py` sends real HTTP requests via `probe_endpoint(url, requests_count)` and computes:
+KubePulse doesn't assume degradation — it measures it. `app/metrics_probe.py` sends real HTTP requests to the service under test and computes:
 
 | Metric | Description |
 |---|---|
@@ -175,7 +202,7 @@ KubePulse doesn't assume degradation — it measures it. `app/metrics_probe.py` 
 
 ## Baseline Comparison
 
-`app/baseline_compare.py` captures a pre-disruption baseline then computes drift automatically during each scenario run.
+`app/baseline_compare.py` captures a pre-disruption baseline then computes drift automatically. No manual threshold configuration required.
 
 ```json
 {
@@ -189,13 +216,11 @@ KubePulse doesn't assume degradation — it measures it. `app/metrics_probe.py` 
 }
 ```
 
-No manual threshold configuration required.
-
 ---
 
 ## Readiness Integrity Validation
 
-The most important capability in KubePulse — detecting **readiness false positives**: cases where Kubernetes marks a pod ready while the service is degraded.
+KubePulse detects **readiness false positives** — cases where Kubernetes marks a pod ready while the service is degraded.
 
 ```
 Readiness before: ready
@@ -213,11 +238,40 @@ When probes lie, Kubernetes routes traffic to broken pods and your dashboards sh
 
 ---
 
+## Resilience Scoring
+
+`app/resilience_score.py` converts raw experiment results into a **composite resilience score**, evaluating four independent dimensions:
+
+| Sub-score | Factor |
+|---|---|
+| `recovery_score` | How quickly the system returned to stable state |
+| `latency_score` | Latency stability under and after disruption |
+| `error_score` | Error rate during the disruption window |
+| `probe_integrity_score` | Accuracy of readiness probe signals |
+
+**Example output from a CPU stress run:**
+
+```json
+{
+  "resilience_score": 86,
+  "recovery_score": 90,
+  "latency_score": 80,
+  "error_score": 75,
+  "probe_integrity_score": 100
+}
+```
+
+A score of 100 means the system recovered correctly with accurate health signals and no regressions. Lower scores surface which dimension failed and by how much.
+
+This scoring system allows engineers to compare resilience quality across services and scenarios and quickly identify reliability regressions.
+
+---
+
 ## Resilience Scorecards
 
-Every scenario run generates a structured scorecard.
+Every scenario run generates a full structured scorecard.
 
-**CPU stress — passing run:**
+**CPU stress — passing run (real output):**
 
 ```json
 {
@@ -229,11 +283,12 @@ Every scenario run generates a structured scorecard.
   "latency_p50_ms": 180,
   "latency_p95_ms": 210,
   "latency_p99_ms": 240,
-  "error_rate": 0.02
+  "error_rate": 0.02,
+  "resilience_score": 86
 }
 ```
 
-**Readiness false positive — failing run:**
+**Readiness false positive — failing run (real output):**
 
 ```json
 {
@@ -252,18 +307,18 @@ Every scenario run generates a structured scorecard.
 }
 ```
 
-Scorecards are stored as JSON in `reports/` and exported as Markdown summaries to `exports/`. Example artifact paths:
+Scorecards are stored as JSON in `reports/` and exported as Markdown to `exports/`. Example artifact paths:
 
 ```
-reports/readiness_false_positive_demo-pod_20260307T221620Z.json
+reports/cpu_stress_demo-pod_20260307T224036Z.json
 exports/readiness_false_positive_demo-pod_20260307T201547Z.md
 ```
 
 ---
 
-## Prometheus Observability
+## Prometheus Integration
 
-`app/prom_metrics.py` exposes resilience signals at `/metrics` for Prometheus scraping and Grafana visualization.
+`app/prom_metrics.py` instruments KubePulse using `prometheus-client` and exposes a scrape endpoint at `GET /metrics`.
 
 | Metric | Description |
 |---|---|
@@ -274,34 +329,23 @@ exports/readiness_false_positive_demo-pod_20260307T201547Z.md
 | `cluster_errors` | Observed cluster error count |
 | `chaos_mode` | Boolean — disruption scenario active |
 
+These signals are Grafana-ready and can be visualized using any Prometheus datasource.
+
 ---
-## Reliability Signals Captured
-
-KubePulse measures resilience through the following signals:
-
-| Signal | Description |
-|---|---|
-| `recovery_window_seconds` | Time from disruption onset to stable recovery |
-| `restart_count` | Container restarts during scenario |
-| `latency_p50 / p95 / p99` | Request latency distribution under disruption |
-| `error_rate` | Fraction of failed requests |
-| `latency_drift_pct` | Deviation from baseline latency |
-| `error_rate_delta` | Error rate change compared to baseline |
-| `readiness_false_positive` | Probe signal mismatch detection |
 
 ## Sample Fault-Injectable Service
 
-`sample_app/main.py` is a controlled degradation target for running experiments against a realistic service. Configure degradation state via environment variables:
+`sample_app/main.py` is a controlled degradation target for running experiments. Configure state via environment variables:
 
 ```bash
-# Inject artificial response latency
+# Healthy baseline
+ARTIFICIAL_DELAY_MS=0 ERROR_MODE=false
+
+# Latency degradation
 ARTIFICIAL_DELAY_MS=650
 
-# Enable HTTP 500 error mode
+# Error mode
 ERROR_MODE=true
-
-# Healthy baseline (default)
-ARTIFICIAL_DELAY_MS=0 ERROR_MODE=false
 ```
 
 ---
@@ -311,11 +355,14 @@ ARTIFICIAL_DELAY_MS=0 ERROR_MODE=false
 | Method | Endpoint | Description |
 |---|---|---|
 | `GET` | `/health` | Service health check |
-| `POST` | `/scenarios/run/{scenario}` | Execute a named scenario |
-| `GET` | `/scorecards` | List all scorecards |
+| `GET` | `/scenarios` | List available scenarios |
+| `GET` | `/scenarios/{name}` | Get scenario config |
+| `POST` | `/scenarios/run/{name}` | Execute a named scenario |
 | `GET` | `/scorecard/latest` | Latest scorecard |
+| `GET` | `/scorecards` | List all scorecards |
 | `GET` | `/reports` | List all experiment reports |
 | `GET` | `/reports/latest` | Latest report |
+| `GET` | `/reports/export/latest` | Export latest report as Markdown |
 | `GET` | `/metrics` | Prometheus metrics endpoint |
 
 ```bash
@@ -328,8 +375,8 @@ curl -X POST http://127.0.0.1:8000/scenarios/run/readiness_false_positive
 # Get latest scorecard
 curl http://127.0.0.1:8000/scorecard/latest
 
-# Get latest report
-curl http://127.0.0.1:8000/reports/latest
+# Export latest report as Markdown
+curl http://127.0.0.1:8000/reports/export/latest
 
 # Prometheus metrics
 curl http://127.0.0.1:8000/metrics
@@ -345,7 +392,7 @@ KubePulse ships with a GitHub Actions workflow that runs resilience validation a
 .github/workflows/resilience-tests.yml
 ```
 
-**Pipeline steps:** checkout → install dependencies → start sample service → start KubePulse → run scenarios → fetch and assert scorecards.
+Pipeline: checkout → install dependencies → start sample service → start KubePulse → run scenarios → fetch and assert scorecards.
 
 **Latest run: ✅ passing · ~15s · branch: master**
 
@@ -376,6 +423,7 @@ python3 -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
 | Recovery measurement | ❌ | ✅ |
 | Health signal validation | ❌ | ✅ |
 | Baseline comparison | ❌ | ✅ |
+| Composite resilience score | ❌ | ✅ |
 | Structured scorecards | ❌ | ✅ |
 | Declarative scenario catalog | ❌ | ✅ |
 | CI-automated validation | ❌ | ✅ |
@@ -391,8 +439,8 @@ python3 -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
 | API | FastAPI |
 | Orchestration | Kubernetes |
 | Stress tooling | `stress`, `tc netem` |
-| Metrics | Prometheus |
-| Visualization | Grafana |
+| Metrics | Prometheus (`prometheus-client`) |
+| Visualization | Grafana-ready |
 | CI | GitHub Actions |
 | Report formats | JSON, Markdown |
 
