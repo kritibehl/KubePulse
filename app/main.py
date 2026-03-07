@@ -20,8 +20,10 @@ def run_cpu_stress(request: ScenarioRequest) -> ResilienceReport:
             namespace=request.namespace,
             dry_run=request.dry_run,
         )
+        result["report_path"] = "pending"
         report_path = save_report(result)
         result["report_path"] = report_path
+        save_report(result)
         return ResilienceReport(**result)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -35,8 +37,10 @@ def run_memory_stress(request: ScenarioRequest) -> ResilienceReport:
             namespace=request.namespace,
             dry_run=request.dry_run,
         )
+        result["report_path"] = "pending"
         report_path = save_report(result)
         result["report_path"] = report_path
+        save_report(result)
         return ResilienceReport(**result)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
