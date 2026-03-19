@@ -1,0 +1,53 @@
+services:
+  edge:
+    build: ./services/edge
+    container_name: kp-edge
+    ports:
+      - "8081:8080"
+    environment:
+      API_URL: http://api-service:8080/api
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    depends_on:
+      - api-service
+    networks:
+      - kpnet
+
+  api-service:
+    build: ./services/api-service
+    container_name: kp-api
+    environment:
+      AUTH_URL: http://auth-service:8080/auth
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    depends_on:
+      - auth-service
+    networks:
+      - kpnet
+
+  auth-service:
+    build: ./services/auth-service
+    container_name: kp-auth
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    networks:
+      - kpnet
+
+  datastore-mock:
+    image: python:3.11-slim
+    container_name: kp-datastore
+    working_dir: /app
+    command: sh -c "python -m http.server 8080"
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    networks:
+      - kpnet
+
+networks:
+  kpnet:
+    name: kpnet
+    driver: bridge

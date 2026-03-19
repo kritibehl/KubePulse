@@ -577,3 +577,23 @@ Example markdown once screenshots are added:
 ![Baseline vs Degraded Experiment](docs/screenshots/baseline-vs-degraded.png)
 ![Blast Radius Case Study](docs/screenshots/blast-radius-case-study.png)
 ![Remediation Recommendation](docs/screenshots/remediation-example.png)
+
+## KubePulse Network Lab
+
+KubePulse includes a Linux namespace/container-based service network lab for repeatable service-to-service resilience experiments under controlled network degradation.
+
+See:
+- `docs/network-lab/README.md`
+- `lab/network-lab/docker-compose.yml`
+- `lab/network-lab/scripts/run_experiment.sh`
+
+Initial supported scenarios:
+- baseline
+- dns_failure
+- latency
+- partition
+- churn
+
+## Network Lab Experiment Results
+
+See `docs/network-lab/experiment-results.md` for baseline vs degraded results across DNS failure and API-path latency injection.
