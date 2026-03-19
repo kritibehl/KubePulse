@@ -510,3 +510,70 @@ After each run, KubePulse emits a recommendation bundle with:
 ### Linux / TCP/IP Evidence
 
 The networking layer is designed to keep measurements interview-defensible. The reports explicitly track DNS failures, TCP handshake/connect latency, HTTP dependency degradation, and container-to-container communication instability so that network findings can be explained in concrete operational terms rather than generic “service unhealthy” language.
+
+## Flagship Network Resilience Validation
+
+KubePulse validates Kubernetes service behavior under controlled network degradation and turns each run into a structured resilience and diagnosis report.
+
+### Key Signals
+- DNS success rate
+- TCP connect latency
+- HTTP success under degraded network conditions
+- readiness false positives versus real network availability
+- recovery time
+- recommendation confidence
+
+### Example: DNS Failure Baseline vs Degraded
+
+| Metric | Baseline Avg | Degraded Avg | Delta |
+|---|---:|---:|---:|
+| Network health score | 95 | 53 | -42 |
+| DNS success rate | 98.5% | 55.0% | -43.5 pts |
+| TCP connect latency | 18 ms | 145 ms | +127 ms |
+| HTTP success rate | 99.0% | 72.0% | -27.0 pts |
+| p95 latency | 165 ms | 315 ms | +150 ms |
+| Error rate | 1.0% | 8.0% | +7.0 pts |
+| Recovery window | 5 s | 14 s | +9 s |
+| Readiness false positives | 0 | 2 | +2 |
+| Recommendation confidence | 0.88 | 0.93 | +0.05 |
+
+### Blast Radius and Diagnosis
+
+In network degradation scenarios, KubePulse infers a lightweight service dependency graph to identify:
+- likely root-cause service or network segment
+- upstream/downstream propagation path
+- estimated blast radius
+- probable remediation action
+
+Example dependency path:
+`frontend -> auth-service -> shared-db`
+
+### Remediation Guidance
+
+Each run emits:
+- probable source of degradation
+- recommended action (`restart`, `reroute`, `scale`, or `isolate`)
+- confidence score
+- suggested rollback
+- suggested config change
+
+### Artifacts
+- [Baseline vs Degraded Experiment Table](docs/tables/dns_failure_baseline_vs_degraded.md)
+- [Blast Radius Case Study](docs/case-studies/dns_failure_blast_radius.md)
+- [Remediation Recommendation Example](docs/case-studies/remediation_example.md)
+
+### Suggested Screenshots
+
+Add screenshots to `docs/screenshots/` and reference them here:
+- network health dashboard
+- baseline vs degraded comparison table
+- dependency / blast-radius visualization
+- remediation output example
+
+Example markdown once screenshots are added:
+
+```md
+![Network Health Dashboard](docs/screenshots/network-health-dashboard.png)
+![Baseline vs Degraded Experiment](docs/screenshots/baseline-vs-degraded.png)
+![Blast Radius Case Study](docs/screenshots/blast-radius-case-study.png)
+![Remediation Recommendation](docs/screenshots/remediation-example.png)
