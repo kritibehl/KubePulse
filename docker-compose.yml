@@ -1,11 +1,23 @@
-version: '3.9'
+version: "3.9"
 
 services:
-  kubepulse:
-    build: .
-    ports:
-      - "8000:8000"
-    volumes:
-      - .:/app
+  kubepulse-db:
+    image: postgres:16
+    container_name: kubepulse-db
     environment:
-      - ENV=dev
+      POSTGRES_DB: kubepulse
+      POSTGRES_USER: kubepulse
+      POSTGRES_PASSWORD: kubepulse
+    ports:
+      - "5432:5432"
+    volumes:
+      - kubepulse-pgdata:/var/lib/postgresql/data
+
+  kubepulse-redis:
+    image: redis:7
+    container_name: kubepulse-redis
+    ports:
+      - "6379:6379"
+
+volumes:
+  kubepulse-pgdata:

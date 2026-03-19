@@ -3,3 +3,7 @@ uvicorn
 requests
 prometheus-client
 pyyaml
+sqlalchemy
+psycopg[binary]
+scipy
+redis

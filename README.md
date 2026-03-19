@@ -463,3 +463,50 @@ MIT — see [LICENSE](LICENSE) for details.
 *Built for engineers who need to know their systems recover correctly — not just that they survived.*
 
 </div>
+## Network-Aware Resilience Validation
+
+KubePulse now includes network disruption scenarios as first-class validation primitives for Kubernetes workloads:
+
+- packet loss
+- DNS resolution failure
+- service-to-service latency injection
+- node-to-node partition
+- dropped egress
+- degraded ingress
+- MTU mismatch simulation
+- intermittent TCP resets
+- connection churn
+
+### What KubePulse Measures
+
+For network-aware runs, KubePulse captures and reports:
+
+- DNS success rate
+- TCP connect latency
+- HTTP success rate under degraded network conditions
+- cross-zone / cross-node communication degradation
+- path recovery time
+- readiness false positives versus real network availability
+- latency percentile drift and error-rate change relative to baseline
+
+### Dependency-Path Diagnostics
+
+KubePulse infers a lightweight service dependency graph and emits:
+
+- upstream/downstream relationship hints
+- latency/error propagation path
+- likely root-cause service or network segment
+- estimated blast radius across impacted services
+
+### Auto-Remediation Recommendations
+
+After each run, KubePulse emits a recommendation bundle with:
+
+- probable source of degradation
+- suggested action: restart, reroute, scale, or isolate
+- confidence score
+- suggested rollback or config-change note
+
+### Linux / TCP/IP Evidence
+
+The networking layer is designed to keep measurements interview-defensible. The reports explicitly track DNS failures, TCP handshake/connect latency, HTTP dependency degradation, and container-to-container communication instability so that network findings can be explained in concrete operational terms rather than generic “service unhealthy” language.
