@@ -54,9 +54,9 @@ Scenario YAML → Chaos Injector → Metrics Probe → Baseline Comparison
 ## Project Structure
 
 ```
-KubePulse
+KubePulse/
 │
-├── app
+├── app/
 │   ├── main.py                   # FastAPI control plane
 │   ├── chaos_injector.py         # Scenario execution engine
 │   ├── scenario_runner.py        # Orchestrates execution pipeline
@@ -68,7 +68,7 @@ KubePulse
 │   ├── report_store.py           # Experiment artifact persistence
 │   └── report_exporter.py        # Markdown report exporter
 │
-├── scenarios
+├── scenarios/
 │   ├── cpu_stress.yaml
 │   ├── cpu_pressure.yaml
 │   ├── memory_pressure.yaml
@@ -77,13 +77,18 @@ KubePulse
 │   ├── pod_kill.yaml
 │   └── dependency_timeout.yaml
 │
-├── sample_app
+├── sample_app/
 │   └── main.py                   # Fault-injectable test service
 │
-├── reports                       # JSON experiment artifacts
-├── exports                       # Markdown resilience summaries
+├── lab/
+│   └── network-lab/
+│       ├── docker-compose.yml
+│       └── scripts/run_experiment.sh
 │
-└── .github/workflows
+├── reports/                      # JSON experiment artifacts
+├── exports/                      # Markdown resilience summaries
+│
+└── .github/workflows/
     └── resilience-tests.yml
 ```
 
@@ -101,26 +106,20 @@ KubePulse
 │  │  app/main.py       │    │  ┌──────────────────────────────────┐  │  │
 │  │                    │    │  │  Scenario Loader                  │  │  │
 │  │  /health           │    │  │  app/scenario_loader.py           │  │  │
-│  │  /scenarios        │    │  │  list_scenarios() / load()        │  │  │
-│  │  /scenarios/run/   │    │  └──────────────┬───────────────────┘  │  │
-│  │  /scorecard/latest │    │                 │                      │  │
-│  │  /scorecards       │    │  ┌──────────────▼───────────────────┐  │  │
-│  │  /reports          │    │  │  Chaos Injector                   │  │  │
-│  │  /reports/latest   │    │  │  app/chaos_injector.py            │  │  │
-│  │  /reports/export/  │    │  │  inject_cpu_stress()              │  │  │
-│  │  /metrics          │    │  │  inject_memory_stress()           │  │  │
-│  └───────────────────┘    │  │  inject_readiness_false_pos()     │  │  │
-│                            │  └──────────────┬───────────────────┘  │  │
-│                            │                 │                      │  │
-│                            │  ┌──────────────▼───────────────────┐  │  │
-│                            │  │  Real Metrics Probe               │  │  │
-│                            │  │  app/metrics_probe.py             │  │  │
+│  │  /scenarios        │    │  └──────────────┬───────────────────┘  │  │
+│  │  /scenarios/run/   │    │                 │                      │  │
+│  │  /scorecard/latest │    │  ┌──────────────▼───────────────────┐  │  │
+│  │  /scorecards       │    │  │  Chaos Injector                   │  │  │
+│  │  /reports          │    │  │  app/chaos_injector.py            │  │  │
+│  │  /reports/latest   │    │  └──────────────┬───────────────────┘  │  │
+│  │  /reports/export/  │    │                 │                      │  │
+│  │  /metrics          │    │  ┌──────────────▼───────────────────┐  │  │
+│  └───────────────────┘    │  │  Real Metrics Probe               │  │  │
 │                            │  │  p50 / p95 / p99 / error_rate     │  │  │
 │                            │  └──────────────┬───────────────────┘  │  │
 │                            │                 │                      │  │
 │                            │  ┌──────────────▼───────────────────┐  │  │
 │                            │  │  Baseline Comparison Engine       │  │  │
-│                            │  │  app/baseline_compare.py          │  │  │
 │                            │  │  latency drift % / error delta    │  │  │
 │                            │  └──────────────┬───────────────────┘  │  │
 │                            │                 │                      │  │
@@ -131,7 +130,6 @@ KubePulse
 │                            │                 │                      │  │
 │                            │  ┌──────────────▼───────────────────┐  │  │
 │                            │  │  Resilience Score Engine          │  │  │
-│                            │  │  app/resilience_score.py          │  │  │
 │                            │  │  composite score / sub-scores     │  │  │
 │                            │  └──────────────┬───────────────────┘  │  │
 │                            └─────────────────┼──────────────────────┘  │
@@ -140,10 +138,8 @@ KubePulse
 │               ▼                              ▼                  ▼      │
 │     ┌──────────────────┐      ┌──────────────────┐    ┌───────────────┐│
 │     │  Report Store    │      │  Markdown Report  │    │  Prometheus   ││
-│     │  report_store.py │      │  report_exporter  │    │  prom_        ││
-│     │  reports/*.json  │      │  exports/*.md     │    │  metrics.py   ││
-│     └──────────────────┘      └──────────────────┘    │  /metrics     ││
-│                                                        └───────┬───────┘│
+│     │  reports/*.json  │      │  exports/*.md     │    │  /metrics     ││
+│     └──────────────────┘      └──────────────────┘    └───────┬───────┘│
 └────────────────────────────────────────────────────────────────┼────────┘
                                                                  │
                                                      ┌───────────▼──────────┐
@@ -156,7 +152,7 @@ KubePulse
 
 ## Scenario Catalog
 
-Scenarios are defined declaratively as YAML in `scenarios/` and loaded dynamically by `app/scenario_loader.py`. This makes the framework extensible without code changes.
+Scenarios are defined declaratively as YAML in `scenarios/` and loaded dynamically by `app/scenario_loader.py`. The framework is extensible without code changes.
 
 ```yaml
 # scenarios/cpu_stress.yaml
@@ -187,9 +183,48 @@ expected:
 
 ---
 
+## Network-Aware Resilience Validation
+
+KubePulse includes network disruption scenarios as first-class validation primitives:
+
+- Packet loss
+- DNS resolution failure
+- Service-to-service latency injection
+- Node-to-node partition
+- Dropped egress / degraded ingress
+- MTU mismatch simulation
+- Intermittent TCP resets
+- Connection churn
+
+### What KubePulse Measures (Network Runs)
+
+- DNS success rate
+- TCP connect latency
+- HTTP success rate under degraded network conditions
+- Cross-zone / cross-node communication degradation
+- Path recovery time
+- Readiness false positives vs. real network availability
+- Latency percentile drift and error-rate delta relative to baseline
+
+### Example: DNS Failure — Baseline vs Degraded
+
+| Metric | Baseline | Degraded | Delta |
+|---|---:|---:|---:|
+| Network health score | 95 | 53 | −42 |
+| DNS success rate | 98.5% | 55.0% | −43.5 pts |
+| TCP connect latency | 18 ms | 145 ms | +127 ms |
+| HTTP success rate | 99.0% | 72.0% | −27.0 pts |
+| p95 latency | 165 ms | 315 ms | +150 ms |
+| Error rate | 1.0% | 8.0% | +7.0 pts |
+| Recovery window | 5 s | 14 s | +9 s |
+| Readiness false positives | 0 | 2 | +2 |
+| Recommendation confidence | 0.88 | 0.93 | +0.05 |
+
+---
+
 ## Real Metrics Collection
 
-KubePulse doesn't assume degradation — it measures it. `app/metrics_probe.py` sends real HTTP requests to the service under test and computes:
+KubePulse measures actual degradation rather than assuming it. `app/metrics_probe.py` sends real HTTP requests to the service under test and computes:
 
 | Metric | Description |
 |---|---|
@@ -202,7 +237,7 @@ KubePulse doesn't assume degradation — it measures it. `app/metrics_probe.py` 
 
 ## Baseline Comparison
 
-`app/baseline_compare.py` captures a pre-disruption baseline then computes drift automatically. No manual threshold configuration required.
+`app/baseline_compare.py` captures a pre-disruption baseline and computes drift automatically — no manual threshold configuration required.
 
 ```json
 {
@@ -220,7 +255,7 @@ KubePulse doesn't assume degradation — it measures it. `app/metrics_probe.py` 
 
 ## Readiness Integrity Validation
 
-KubePulse detects **readiness false positives** — cases where Kubernetes marks a pod ready while the service is degraded.
+KubePulse detects **readiness false positives** — cases where Kubernetes marks a pod ready while the service is actually degraded.
 
 ```
 Readiness before: ready
@@ -234,13 +269,13 @@ Result:
   status                   = fail
 ```
 
-When probes lie, Kubernetes routes traffic to broken pods and your dashboards show green. KubePulse surfaces this.
+When probes lie, Kubernetes routes traffic to broken pods and dashboards show green. KubePulse surfaces this.
 
 ---
 
 ## Resilience Scoring
 
-`app/resilience_score.py` converts raw experiment results into a **composite resilience score**, evaluating four independent dimensions:
+`app/resilience_score.py` converts raw experiment results into a **composite resilience score** across four independent dimensions:
 
 | Sub-score | Factor |
 |---|---|
@@ -249,7 +284,7 @@ When probes lie, Kubernetes routes traffic to broken pods and your dashboards sh
 | `error_score` | Error rate during the disruption window |
 | `probe_integrity_score` | Accuracy of readiness probe signals |
 
-**Example output from a CPU stress run:**
+**Example — CPU stress run:**
 
 ```json
 {
@@ -261,17 +296,15 @@ When probes lie, Kubernetes routes traffic to broken pods and your dashboards sh
 }
 ```
 
-A score of 100 means the system recovered correctly with accurate health signals and no regressions. Lower scores surface which dimension failed and by how much.
-
-This scoring system allows engineers to compare resilience quality across services and scenarios and quickly identify reliability regressions.
+A score of 100 means the system recovered correctly with accurate health signals and no regressions. Lower scores expose which dimension failed and by how much, enabling comparison across services and scenarios.
 
 ---
 
 ## Resilience Scorecards
 
-Every scenario run generates a full structured scorecard.
+Every scenario run produces a full structured scorecard.
 
-**CPU stress — passing run (real output):**
+**CPU stress — passing run:**
 
 ```json
 {
@@ -288,7 +321,7 @@ Every scenario run generates a full structured scorecard.
 }
 ```
 
-**Readiness false positive — failing run (real output):**
+**Readiness false positive — failing run:**
 
 ```json
 {
@@ -307,7 +340,7 @@ Every scenario run generates a full structured scorecard.
 }
 ```
 
-Scorecards are stored as JSON in `reports/` and exported as Markdown to `exports/`. Example artifact paths:
+Scorecards are stored as JSON in `reports/` and exported as Markdown to `exports/`:
 
 ```
 reports/cpu_stress_demo-pod_20260307T224036Z.json
@@ -316,9 +349,36 @@ exports/readiness_false_positive_demo-pod_20260307T201547Z.md
 
 ---
 
+## Dependency-Path Diagnostics
+
+For network degradation scenarios, KubePulse infers a lightweight service dependency graph and emits:
+
+- Upstream/downstream relationship hints
+- Latency/error propagation path
+- Likely root-cause service or network segment
+- Estimated blast radius across impacted services
+
+**Example dependency path:**
+```
+frontend → auth-service → shared-db
+```
+
+---
+
+## Auto-Remediation Recommendations
+
+After each run, KubePulse emits a recommendation bundle:
+
+- Probable source of degradation
+- Suggested action: `restart`, `reroute`, `scale`, or `isolate`
+- Confidence score
+- Suggested rollback or config-change note
+
+---
+
 ## Prometheus Integration
 
-`app/prom_metrics.py` instruments KubePulse using `prometheus-client` and exposes a scrape endpoint at `GET /metrics`.
+`app/prom_metrics.py` instruments KubePulse with `prometheus-client` and exposes a scrape endpoint at `GET /metrics`.
 
 | Metric | Description |
 |---|---|
@@ -329,13 +389,13 @@ exports/readiness_false_positive_demo-pod_20260307T201547Z.md
 | `cluster_errors` | Observed cluster error count |
 | `chaos_mode` | Boolean — disruption scenario active |
 
-These signals are Grafana-ready and can be visualized using any Prometheus datasource.
+All metrics are Grafana-ready and visualizable using any Prometheus datasource.
 
 ---
 
 ## Sample Fault-Injectable Service
 
-`sample_app/main.py` is a controlled degradation target for running experiments. Configure state via environment variables:
+`sample_app/main.py` is a controlled degradation target for running experiments. Configure via environment variables:
 
 ```bash
 # Healthy baseline
@@ -392,9 +452,25 @@ KubePulse ships with a GitHub Actions workflow that runs resilience validation a
 .github/workflows/resilience-tests.yml
 ```
 
-Pipeline: checkout → install dependencies → start sample service → start KubePulse → run scenarios → fetch and assert scorecards.
+**Pipeline:** checkout → install dependencies → start sample service → start KubePulse → run scenarios → fetch and assert scorecards.
 
 **Latest run: ✅ passing · ~15s · branch: master**
+
+---
+
+## Network Lab
+
+KubePulse includes a Linux namespace/container-based network lab for repeatable service-to-service resilience experiments under controlled network degradation.
+
+```
+lab/network-lab/
+├── docker-compose.yml
+└── scripts/run_experiment.sh
+```
+
+**Supported scenarios:** `baseline`, `dns_failure`, `latency`, `partition`, `churn`
+
+See [`docs/network-lab/README.md`](docs/network-lab/README.md) for full documentation and [`docs/network-lab/experiment-results.md`](docs/network-lab/experiment-results.md) for baseline vs degraded results.
 
 ---
 
@@ -405,7 +481,8 @@ Pipeline: checkout → install dependencies → start sample service → start K
 pip install fastapi uvicorn requests prometheus-client pyyaml
 
 # Start sample service (healthy baseline)
-ARTIFICIAL_DELAY_MS=0 ERROR_MODE=false python3 -m uvicorn sample_app.main:app --host 127.0.0.1 --port 9000 &
+ARTIFICIAL_DELAY_MS=0 ERROR_MODE=false \
+  python3 -m uvicorn sample_app.main:app --host 127.0.0.1 --port 9000 &
 
 # Start KubePulse
 python3 -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
@@ -425,6 +502,9 @@ python3 -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
 | Baseline comparison | ❌ | ✅ |
 | Composite resilience score | ❌ | ✅ |
 | Structured scorecards | ❌ | ✅ |
+| Network-aware validation | ❌ | ✅ |
+| Dependency-path diagnostics | ❌ | ✅ |
+| Auto-remediation recommendations | ❌ | ✅ |
 | Declarative scenario catalog | ❌ | ✅ |
 | CI-automated validation | ❌ | ✅ |
 | Experiment artifact store | ❌ | ✅ |
@@ -463,137 +543,3 @@ MIT — see [LICENSE](LICENSE) for details.
 *Built for engineers who need to know their systems recover correctly — not just that they survived.*
 
 </div>
-## Network-Aware Resilience Validation
-
-KubePulse now includes network disruption scenarios as first-class validation primitives for Kubernetes workloads:
-
-- packet loss
-- DNS resolution failure
-- service-to-service latency injection
-- node-to-node partition
-- dropped egress
-- degraded ingress
-- MTU mismatch simulation
-- intermittent TCP resets
-- connection churn
-
-### What KubePulse Measures
-
-For network-aware runs, KubePulse captures and reports:
-
-- DNS success rate
-- TCP connect latency
-- HTTP success rate under degraded network conditions
-- cross-zone / cross-node communication degradation
-- path recovery time
-- readiness false positives versus real network availability
-- latency percentile drift and error-rate change relative to baseline
-
-### Dependency-Path Diagnostics
-
-KubePulse infers a lightweight service dependency graph and emits:
-
-- upstream/downstream relationship hints
-- latency/error propagation path
-- likely root-cause service or network segment
-- estimated blast radius across impacted services
-
-### Auto-Remediation Recommendations
-
-After each run, KubePulse emits a recommendation bundle with:
-
-- probable source of degradation
-- suggested action: restart, reroute, scale, or isolate
-- confidence score
-- suggested rollback or config-change note
-
-### Linux / TCP/IP Evidence
-
-The networking layer is designed to keep measurements interview-defensible. The reports explicitly track DNS failures, TCP handshake/connect latency, HTTP dependency degradation, and container-to-container communication instability so that network findings can be explained in concrete operational terms rather than generic “service unhealthy” language.
-
-## Flagship Network Resilience Validation
-
-KubePulse validates Kubernetes service behavior under controlled network degradation and turns each run into a structured resilience and diagnosis report.
-
-### Key Signals
-- DNS success rate
-- TCP connect latency
-- HTTP success under degraded network conditions
-- readiness false positives versus real network availability
-- recovery time
-- recommendation confidence
-
-### Example: DNS Failure Baseline vs Degraded
-
-| Metric | Baseline Avg | Degraded Avg | Delta |
-|---|---:|---:|---:|
-| Network health score | 95 | 53 | -42 |
-| DNS success rate | 98.5% | 55.0% | -43.5 pts |
-| TCP connect latency | 18 ms | 145 ms | +127 ms |
-| HTTP success rate | 99.0% | 72.0% | -27.0 pts |
-| p95 latency | 165 ms | 315 ms | +150 ms |
-| Error rate | 1.0% | 8.0% | +7.0 pts |
-| Recovery window | 5 s | 14 s | +9 s |
-| Readiness false positives | 0 | 2 | +2 |
-| Recommendation confidence | 0.88 | 0.93 | +0.05 |
-
-### Blast Radius and Diagnosis
-
-In network degradation scenarios, KubePulse infers a lightweight service dependency graph to identify:
-- likely root-cause service or network segment
-- upstream/downstream propagation path
-- estimated blast radius
-- probable remediation action
-
-Example dependency path:
-`frontend -> auth-service -> shared-db`
-
-### Remediation Guidance
-
-Each run emits:
-- probable source of degradation
-- recommended action (`restart`, `reroute`, `scale`, or `isolate`)
-- confidence score
-- suggested rollback
-- suggested config change
-
-### Artifacts
-- [Baseline vs Degraded Experiment Table](docs/tables/dns_failure_baseline_vs_degraded.md)
-- [Blast Radius Case Study](docs/case-studies/dns_failure_blast_radius.md)
-- [Remediation Recommendation Example](docs/case-studies/remediation_example.md)
-
-### Suggested Screenshots
-
-Add screenshots to `docs/screenshots/` and reference them here:
-- network health dashboard
-- baseline vs degraded comparison table
-- dependency / blast-radius visualization
-- remediation output example
-
-Example markdown once screenshots are added:
-
-```md
-![Network Health Dashboard](docs/screenshots/network-health-dashboard.png)
-![Baseline vs Degraded Experiment](docs/screenshots/baseline-vs-degraded.png)
-![Blast Radius Case Study](docs/screenshots/blast-radius-case-study.png)
-![Remediation Recommendation](docs/screenshots/remediation-example.png)
-
-## KubePulse Network Lab
-
-KubePulse includes a Linux namespace/container-based service network lab for repeatable service-to-service resilience experiments under controlled network degradation.
-
-See:
-- `docs/network-lab/README.md`
-- `lab/network-lab/docker-compose.yml`
-- `lab/network-lab/scripts/run_experiment.sh`
-
-Initial supported scenarios:
-- baseline
-- dns_failure
-- latency
-- partition
-- churn
-
-## Network Lab Experiment Results
-
-See `docs/network-lab/experiment-results.md` for baseline vs degraded results across DNS failure and API-path latency injection.
