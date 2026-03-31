@@ -8,6 +8,8 @@
 ██║  ██╗╚██████╔╝██████╔╝███████╗██║     ╚██████╔╝███████╗███████║███████╗
 ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝╚═╝      ╚═════╝ ╚══════╝╚══════╝╚══════╝
 ```
+</div>
+
 # KubePulse
 
 **Kubernetes resilience validation framework measuring recovery, probe integrity, and degraded-path behavior under failure.**
