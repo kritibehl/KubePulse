@@ -10,16 +10,15 @@
 ```
 # KubePulse
 
+<<<<<<< HEAD
 **Resilience validation for Kubernetes services — beyond "chaos ran" toward "did the system actually recover correctly?"**
+=======
+# KubePulse
+>>>>>>> 9b6940c (Position KubePulse as resilience validation framework with network lab extensions)
 
-[![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
-[![Kubernetes](https://img.shields.io/badge/Kubernetes-1.27+-326CE5?style=flat-square&logo=kubernetes&logoColor=white)](https://kubernetes.io)
-[![Prometheus](https://img.shields.io/badge/Prometheus-implemented-E6522C?style=flat-square&logo=prometheus&logoColor=white)](https://prometheus.io)
-[![Grafana](https://img.shields.io/badge/Grafana-ready-F46800?style=flat-square&logo=grafana&logoColor=white)](https://grafana.com)
-[![CI](https://img.shields.io/badge/CI-passing-22C55E?style=flat-square&logo=githubactions&logoColor=white)](.github/workflows/resilience-tests.yml)
-[![License](https://img.shields.io/badge/License-MIT-6366F1?style=flat-square)](LICENSE)
+**Kubernetes resilience validation framework measuring recovery, probe integrity, and degraded-path behavior under failure.**
 
+<<<<<<< HEAD
 KubePulse is a resilience validation framework that executes controlled disruption scenarios, measures real service behavior, compares against a pre-disruption baseline, and produces structured scorecards — so engineers know whether their system recovered correctly, not just whether it survived.
 
 ---
@@ -31,11 +30,16 @@ KubePulse is a resilience validation framework that executes controlled disrupti
 > KubePulse ran a `readiness_false_positive` scenario, measured real request behavior against the pre-disruption baseline, and failed the run with `probe_truthfulness: misleading` and `resilience_score: 41`.
 
 That gap — between what Kubernetes believes and what users experience — is what KubePulse is built to catch.
+=======
+> KubePulse is not a chaos demo. It answers a harder operational question:
+> **Did the service truly recover correctly, or did it only appear healthy?**
+>>>>>>> 9b6940c (Position KubePulse as resilience validation framework with network lab extensions)
 
 ---
 
 ## The Problem
 
+<<<<<<< HEAD
 Traditional chaos tools inject failures and stop there. They don't answer the questions that actually matter:
 
 | Question | What Most Tools Give You |
@@ -121,37 +125,70 @@ thresholds:
 ```
 
 | Scenario | What It Validates |
-|---|---|
-| `cpu_stress` | CPU starvation and thread contention |
-| `cpu_pressure` | Sustained CPU saturation |
-| `memory_pressure` | Heap pressure and OOM-adjacent behavior |
-| `readiness_false_positive` | Probe-signal mismatch detection |
-| `packet_loss` | Network instability and retry storms |
-| `pod_kill` | Pod termination and rescheduling |
-| `dependency_timeout` | Downstream dependency failure |
+=======
+Standard health checks lie.
+
+A service can pass readiness probes, respond to HTTP pings, and show green in your dashboard — while still being unsafe to operate. Downstream DNS is broken. Latency has tripled. Dependency paths are degraded. Your probes don't know.
+
+KubePulse measures whether systems are **actually safe to operate**, not just whether they are up.
 
 ---
 
+## What KubePulse Validates
+
+| Signal | What It Tells You |
+>>>>>>> 9b6940c (Position KubePulse as resilience validation framework with network lab extensions)
+|---|---|
+| **Recovery time** | How long the system took to return to an acceptable state |
+| **p50 / p95 latency drift** | Whether latency returned to baseline or remained degraded |
+| **Probe integrity** | Whether readiness/health signals matched real availability |
+| **DNS / dependency reachability** | Whether downstream services were actually reachable |
+| **Error-rate change** | Whether degraded-path behavior increased failure rates |
+| **Rollout risk** | Whether it was safe to continue deploying or restoring traffic |
+
+---
+
+<<<<<<< HEAD
 ## Readiness Integrity Validation
 
 KubePulse detects **readiness false positives** — cases where Kubernetes marks a pod `Ready` while the service is actually degraded.
+=======
+## System States
 
-```
-Readiness before: ready
-Readiness after:  ready          ← probe says healthy
-
-Observed latency p95:  elevated
-Observed error rate:   elevated  ← service is not healthy
-
-Result:
-  readiness_false_positive = true
-  status                   = fail
-```
+| State | Recovery Time | Latency Drift | DNS Result | Readiness Integrity | Interpretation |
+|---|---|---|---|---|---|
+| **Healthy** | 0–5s | Minimal | Healthy | Probes aligned with real availability | Safe to operate |
+| **Degraded** | Elevated / unstable | Significant drift | Partial or failed | False positives possible | May look healthy while still unsafe |
+| **Recovered** | Returned to baseline | Drift normalizing | Path restored | Probes realigned | Safe to resume normal traffic |
 
 ---
 
-## Resilience Scoring
+## Network Lab
 
+KubePulse includes a container-based service network lab for repeatable resilience experiments under controlled degradation.
+
+### Dependency Path
+>>>>>>> 9b6940c (Position KubePulse as resilience validation framework with network lab extensions)
+
+```
+edge -> api-service -> auth-service
+```
+
+<<<<<<< HEAD
+---
+=======
+### Scenarios
+
+- `baseline`
+- `dns_failure`
+- `latency_injection`
+- `partial_partition`
+- `connection_churn`
+>>>>>>> 9b6940c (Position KubePulse as resilience validation framework with network lab extensions)
+
+### Run in 5 Minutes
+
+<<<<<<< HEAD
 Each run produces a composite score across four independent dimensions:
 
 | Sub-score | Factor |
@@ -266,14 +303,31 @@ curl -X POST http://127.0.0.1:8000/scenarios/run/readiness_false_positive
 
 # Get latest scorecard
 curl http://127.0.0.1:8000/scorecard/latest
+=======
+> **Prerequisite:** Docker Desktop must be running.
+
+```bash
+docker compose -f lab/network-lab/docker-compose.yml up -d --build
+bash lab/network-lab/scripts/run_experiment.sh baseline
+bash lab/network-lab/scripts/run_experiment.sh dns_failure
+```
+
+Verify Docker is available:
+
+```bash
+docker info
+>>>>>>> 9b6940c (Position KubePulse as resilience validation framework with network lab extensions)
 ```
 
 ---
 
-## API Reference
+## Network Lab Results
 
-| Method | Endpoint | Description |
+### DNS Failure
+
+| | Baseline | Degraded |
 |---|---|---|
+<<<<<<< HEAD
 | `GET` | `/health` | Service health check |
 | `GET` | `/scenarios` | List available scenarios |
 | `POST` | `/scenarios/run/{name}` | Execute a named scenario |
@@ -303,7 +357,118 @@ exports/          Markdown resilience summaries
 - [DetTrace](https://github.com/kritibehl/dettrace) — distributed incident replay and forensics
 - [AutoOps-Insight](https://github.com/kritibehl/autoops-insight) — operator-facing incident triage
 - [FairEval-Suite](https://github.com/kritibehl/FairEval-Suite) — regression gating for GenAI systems
+=======
+| Request success | 25 / 25 | **0 / 25** |
 
-## License
+**Interpretation:** The dependency path was broken. The service was not safe to treat as recovered. Rollout and traffic restoration should be blocked until DNS resolution is restored.
 
+### API Path Latency Injection
+
+| | Baseline | Degraded |
+|---|---|---|
+| Request success | 25 / 25 | 23 / 25 |
+| p50 latency | 4.888 ms | **1.462 s** |
+| p95 latency | 10.120 ms | **2.306 s** |
+
+**Interpretation:** The service path remained partially available, but degraded-hop behavior materially increased latency. The system may appear "up" — operator confidence should be reduced until the degraded path is resolved.
+
+---
+
+## Operational Questions KubePulse Answers
+
+- Did recovery really complete?
+- Are readiness probes still trustworthy?
+- Is the service degraded even though it looks healthy?
+- Is it safe to continue rollout, failover, or traffic restoration?
+- Which signals suggest the biggest operational risk?
+
+---
+
+## Dependency-Path Diagnostics
+
+KubePulse infers a lightweight dependency path and emits operator-facing signals:
+
+- Upstream / downstream relationship hints
+- Latency and error propagation path
+- Likely root-cause service or network segment
+- Estimated blast radius across impacted services
+
+---
+>>>>>>> 9b6940c (Position KubePulse as resilience validation framework with network lab extensions)
+
+## Auto-Remediation Recommendations
+
+<<<<<<< HEAD
 MIT — see [LICENSE](LICENSE) for details.
+=======
+After each run, KubePulse emits a recommendation bundle:
+
+- Probable source of degradation
+- Recommended action: `restart` | `reroute` | `scale` | `isolate`
+- Confidence score
+- Suggested rollback
+- Suggested config-change note
+
+---
+
+## Extending With a New Scenario
+
+1. Add a failure script in `lab/network-lab/scripts/failures/`
+2. Add the scenario branch in `lab/network-lab/scripts/run_experiment.sh`
+3. Reuse the traffic and measurement scripts to capture:
+   - Request success / failure
+   - p50 / p95 latency
+   - DNS / TCP behavior
+   - Recovery timing
+4. Document healthy vs degraded vs recovered outcomes
+5. Add operator interpretation: safe to operate, still degraded, rollout risk, remediation recommendation
+
+---
+
+## Network-Aware Failure Primitives
+
+KubePulse treats network disruption as first-class validation scenarios:
+
+- Packet loss
+- DNS resolution failure
+- Service-to-service latency injection
+- Node-to-node partition
+- Dropped egress / degraded ingress
+- MTU mismatch simulation
+- Intermittent TCP resets
+- Connection churn
+
+For each run, KubePulse captures DNS success rate, TCP connect latency, HTTP success under degraded conditions, cross-zone communication degradation, path recovery time, and latency percentile drift relative to baseline.
+
+---
+
+## Productization Direction
+
+KubePulse is structured as an operator-facing validation tool, not a one-off demo:
+
+- Resilience validation scorecards
+- Historical trend storage
+- Repeated baseline vs degraded comparisons
+- Network-aware failure scenarios
+- Operator-facing reports with remediation guidance
+- Fast scenario execution and extension workflows
+
+---
+
+## Artifacts
+
+```
+docs/scorecards/       # Resilience validation scorecards
+docs/reports/          # Example run reports
+docs/network-lab/      # Network lab result summaries
+docs/screenshots/      # Service looked healthy / service was still degraded
+```
+
+---
+
+## Core Idea
+
+> A system can look healthy and still be unsafe to operate.
+
+KubePulse exists to detect that gap — measuring whether systems recovered correctly, whether degraded-path behavior remains dangerous, and whether operators should trust what they are seeing.
+>>>>>>> 9b6940c (Position KubePulse as resilience validation framework with network lab extensions)

@@ -6,46 +6,44 @@ services:
       - "8081:8080"
     environment:
       API_URL: http://api-service:8080/api
-    cap_add:
-      - NET_ADMIN
-      - NET_RAW
-    depends_on:
-      - api-service
+    cap_add: [NET_ADMIN, NET_RAW]
+    depends_on: [api-service]
     networks:
-      - kpnet
+      kpnet:
+        aliases:
+          - edge
 
   api-service:
     build: ./services/api-service
     container_name: kp-api
     environment:
-      AUTH_URL: http://auth-service:8080/auth
-    cap_add:
-      - NET_ADMIN
-      - NET_RAW
-    depends_on:
-      - auth-service
+      AUTH_URL: http://kp-auth:8080/auth
+    cap_add: [NET_ADMIN, NET_RAW]
+    depends_on: [auth-service]
     networks:
-      - kpnet
+      kpnet:
+        aliases:
+          - api-service
 
   auth-service:
     build: ./services/auth-service
     container_name: kp-auth
-    cap_add:
-      - NET_ADMIN
-      - NET_RAW
+    cap_add: [NET_ADMIN, NET_RAW]
     networks:
-      - kpnet
+      kpnet:
+        aliases:
+          - auth-service
 
   datastore-mock:
     image: python:3.11-slim
     container_name: kp-datastore
     working_dir: /app
     command: sh -c "python -m http.server 8080"
-    cap_add:
-      - NET_ADMIN
-      - NET_RAW
+    cap_add: [NET_ADMIN, NET_RAW]
     networks:
-      - kpnet
+      kpnet:
+        aliases:
+          - datastore-mock
 
 networks:
   kpnet:

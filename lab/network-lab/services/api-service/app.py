@@ -2,7 +2,7 @@ import os
 import requests
 from flask import Flask, jsonify
 
-AUTH_URL = os.getenv("AUTH_URL", "http://auth-service:8080/auth")
+AUTH_URL = os.getenv("AUTH_URL", "http://kp-auth:8080/auth")
 app = Flask(__name__)
 
 @app.get("/api")
