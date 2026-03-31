@@ -8,3 +8,4 @@ terraform.tfstate.backup
 reports/*.json
 !reports/sample_cpu_stress_report.jsonreports/*.json
 !reports/sample_cpu_stress_report.json
+README.backup.md
