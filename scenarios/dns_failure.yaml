@@ -1,6 +1,6 @@
-scenario: cpu_stress
+scenario: dns_failure
 target:
-  pod_name: demo-pod
+  pod_name: frontend
   namespace: default
 execution:
   dry_run: true

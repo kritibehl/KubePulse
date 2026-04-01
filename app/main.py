@@ -30,6 +30,7 @@ from app.scenario_loader import list_scenarios, load_scenario
 from app.scenario_runner import run_scenario_definition
 from app.schemas import HistoricalScenarioRequest, NetworkScenarioRequest, ResilienceReport, ScenarioRequest
 from app.service_dependency import infer_dependency_analysis
+from app.slo_evaluator import evaluate_slo
 from app.statistics_engine import compare_baseline_vs_degraded
 
 app = FastAPI(title="KubePulse")
@@ -43,6 +44,7 @@ def startup() -> None:
 def _finalize_result(result: dict) -> dict:
     result.update(compute_resilience_score(result))
     result.update(compute_network_health_score(result))
+    result.update(evaluate_slo(result))
     dependency_analysis = infer_dependency_analysis(result)
     result.update(dependency_analysis)
     remediation = recommend_network_remediation(result, dependency_analysis)

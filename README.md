@@ -203,3 +203,19 @@ docs/screenshots/      # Service looked healthy / service was still degraded
 > A system can look healthy and still be unsafe to operate.
 
 KubePulse exists to close that gap — surfacing whether systems recovered correctly, whether degraded-path behavior remains dangerous, and whether operators should trust what they are seeing.
+
+## SLO Tracking
+
+KubePulse evaluates YAML-defined SLOs per scenario run across:
+- availability target
+- p99 latency target
+- error-rate target
+- SLO window
+
+Example degraded DNS-failure result:
+- SLO_MET: false
+- availability achieved: 0.0%
+- availability target: 99.5%
+- latency p99 achieved: 420.0 ms vs 500.0 ms target
+- error rate achieved: 8.0% vs 1.0% target
+- error budget remaining: 0.0%

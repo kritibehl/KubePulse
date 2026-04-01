@@ -56,6 +56,15 @@ def persist_report(report: dict) -> str:
                 latency_score=int(report.get("latency_score", 0)),
                 error_score=int(report.get("error_score", 0)),
                 probe_integrity_score=int(report.get("probe_integrity_score", 0)),
+                slo_availability_target=float(report.get("slo_availability_target", 99.5)),
+                slo_latency_p99_target_ms=float(report.get("slo_latency_p99_target_ms", 500.0)),
+                slo_error_rate_target=float(report.get("slo_error_rate_target", 1.0)),
+                slo_window_minutes=int(report.get("slo_window_minutes", 30)),
+                availability_achieved_pct=float(report.get("availability_achieved_pct", 0.0)),
+                latency_p99_achieved_ms=float(report.get("latency_p99_achieved_ms", 0.0)),
+                error_rate_achieved_pct=float(report.get("error_rate_achieved_pct", 0.0)),
+                error_budget_remaining_pct=float(report.get("error_budget_remaining_pct", 0.0)),
+                slo_met=bool(report.get("slo_met", False)),
             )
         )
         session.add(
@@ -116,6 +125,11 @@ def fetch_history(scenario: str | None = None, limit: int = 100) -> list[dict]:
                 ScenarioRun.confidence_score,
                 ScenarioRun.created_at,
                 ScoreHistory.resilience_score,
+                ScoreHistory.slo_met,
+                ScoreHistory.availability_achieved_pct,
+                ScoreHistory.latency_p99_achieved_ms,
+                ScoreHistory.error_rate_achieved_pct,
+                ScoreHistory.error_budget_remaining_pct,
                 RecoveryWindowHistory.recovery_window_seconds,
                 RecoveryWindowHistory.readiness_false_positive,
                 LatencyErrorSummary.latency_p95_ms,
@@ -152,6 +166,8 @@ def trend_summary() -> dict:
                 func.avg(NetworkHealthHistory.dns_success_rate).label("avg_dns_success_rate"),
                 func.avg(NetworkHealthHistory.tcp_connect_latency_ms).label("avg_tcp_connect_latency_ms"),
                 func.avg(NetworkHealthHistory.http_success_rate).label("avg_http_success_rate"),
+                func.avg(ScoreHistory.error_budget_remaining_pct).label("avg_error_budget_remaining_pct"),
+                func.sum(func.cast(ScoreHistory.slo_met, Integer)).label("slo_met_count"),
                 func.sum(func.cast(RecoveryWindowHistory.readiness_false_positive, Integer)).label("readiness_false_positive_count"),
             )
             .join(ScoreHistory, ScoreHistory.run_id == ScenarioRun.run_id)

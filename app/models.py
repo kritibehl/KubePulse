@@ -33,6 +33,15 @@ class ScoreHistory(Base):
     latency_score: Mapped[int] = mapped_column(Integer, default=0)
     error_score: Mapped[int] = mapped_column(Integer, default=0)
     probe_integrity_score: Mapped[int] = mapped_column(Integer, default=0)
+    slo_availability_target: Mapped[float] = mapped_column(Float, default=99.5)
+    slo_latency_p99_target_ms: Mapped[float] = mapped_column(Float, default=500.0)
+    slo_error_rate_target: Mapped[float] = mapped_column(Float, default=1.0)
+    slo_window_minutes: Mapped[int] = mapped_column(Integer, default=30)
+    availability_achieved_pct: Mapped[float] = mapped_column(Float, default=0.0)
+    latency_p99_achieved_ms: Mapped[float] = mapped_column(Float, default=0.0)
+    error_rate_achieved_pct: Mapped[float] = mapped_column(Float, default=0.0)
+    error_budget_remaining_pct: Mapped[float] = mapped_column(Float, default=0.0)
+    slo_met: Mapped[bool] = mapped_column(Boolean, default=False)
 
 class RecoveryWindowHistory(Base):
     __tablename__ = "recovery_window_history"
