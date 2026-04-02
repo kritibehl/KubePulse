@@ -107,6 +107,9 @@ def persist_report(report: dict) -> str:
                 cross_zone_degradation_pct=float(report.get("cross_zone_degradation_pct", 0.0)),
                 path_recovery_time_seconds=float(report.get("path_recovery_time_seconds", report.get("recovery_window_seconds", 0.0))),
                 network_availability_gap_pct=float(report.get("network_availability_gap_pct", 0.0)),
+                fallback_success_rate_pct=float(report.get("fallback_success_rate_pct", 0.0)),
+                degraded_serving_mode=bool(report.get("degraded_serving_mode", False)),
+                full_outage=bool(report.get("full_outage", False)),
             )
         )
     set_latest_run_for_scenario(report["scenario"], run_id)
@@ -140,6 +143,9 @@ def fetch_history(scenario: str | None = None, limit: int = 100) -> list[dict]:
                 NetworkHealthHistory.dns_success_rate,
                 NetworkHealthHistory.tcp_connect_latency_ms,
                 NetworkHealthHistory.http_success_rate,
+                NetworkHealthHistory.fallback_success_rate_pct,
+                NetworkHealthHistory.degraded_serving_mode,
+                NetworkHealthHistory.full_outage,
             )
             .join(ScoreHistory, ScoreHistory.run_id == ScenarioRun.run_id)
             .join(RecoveryWindowHistory, RecoveryWindowHistory.run_id == ScenarioRun.run_id)
@@ -166,6 +172,9 @@ def trend_summary() -> dict:
                 func.avg(NetworkHealthHistory.dns_success_rate).label("avg_dns_success_rate"),
                 func.avg(NetworkHealthHistory.tcp_connect_latency_ms).label("avg_tcp_connect_latency_ms"),
                 func.avg(NetworkHealthHistory.http_success_rate).label("avg_http_success_rate"),
+                func.avg(NetworkHealthHistory.fallback_success_rate_pct).label("avg_fallback_success_rate_pct"),
+                func.sum(func.cast(NetworkHealthHistory.degraded_serving_mode, Integer)).label("degraded_serving_count"),
+                func.sum(func.cast(NetworkHealthHistory.full_outage, Integer)).label("full_outage_count"),
                 func.avg(ScoreHistory.error_budget_remaining_pct).label("avg_error_budget_remaining_pct"),
                 func.sum(func.cast(ScoreHistory.slo_met, Integer)).label("slo_met_count"),
                 func.sum(func.cast(RecoveryWindowHistory.readiness_false_positive, Integer)).label("readiness_false_positive_count"),

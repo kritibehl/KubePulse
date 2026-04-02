@@ -1,0 +1,14 @@
+scenario: model_inference_timeout
+target:
+  pod_name: ai-gateway
+  namespace: default
+execution:
+  dry_run: true
+slo:
+  availability_target: 99.5
+  latency_p99_target_ms: 1200
+  error_rate_target: 1.0
+  window_minutes: 30
+ai_quality:
+  fallback_success_rate_target: 95.0
+  degraded_serving_allowed: true

@@ -1,0 +1,14 @@
+scenario: partial_fallback_under_load
+target:
+  pod_name: ai-gateway
+  namespace: default
+execution:
+  dry_run: true
+slo:
+  availability_target: 99.5
+  latency_p99_target_ms: 1800
+  error_rate_target: 2.0
+  window_minutes: 30
+ai_quality:
+  fallback_success_rate_target: 80.0
+  degraded_serving_allowed: true

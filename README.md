@@ -219,3 +219,25 @@ Example degraded DNS-failure result:
 - latency p99 achieved: 420.0 ms vs 500.0 ms target
 - error rate achieved: 8.0% vs 1.0% target
 - error budget remaining: 0.0%
+
+## AI Service Reliability and SLO Validation
+
+KubePulse also supports resilience validation for Kubernetes-hosted backend and AI services, including scenario packs for:
+
+- model inference timeout spikes
+- vector DB degraded latency
+- embedding service unavailable
+- tool-router dependency failure
+- partial fallback behavior under load
+
+For AI-service scenarios, KubePulse measures:
+- availability
+- p99 latency
+- error rate
+- fallback success rate
+- degraded-but-serving mode vs full outage
+
+This lets scorecards express conditions like:
+- latency SLO passed, error budget exhausted
+- retrieval dependency failed, graceful fallback absent
+- health probes green but user-facing requests degraded

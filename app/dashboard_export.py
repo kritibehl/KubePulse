@@ -49,6 +49,9 @@ def export_dashboard_dataset(path: str = "exports/dashboard_dataset.csv") -> str
                 NetworkHealthHistory.cross_zone_degradation_pct,
                 NetworkHealthHistory.path_recovery_time_seconds,
                 NetworkHealthHistory.network_availability_gap_pct,
+                NetworkHealthHistory.fallback_success_rate_pct,
+                NetworkHealthHistory.degraded_serving_mode,
+                NetworkHealthHistory.full_outage,
             )
             .join(ScoreHistory, ScoreHistory.run_id == ScenarioRun.run_id)
             .join(RecoveryWindowHistory, RecoveryWindowHistory.run_id == ScenarioRun.run_id)
@@ -69,7 +72,8 @@ def export_dashboard_dataset(path: str = "exports/dashboard_dataset.csv") -> str
             "latency_p95_ms", "latency_p95_drift_pct", "error_rate", "error_rate_delta",
             "network_health_score", "dns_success_rate", "tcp_connect_latency_ms",
             "http_success_rate", "cross_zone_degradation_pct", "path_recovery_time_seconds",
-            "network_availability_gap_pct"
+            "network_availability_gap_pct", "fallback_success_rate_pct",
+            "degraded_serving_mode", "full_outage"
         ])
         for row in rows:
             writer.writerow(list(row))

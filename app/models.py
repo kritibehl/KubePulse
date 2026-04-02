@@ -84,3 +84,6 @@ class NetworkHealthHistory(Base):
     cross_zone_degradation_pct: Mapped[float] = mapped_column(Float, default=0.0)
     path_recovery_time_seconds: Mapped[float] = mapped_column(Float, default=0.0)
     network_availability_gap_pct: Mapped[float] = mapped_column(Float, default=0.0)
+    fallback_success_rate_pct: Mapped[float] = mapped_column(Float, default=0.0)
+    degraded_serving_mode: Mapped[bool] = mapped_column(Boolean, default=False)
+    full_outage: Mapped[bool] = mapped_column(Boolean, default=False)

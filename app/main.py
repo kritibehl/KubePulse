@@ -4,6 +4,7 @@ from prometheus_client import make_asgi_app
 from app.analytics_store import fetch_history, persist_report, trend_summary
 from app.cache import cache_health
 from app.dashboard_export import export_dashboard_dataset
+from app.ai_service_scenarios import run_ai_service_scenario
 from app.chaos_injector import (
     inject_cpu_stress,
     inject_memory_stress,
@@ -197,6 +198,62 @@ def network_mtu_mismatch(request: NetworkScenarioRequest) -> ResilienceReport:
 @app.post("/network/tcp-resets", response_model=ResilienceReport)
 def network_tcp_resets(request: NetworkScenarioRequest) -> ResilienceReport:
     return _network_response(inject_tcp_resets, request)
+
+
+@app.post("/ai/model-inference-timeout", response_model=ResilienceReport)
+def ai_model_inference_timeout(request: ScenarioRequest) -> ResilienceReport:
+    try:
+        result = run_ai_service_scenario("model_inference_timeout", request.pod_name, request.namespace, request.dry_run)
+        result["slo"] = load_scenario("model_inference_timeout").get("slo", {})
+        result["ai_quality"] = load_scenario("model_inference_timeout").get("ai_quality", {})
+        result = _finalize_result(result)
+        return ResilienceReport(**result)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/ai/vector-db-degraded-latency", response_model=ResilienceReport)
+def ai_vector_db_degraded_latency(request: ScenarioRequest) -> ResilienceReport:
+    try:
+        result = run_ai_service_scenario("vector_db_degraded_latency", request.pod_name, request.namespace, request.dry_run)
+        result["slo"] = load_scenario("vector_db_degraded_latency").get("slo", {})
+        result["ai_quality"] = load_scenario("vector_db_degraded_latency").get("ai_quality", {})
+        result = _finalize_result(result)
+        return ResilienceReport(**result)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/ai/embedding-service-unavailable", response_model=ResilienceReport)
+def ai_embedding_service_unavailable(request: ScenarioRequest) -> ResilienceReport:
+    try:
+        result = run_ai_service_scenario("embedding_service_unavailable", request.pod_name, request.namespace, request.dry_run)
+        result["slo"] = load_scenario("embedding_service_unavailable").get("slo", {})
+        result["ai_quality"] = load_scenario("embedding_service_unavailable").get("ai_quality", {})
+        result = _finalize_result(result)
+        return ResilienceReport(**result)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/ai/tool-router-dependency-failure", response_model=ResilienceReport)
+def ai_tool_router_dependency_failure(request: ScenarioRequest) -> ResilienceReport:
+    try:
+        result = run_ai_service_scenario("tool_router_dependency_failure", request.pod_name, request.namespace, request.dry_run)
+        result["slo"] = load_scenario("tool_router_dependency_failure").get("slo", {})
+        result["ai_quality"] = load_scenario("tool_router_dependency_failure").get("ai_quality", {})
+        result = _finalize_result(result)
+        return ResilienceReport(**result)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/ai/partial-fallback-under-load", response_model=ResilienceReport)
+def ai_partial_fallback_under_load(request: ScenarioRequest) -> ResilienceReport:
+    try:
+        result = run_ai_service_scenario("partial_fallback_under_load", request.pod_name, request.namespace, request.dry_run)
+        result["slo"] = load_scenario("partial_fallback_under_load").get("slo", {})
+        result["ai_quality"] = load_scenario("partial_fallback_under_load").get("ai_quality", {})
+        result = _finalize_result(result)
+        return ResilienceReport(**result)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/network/connection-churn", response_model=ResilienceReport)
 def network_connection_churn(request: NetworkScenarioRequest) -> ResilienceReport:

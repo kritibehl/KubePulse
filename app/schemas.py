@@ -94,3 +94,9 @@ class ResilienceReport(BaseModel):
     confidence_score: float = 1.0
     data_sufficiency_notes: str = "Sufficient data captured for reporting."
     missing_fields: list[str] = []
+    fallback_success_rate_pct: float = 0.0
+    degraded_serving_mode: bool = False
+    full_outage: bool = False
+    user_visible_quality: str = "healthy"
+    ai_dependency: Optional[str] = None
+    ai_failure_mode: Optional[str] = None
