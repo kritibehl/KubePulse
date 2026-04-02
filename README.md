@@ -12,6 +12,8 @@
 
 # KubePulse
 
+**Resilience Validation for Backend and AI Services**
+
 **Kubernetes resilience validation framework measuring recovery, probe integrity, and degraded-path behavior under failure.**
 
 > KubePulse is not a chaos demo. It answers a harder operational question:
@@ -241,3 +243,53 @@ This lets scorecards express conditions like:
 - latency SLO passed, error budget exhausted
 - retrieval dependency failed, graceful fallback absent
 - health probes green but user-facing requests degraded
+
+
+## Scenario Matrix
+
+KubePulse validates resilience across backend and AI-service failure modes including:
+
+- pod kill
+- CPU stress
+- network partition
+- DNS failure
+- inference timeout spike
+- vector DB latency degradation
+- embedding-service outage
+- fallback under load
+
+For each scenario, KubePulse is designed to surface:
+
+- recovery time
+- p95/p99 drift
+- availability
+- fallback success
+- error-budget burn
+- degraded-serving vs outage
+
+See: `docs/matrices/scenario_matrix.md`
+
+## What Probes Missed
+
+A standout KubePulse feature is exposing cases where health checks looked healthy while service quality was still degraded.
+
+Examples:
+- readiness reported healthy but downstream dependencies were still failing
+- health probes stayed green while latency and user-visible quality remained degraded
+- fallback behavior was serving partial results, but service quality was still unsafe
+
+See: `docs/reports/what_probes_missed.md`
+
+## Scorecard Artifact
+
+KubePulse scorecards are intended to summarize whether a backend or AI service is actually safe to operate after disruption.
+
+See: `docs/scorecards/backend_ai_resilience_scorecard.md`
+
+## Run Comparison
+
+KubePulse can be extended to compare:
+- baseline vs disrupted
+- release A vs release B
+
+See: `docs/reports/run_comparison.md`
