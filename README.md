@@ -445,3 +445,54 @@ For topology and degraded-path scenarios, KubePulse correlates:
 This adds dependency-path reasoning and trace-style artifacts so resilience validation explains *where* the service path changed, not just *that* it changed.
 
 See: `docs/showcase/path_trace_correlation.md`
+
+## Canonical Decision Report
+
+KubePulse should be understood through a single operator-facing decision artifact:
+
+- scenario
+- probes healthy?
+- SLO met?
+- safe to operate?
+- recommendation
+- key metrics
+
+See: `docs/reports/canonical_decision_report.md`
+
+## Compare View
+
+KubePulse supports comparison across:
+- baseline
+- degraded
+- recovered
+
+with emphasis on:
+- convergence
+- availability
+- p95/p99 drift
+- error-budget burn
+- final decision
+
+See: `docs/compare/baseline_degraded_recovered.md`
+
+## Flagship Scenario Artifacts
+
+The most important scenarios surfaced by KubePulse are:
+- link failure failover
+- blackhole
+- link flap
+- asymmetric path
+
+See: `docs/showcase/flagship_scenarios.md`
+
+## What Probes Missed
+
+This is the most important visible concept in KubePulse.
+
+See: `docs/showcase/what_probes_missed.md`
+
+## Compact Metrics
+
+A small table makes the strongest validated outcomes legible at a glance.
+
+See: `docs/showcase/metrics_table.md`
