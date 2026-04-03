@@ -333,3 +333,43 @@ See: `docs/scorecards/scorecard_export_showcase.md`
 KubePulse can validate modern backend/AI dependency chains where availability is preserved but user-visible quality still violates SLOs.
 
 See: `docs/showcase/ai_dependency_chain_case.md`
+
+## Operational Showcase
+
+KubePulse is designed to be legible as an operator-facing resilience validation tool, not just a failure-injection demo.
+
+### Scenario Matrix
+A matrix view helps compare backend and AI-service failure modes across:
+- recovery time
+- p95/p99 drift
+- availability
+- SLO pass/fail
+- error-budget burn
+- fallback success
+- degraded-serving vs outage
+- probe false positives
+
+See: `docs/showcase/scenario_matrix.md`
+
+### What Probes Missed
+A core KubePulse feature is surfacing cases where readiness looked healthy while user-facing behavior was still degraded.
+
+See: `docs/showcase/what_probes_missed.md`
+
+### Release Compare Mode
+KubePulse can be used for:
+- baseline vs disrupted comparisons
+- previous version vs new version validation
+- service A vs service B comparisons
+
+See: `docs/compare/release_compare_mode.md`
+
+### Scorecard Export
+KubePulse scorecards summarize whether a service is actually safe to operate after disruption.
+
+See: `docs/scorecards/scorecard_export_showcase.md`
+
+### AI Dependency Chain Case
+KubePulse can validate modern backend/AI dependency chains where availability is preserved but user-visible quality still violates SLOs.
+
+See: `docs/showcase/ai_dependency_chain_case.md`
