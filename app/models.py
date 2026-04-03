@@ -91,3 +91,5 @@ class NetworkHealthHistory(Base):
     path_changes_total: Mapped[int] = mapped_column(Integer, default=0)
     unreachable_windows_total: Mapped[int] = mapped_column(Integer, default=0)
     degraded_path_requests_total: Mapped[int] = mapped_column(Integer, default=0)
+    unreachable_window_seconds: Mapped[float] = mapped_column(Float, default=0.0)
+    safe_to_operate: Mapped[bool] = mapped_column(Boolean, default=False)

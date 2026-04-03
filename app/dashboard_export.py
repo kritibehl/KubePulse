@@ -56,6 +56,8 @@ def export_dashboard_dataset(path: str = "exports/dashboard_dataset.csv") -> str
                 NetworkHealthHistory.path_changes_total,
                 NetworkHealthHistory.unreachable_windows_total,
                 NetworkHealthHistory.degraded_path_requests_total,
+                NetworkHealthHistory.unreachable_window_seconds,
+                NetworkHealthHistory.safe_to_operate,
             )
             .join(ScoreHistory, ScoreHistory.run_id == ScenarioRun.run_id)
             .join(RecoveryWindowHistory, RecoveryWindowHistory.run_id == ScenarioRun.run_id)
@@ -79,7 +81,7 @@ def export_dashboard_dataset(path: str = "exports/dashboard_dataset.csv") -> str
             "network_availability_gap_pct", "fallback_success_rate_pct",
             "degraded_serving_mode", "full_outage",
             "convergence_seconds", "path_changes_total", "unreachable_windows_total",
-            "degraded_path_requests_total"
+            "degraded_path_requests_total", "unreachable_window_seconds", "safe_to_operate"
         ])
         for row in rows:
             writer.writerow(list(row))

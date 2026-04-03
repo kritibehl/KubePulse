@@ -200,6 +200,35 @@ def network_tcp_resets(request: NetworkScenarioRequest) -> ResilienceReport:
     return _network_response(inject_tcp_resets, request)
 
 
+
+@app.post("/topology/link-failure-failover", response_model=ResilienceReport)
+def topology_link_failure_failover(request: ScenarioRequest) -> ResilienceReport:
+    result = run_topology_decision_scenario("link_failure_failover")
+    result["slo"] = load_scenario("link_failure_failover").get("slo", {})
+    result = _finalize_result(result)
+    return ResilienceReport(**result)
+
+@app.post("/topology/blackhole", response_model=ResilienceReport)
+def topology_blackhole(request: ScenarioRequest) -> ResilienceReport:
+    result = run_topology_decision_scenario("blackhole")
+    result["slo"] = load_scenario("blackhole").get("slo", {})
+    result = _finalize_result(result)
+    return ResilienceReport(**result)
+
+@app.post("/topology/asymmetric-path", response_model=ResilienceReport)
+def topology_asymmetric_path(request: ScenarioRequest) -> ResilienceReport:
+    result = run_topology_decision_scenario("asymmetric_path")
+    result["slo"] = load_scenario("asymmetric_path").get("slo", {})
+    result = _finalize_result(result)
+    return ResilienceReport(**result)
+
+@app.post("/topology/link-flap", response_model=ResilienceReport)
+def topology_link_flap(request: ScenarioRequest) -> ResilienceReport:
+    result = run_topology_decision_scenario("link_flap")
+    result["slo"] = load_scenario("link_flap").get("slo", {})
+    result = _finalize_result(result)
+    return ResilienceReport(**result)
+
 @app.post("/ai/model-inference-timeout", response_model=ResilienceReport)
 def ai_model_inference_timeout(request: ScenarioRequest) -> ResilienceReport:
     try:

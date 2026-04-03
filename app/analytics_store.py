@@ -114,6 +114,8 @@ def persist_report(report: dict) -> str:
                 path_changes_total=int(report.get("path_changes_total", 0)),
                 unreachable_windows_total=int(report.get("unreachable_windows_total", 0)),
                 degraded_path_requests_total=int(report.get("degraded_path_requests_total", 0)),
+                unreachable_window_seconds=float(report.get("unreachable_window_seconds", 0.0)),
+                safe_to_operate=bool(report.get("safe_to_operate", False)),
             )
         )
     set_latest_run_for_scenario(report["scenario"], run_id)
@@ -154,6 +156,8 @@ def fetch_history(scenario: str | None = None, limit: int = 100) -> list[dict]:
                 NetworkHealthHistory.path_changes_total,
                 NetworkHealthHistory.unreachable_windows_total,
                 NetworkHealthHistory.degraded_path_requests_total,
+                NetworkHealthHistory.unreachable_window_seconds,
+                NetworkHealthHistory.safe_to_operate,
             )
             .join(ScoreHistory, ScoreHistory.run_id == ScenarioRun.run_id)
             .join(RecoveryWindowHistory, RecoveryWindowHistory.run_id == ScenarioRun.run_id)
@@ -187,6 +191,8 @@ def trend_summary() -> dict:
                 func.sum(NetworkHealthHistory.path_changes_total).label("path_changes_total"),
                 func.sum(NetworkHealthHistory.unreachable_windows_total).label("unreachable_windows_total"),
                 func.sum(NetworkHealthHistory.degraded_path_requests_total).label("degraded_path_requests_total"),
+                func.avg(NetworkHealthHistory.unreachable_window_seconds).label("avg_unreachable_window_seconds"),
+                func.sum(func.cast(NetworkHealthHistory.safe_to_operate, Integer)).label("safe_to_operate_count"),
                 func.avg(ScoreHistory.error_budget_remaining_pct).label("avg_error_budget_remaining_pct"),
                 func.sum(func.cast(ScoreHistory.slo_met, Integer)).label("slo_met_count"),
                 func.sum(func.cast(RecoveryWindowHistory.readiness_false_positive, Integer)).label("readiness_false_positive_count"),

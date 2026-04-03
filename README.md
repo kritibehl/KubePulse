@@ -394,3 +394,27 @@ Key topology metrics:
 - degraded_path_requests_total
 
 This keeps the project grounded in routing and path-convergence behavior without overclaiming production routing protocol implementation.
+
+## Topology and Decision Layer
+
+KubePulse includes a topology-aware resilience validation layer for degraded network conditions and service dependency paths.
+
+It validates:
+- primary path vs failover path
+- link-down events
+- blackhole / unreachable behavior
+- asymmetric path degradation
+- link flap / route churn
+- convergence timing after failure
+
+Key signals:
+- convergence_seconds
+- path_changes_total
+- unreachable_window_seconds
+- degraded_path_requests_total
+- path_recovery_status
+- safe_to_operate
+- what_probes_missed
+- recommendation_action
+
+This turns KubePulse from failure testing into operator-facing decision support for whether a backend or AI service is truly safe to operate under degraded network conditions.
