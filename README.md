@@ -418,3 +418,30 @@ Key signals:
 - recommendation_action
 
 This turns KubePulse from failure testing into operator-facing decision support for whether a backend or AI service is truly safe to operate under degraded network conditions.
+
+## Visual Decision Artifact
+
+A single operator-facing artifact makes KubePulse immediately legible by showing:
+- scenario name
+- probes healthy?
+- SLO met?
+- safe to operate?
+- what probes missed
+- recommendation
+- key metrics for convergence, path changes, unreachable window, degraded-path requests, and p95 drift
+
+![Topology Decision Artifact](docs/showcase/topology_decision_artifact.svg)
+
+See also: `docs/scorecards/topology_decision_artifact.md`
+
+## Path / Trace Correlation
+
+For topology and degraded-path scenarios, KubePulse correlates:
+- which hop degraded
+- where latency increased
+- what path changed
+- before/after path timeline
+
+This adds dependency-path reasoning and trace-style artifacts so resilience validation explains *where* the service path changed, not just *that* it changed.
+
+See: `docs/showcase/path_trace_correlation.md`

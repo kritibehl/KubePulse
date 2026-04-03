@@ -5,6 +5,8 @@ from app.analytics_store import fetch_history, persist_report, trend_summary
 from app.cache import cache_health
 from app.dashboard_export import export_dashboard_dataset
 from app.ai_service_scenarios import run_ai_service_scenario
+from app.topology_decision_lab import run_topology_decision_scenario
+from app.path_trace_correlation import correlate_path_trace
 from app.chaos_injector import (
     inject_cpu_stress,
     inject_memory_stress,
@@ -46,6 +48,8 @@ def _finalize_result(result: dict) -> dict:
     result.update(compute_resilience_score(result))
     result.update(compute_network_health_score(result))
     result.update(evaluate_slo(result))
+    if result.get("baseline_path") or result.get("final_path"):
+        result.update(correlate_path_trace(result))
     dependency_analysis = infer_dependency_analysis(result)
     result.update(dependency_analysis)
     remediation = recommend_network_remediation(result, dependency_analysis)
