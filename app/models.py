@@ -87,3 +87,7 @@ class NetworkHealthHistory(Base):
     fallback_success_rate_pct: Mapped[float] = mapped_column(Float, default=0.0)
     degraded_serving_mode: Mapped[bool] = mapped_column(Boolean, default=False)
     full_outage: Mapped[bool] = mapped_column(Boolean, default=False)
+    convergence_seconds: Mapped[float] = mapped_column(Float, default=0.0)
+    path_changes_total: Mapped[int] = mapped_column(Integer, default=0)
+    unreachable_windows_total: Mapped[int] = mapped_column(Integer, default=0)
+    degraded_path_requests_total: Mapped[int] = mapped_column(Integer, default=0)

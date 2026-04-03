@@ -1,0 +1,6 @@
+scenario: asymmetric_path
+slo:
+  availability_target: 99.5
+  latency_p99_target_ms: 900
+  error_rate_target: 1.0
+  window_minutes: 30

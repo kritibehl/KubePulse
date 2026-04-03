@@ -100,3 +100,16 @@ class ResilienceReport(BaseModel):
     user_visible_quality: str = "healthy"
     ai_dependency: Optional[str] = None
     ai_failure_mode: Optional[str] = None
+    baseline_path: Optional[list[str]] = None
+    baseline_path_cost: Optional[float] = None
+    final_path: Optional[list[str]] = None
+    final_path_cost: Optional[float] = None
+    path_change_timeline: Optional[list[dict]] = None
+    broken_hop: Optional[str] = None
+    reroute_detail: Optional[dict] = None
+    partial_recovery: bool = False
+    convergence_seconds: float = 0.0
+    path_changes_total: int = 0
+    unreachable_windows_total: int = 0
+    degraded_path_requests_total: int = 0
+    path_extra_latency_ms: float = 0.0

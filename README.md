@@ -373,3 +373,24 @@ See: `docs/scorecards/scorecard_export_showcase.md`
 KubePulse can validate modern backend/AI dependency chains where availability is preserved but user-visible quality still violates SLOs.
 
 See: `docs/showcase/ai_dependency_chain_case.md`
+
+## Network Topology and Convergence Lab
+
+KubePulse also supports topology-aware resilience validation for service dependency paths.
+
+This module models:
+- multi-hop topology paths (edge -> router/service hop -> api -> auth -> downstream)
+- path maps and route selection
+- link up/down events
+- failover path selection
+- asymmetric path scenarios
+- blackhole / unreachable detection
+- convergence timing after path failure
+
+Key topology metrics:
+- convergence_seconds
+- path_changes_total
+- unreachable_windows_total
+- degraded_path_requests_total
+
+This keeps the project grounded in routing and path-convergence behavior without overclaiming production routing protocol implementation.
