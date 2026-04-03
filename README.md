@@ -496,3 +496,15 @@ See: `docs/showcase/what_probes_missed.md`
 A small table makes the strongest validated outcomes legible at a glance.
 
 See: `docs/showcase/metrics_table.md`
+
+## Architecture Diagram
+
+KubePulse evaluates resilience across a simple service dependency chain:
+
+`edge -> api -> auth -> downstream`
+
+The diagram below shows how a failure path maps into an operator-facing decision artifact.
+
+![Architecture Diagram](docs/showcase/architecture_diagram.svg)
+
+See: `docs/showcase/architecture_diagram.md`

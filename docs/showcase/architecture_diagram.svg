@@ -1,0 +1,40 @@
+<svg width="1280" height="500" viewBox="0 0 1280 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1280" height="500" fill="#0B1020"/>
+
+  <text x="60" y="70" fill="#F8FAFC" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="700">
+    KubePulse — Service Path and Failure Flow
+  </text>
+  <text x="60" y="105" fill="#94A3B8" font-family="Arial, Helvetica, sans-serif" font-size="18">
+    edge → api → auth → downstream, with path failure and operator decision support
+  </text>
+
+  <rect x="80" y="180" width="180" height="90" rx="18" fill="#13203A" stroke="#2563EB"/>
+  <text x="170" y="233" text-anchor="middle" fill="#F8FAFC" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="700">edge</text>
+
+  <rect x="340" y="180" width="180" height="90" rx="18" fill="#13203A" stroke="#2563EB"/>
+  <text x="430" y="233" text-anchor="middle" fill="#F8FAFC" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="700">api</text>
+
+  <rect x="600" y="180" width="180" height="90" rx="18" fill="#13203A" stroke="#2563EB"/>
+  <text x="690" y="233" text-anchor="middle" fill="#F8FAFC" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="700">auth</text>
+
+  <rect x="860" y="180" width="220" height="90" rx="18" fill="#13203A" stroke="#2563EB"/>
+  <text x="970" y="233" text-anchor="middle" fill="#F8FAFC" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="700">downstream</text>
+
+  <line x1="260" y1="225" x2="340" y2="225" stroke="#60A5FA" stroke-width="8"/>
+  <line x1="520" y1="225" x2="600" y2="225" stroke="#60A5FA" stroke-width="8"/>
+  <line x1="780" y1="225" x2="860" y2="225" stroke="#60A5FA" stroke-width="8"/>
+
+  <line x1="548" y1="150" x2="632" y2="150" stroke="#EF4444" stroke-width="10" stroke-dasharray="18 12"/>
+  <text x="590" y="130" text-anchor="middle" fill="#FCA5A5" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700">
+    failure path
+  </text>
+
+  <rect x="80" y="330" width="1080" height="110" rx="18" fill="#11182D" stroke="#334155"/>
+  <text x="110" y="370" fill="#E2E8F0" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700">KubePulse decision layer</text>
+  <text x="110" y="402" fill="#F8FAFC" font-family="Arial, Helvetica, sans-serif" font-size="18">
+    probes healthy?   |   SLO met?   |   safe to operate?   |   what probes missed   |   recommendation
+  </text>
+  <text x="110" y="430" fill="#94A3B8" font-family="Arial, Helvetica, sans-serif" font-size="16">
+    Example: probes healthy = true, SLO met = false, safe to operate = false, recommendation = reroute
+  </text>
+</svg>
