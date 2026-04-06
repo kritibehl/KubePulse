@@ -7,6 +7,13 @@ from app.dashboard_export import export_dashboard_dataset
 from app.ai_service_scenarios import run_ai_service_scenario
 from app.topology_decision_lab import run_topology_decision_scenario
 from app.path_trace_correlation import correlate_path_trace
+from reports.scenario_summary import build_resilience_explanation
+from reports.decision_report import build_decision_report
+from reports.compare_view import build_compare_view
+from validators.dependency_path import build_dependency_path_report
+from validators.probe_analysis import build_probe_gap
+from validators.assertions import evaluate_assertions
+from validators.thresholds import evaluate_thresholds
 from app.chaos_injector import (
     inject_cpu_stress,
     inject_memory_stress,
@@ -35,6 +42,7 @@ from app.schemas import HistoricalScenarioRequest, NetworkScenarioRequest, Resil
 from app.service_dependency import infer_dependency_analysis
 from app.slo_evaluator import evaluate_slo
 from app.statistics_engine import compare_baseline_vs_degraded
+from pathlib import Path
 
 app = FastAPI(title="KubePulse")
 metrics_app = make_asgi_app()
@@ -50,6 +58,31 @@ def _finalize_result(result: dict) -> dict:
     result.update(evaluate_slo(result))
     if result.get("baseline_path") or result.get("final_path"):
         result.update(correlate_path_trace(result))
+    scenario_spec = {}
+    scenario_file = Path("scenarios") / f"{result.get('scenario')}.yaml"
+    if scenario_file.exists():
+        import yaml
+        scenario_spec = yaml.safe_load(scenario_file.read_text()) or {}
+    result.update(build_compare_view(result))
+    result.update(build_probe_gap(result))
+    result.update(build_dependency_path_report(result))
+    result.update(evaluate_thresholds(result, scenario_spec))
+    result.update(build_resilience_explanation(result))
+    result["safe_to_operate"] = bool(
+        result.get("availability_ok", False)
+        and result.get("p95_ok", False)
+        and result.get("p99_ok", False)
+        and result.get("error_rate_ok", False)
+        and result.get("slo_met", False)
+        and not result.get("readiness_false_positive", False)
+    )
+    result["probes_say_healthy"] = bool(result.get("readiness_before") == "ready")
+    if not result.get("recommendation_action"):
+        result["recommendation_action"] = (
+            "continue" if result["safe_to_operate"]
+            else ("block" if result.get("status") == "fail" else "reroute")
+        )
+    result.update(build_decision_report(result))
     dependency_analysis = infer_dependency_analysis(result)
     result.update(dependency_analysis)
     remediation = recommend_network_remediation(result, dependency_analysis)

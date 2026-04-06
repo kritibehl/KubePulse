@@ -1,0 +1,19 @@
+scenario: downstream_timeout
+fault_injected: downstream_latency_inflation
+expected_blast_radius:
+  - auth/downstream latency propagation
+  - degraded user-facing requests
+expected_signals:
+  - p95 drift
+  - error budget burn
+  - downstream reachability degradation
+must_hold_invariants:
+  - path diagnosis emitted
+must_not_happen:
+  - probes stay trusted if dependency unreachable
+safe_to_operate_thresholds:
+  availability_min_pct: 99.0
+  p95_max_ms: 250
+  p99_max_ms: 450
+  error_rate_max_pct: 1.0
+expected_recovery_window_seconds: 20

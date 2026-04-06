@@ -1,13 +1,18 @@
-name: packet_loss
-type: network_loss
-
-target:
-  pod: demo-pod
-  namespace: default
-
-network:
-  loss_percent: 20
-
-thresholds:
-  max_recovery_seconds: 25
-  allow_readiness_false_positive: false
+scenario: packet_loss
+fault_injected: intermittent_packet_loss
+expected_blast_radius:
+  - latency inflation
+  - retry amplification
+expected_signals:
+  - p95/p99 drift
+  - degraded-path requests
+must_hold_invariants:
+  - compare view emitted
+must_not_happen:
+  - probes trusted without path validation
+safe_to_operate_thresholds:
+  availability_min_pct: 99.0
+  p95_max_ms: 280
+  p99_max_ms: 550
+  error_rate_max_pct: 1.5
+expected_recovery_window_seconds: 20

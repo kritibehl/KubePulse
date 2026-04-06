@@ -1,0 +1,18 @@
+scenario: brownout
+fault_injected: downstream_partial_availability
+expected_blast_radius:
+  - fallback degradation
+  - partial serving
+expected_signals:
+  - fallback success drop
+  - degraded-serving mode
+must_hold_invariants:
+  - no hidden outage state
+must_not_happen:
+  - safe_to_operate true during brownout if SLO violated
+safe_to_operate_thresholds:
+  availability_min_pct: 98.5
+  p95_max_ms: 300
+  p99_max_ms: 600
+  error_rate_max_pct: 2.0
+expected_recovery_window_seconds: 25

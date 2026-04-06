@@ -1,5 +1,21 @@
 <div align="center">
 
+
+
+## Why KubePulse Exists
+
+KubePulse is built around a simple idea:
+
+> A system can look healthy and still be unsafe to operate.
+
+Traditional probes and green dashboards can create false confidence. KubePulse exists to validate whether recovery is real, whether degraded behavior is still propagating through dependencies, and whether operators should actually trust what they are seeing.
+
+KubePulse is designed to answer:
+- did the service truly recover?
+- are health checks still trustworthy?
+- is degraded behavior still harming users?
+- is it actually safe to continue traffic, reroute, or rollback?
+
 ```
 ██╗  ██╗██╗   ██╗██████╗ ███████╗██████╗ ██╗   ██╗██╗     ███████╗███████╗
 ██║ ██╔╝██║   ██║██╔══██╗██╔════╝██╔══██╗██║   ██║██║     ██╔════╝██╔════╝
@@ -271,6 +287,23 @@ See: `docs/matrices/scenario_matrix.md`
 
 ## What Probes Missed
 
+This is the signature KubePulse idea:
+
+**Green metrics can be misleading.**
+
+KubePulse is built to catch cases where:
+- probes report healthy
+- dashboards stay green
+- components still appear alive
+
+but:
+- dependency paths are broken
+- latency is still elevated
+- fallback quality is degraded
+- the service is not actually safe to operate
+
+
+
 A standout KubePulse feature is exposing cases where health checks looked healthy while service quality was still degraded.
 
 Examples:
@@ -508,3 +541,44 @@ The diagram below shows how a failure path maps into an operator-facing decision
 ![Architecture Diagram](docs/showcase/architecture_diagram.svg)
 
 See: `docs/showcase/architecture_diagram.md`
+
+## Green Metrics Can Be Misleading
+
+One of the main goals of KubePulse is to catch cases where health checks remain green but operational recovery is not actually complete.
+
+See:
+- `docs/reports/green_metrics_misleading.md`
+- `docs/showcase/validation_positioning.md`
+
+## Proof Statement
+
+Resilience validation framework that determines whether systems remain operationally safe under degraded conditions, even when conventional health checks stay green.
+
+## Scenario Spec Model
+
+KubePulse scenarios define:
+- fault injected
+- expected blast radius
+- expected signals
+- must-hold invariants
+- must-not-happen conditions
+- safe-to-operate thresholds
+- expected recovery window
+
+## Safe-to-Operate Logic
+
+Every run should answer:
+- probes healthy?
+- service available?
+- SLO met?
+- downstream healthy?
+- error rate acceptable?
+- safe to operate?
+
+## False Green Gallery
+
+See: `docs/showcase/false_green_gallery.md`
+
+## Case Study
+
+See: `docs/case_studies/green_probe_false_safety.md`

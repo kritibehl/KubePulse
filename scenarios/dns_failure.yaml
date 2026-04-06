@@ -1,11 +1,18 @@
 scenario: dns_failure
-target:
-  pod_name: frontend
-  namespace: default
-execution:
-  dry_run: true
-slo:
-  availability_target: 99.5
-  latency_p99_target_ms: 500
-  error_rate_target: 1.0
-  window_minutes: 30
+fault_injected: dns_resolution_failure
+expected_blast_radius:
+  - dependency unreachable
+  - request collapse
+expected_signals:
+  - 0% or near-0% availability
+  - probe mismatch possible
+must_hold_invariants:
+  - decision report emitted
+must_not_happen:
+  - safe_to_operate true when downstream unresolved
+safe_to_operate_thresholds:
+  availability_min_pct: 99.5
+  p95_max_ms: 250
+  p99_max_ms: 500
+  error_rate_max_pct: 1.0
+expected_recovery_window_seconds: 30

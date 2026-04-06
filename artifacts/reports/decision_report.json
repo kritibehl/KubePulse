@@ -1,0 +1,22 @@
+{
+  "scenario": "link_failure_failover",
+  "probes_healthy": true,
+  "service_available": true,
+  "slo_met": false,
+  "downstream_healthy": true,
+  "error_rate_acceptable": false,
+  "safe_to_operate": false,
+  "recommendation": "reroute",
+  "key_metrics": {
+    "convergence_seconds": 2.4,
+    "degraded_path_requests_total": 12,
+    "unreachable_window_seconds": 0.0,
+    "path_changes_total": 1,
+    "latency_p95_ms": 540.0,
+    "latency_p99_ms": 880.0
+  },
+  "what_probes_missed": [
+    "Readiness stayed green while requests shifted onto a degraded failover path.",
+    "User-facing latency increased even after reachability recovered."
+  ]
+}
