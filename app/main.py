@@ -43,6 +43,9 @@ from app.service_dependency import infer_dependency_analysis
 from app.slo_evaluator import evaluate_slo
 from app.statistics_engine import compare_baseline_vs_degraded
 from pathlib import Path
+from validators.rollout_risk import compute_rollout_risk
+from app.remediation_planner import build_remediation_plan
+from reports.operator_action_plan import build_operator_action_plan
 
 app = FastAPI(title="KubePulse")
 metrics_app = make_asgi_app()
@@ -92,6 +95,15 @@ def _finalize_result(result: dict) -> dict:
     result["report_path"] = report_path
     run_id = persist_report(result)
     result["run_id"] = run_id
+    rollout_risk = compute_rollout_risk(result)
+    remediation_plan = build_remediation_plan(result, rollout_risk)
+    operator_action_plan = build_operator_action_plan(result, rollout_risk, remediation_plan)
+
+    result["rollout_risk"] = rollout_risk
+    result["remediation_plan"] = remediation_plan
+    result["operator_action_plan"] = operator_action_plan
+    result["deployment_decision"] = remediation_plan.get("deployment_decision")
+
     return result
 
 def _network_response(builder, request: NetworkScenarioRequest) -> ResilienceReport:
