@@ -1,0 +1,32 @@
+name: Forward Failure To AutoOps
+
+on:
+  workflow_dispatch:
+
+jobs:
+  send-failure:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create sample failure log
+        run: |
+          cat > failure.log <<'LOG'
+          ERROR dns lookup failed for payments.internal: no such host
+          WARN retrying request to payments.internal after resolver error
+          LOG
+
+      - name: Send log to AutoOps
+        env:
+          AUTOOPS_URL: ${{ secrets.AUTOOPS_URL }}
+          AUTOOPS_TOKEN: ${{ secrets.AUTOOPS_TOKEN }}
+        run: |
+          curl -s -X POST "${AUTOOPS_URL}/integrations/github-actions/ingest" \
+            -H "X-AutoOps-Token: ${AUTOOPS_TOKEN}" \
+            -H "X-Repo-Name: ${GITHUB_REPOSITORY}" \
+            -H "X-Workflow-Name: ${GITHUB_WORKFLOW}" \
+            -H "X-Run-Id: ${GITHUB_RUN_ID}" \
+            -F "file=@failure.log" | tee autoops_response.json
+
+      - name: Show AutoOps response
+        run: cat autoops_response.json
