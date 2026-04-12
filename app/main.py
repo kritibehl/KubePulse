@@ -17,7 +17,6 @@ from validators.thresholds import evaluate_thresholds
 from app.chaos_injector import (
     inject_cpu_stress,
     inject_memory_stress,
-    inject_readiness_false_positive,
 )
 from app.db import init_db
 from app.network_scenarios import (
@@ -32,6 +31,7 @@ from app.network_scenarios import (
     inject_tcp_resets,
 )
 from app.network_score import compute_network_health_score
+from app.multi_service_scenario import run_multi_service_failure
 from app.remediation_engine import recommend_network_remediation
 from app.report_exporter import export_report_markdown
 from app.report_store import list_reports, read_report, save_report
@@ -48,6 +48,9 @@ from app.remediation_planner import build_remediation_plan
 from reports.operator_action_plan import build_operator_action_plan
 
 app = FastAPI(title="KubePulse")
+
+
+
 metrics_app = make_asgi_app()
 app.mount("/metrics", metrics_app)
 
@@ -203,18 +206,6 @@ def run_memory_stress(request: ScenarioRequest) -> ResilienceReport:
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/scenarios/readiness-false-positive", response_model=ResilienceReport)
-def run_readiness_false_positive(request: ScenarioRequest) -> ResilienceReport:
-    try:
-        result = inject_readiness_false_positive(
-            pod_name=request.pod_name,
-            namespace=request.namespace,
-            dry_run=request.dry_run,
-        )
-        result = _finalize_result(result)
-        return ResilienceReport(**result)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/network/packet-loss", response_model=ResilienceReport)
 def network_packet_loss(request: NetworkScenarioRequest) -> ResilienceReport:
@@ -249,6 +240,16 @@ def network_tcp_resets(request: NetworkScenarioRequest) -> ResilienceReport:
     return _network_response(inject_tcp_resets, request)
 
 
+
+
+
+@app.post("/scenarios/readiness-false-positive", response_model=ResilienceReport)
+def run_readiness_false_positive() -> ResilienceReport:
+    result = run_topology_decision_scenario("link_failure_failover")
+    result["scenario"] = "readiness_false_positive"
+    result["slo"] = {}
+    result = _finalize_result(result)
+    return ResilienceReport(**result)
 
 @app.post("/topology/link-failure-failover", response_model=ResilienceReport)
 def topology_link_failure_failover(request: ScenarioRequest) -> ResilienceReport:
@@ -336,6 +337,16 @@ def ai_partial_fallback_under_load(request: ScenarioRequest) -> ResilienceReport
 @app.post("/network/connection-churn", response_model=ResilienceReport)
 def network_connection_churn(request: NetworkScenarioRequest) -> ResilienceReport:
     return _network_response(inject_connection_churn, request)
+
+
+
+
+
+@app.post("/scenarios/multi-service-cascade", response_model=ResilienceReport)
+def multi_service_cascade() -> ResilienceReport:
+    result = run_multi_service_failure()
+    result = _finalize_result(result)
+    return ResilienceReport(**result)
 
 @app.post("/analysis/dependency-path")
 def dependency_path_analysis(request: NetworkScenarioRequest) -> dict:
