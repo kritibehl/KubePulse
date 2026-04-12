@@ -582,3 +582,20 @@ See: `docs/showcase/false_green_gallery.md`
 ## Case Study
 
 See: `docs/case_studies/green_probe_false_safety.md`
+
+## Terraform-backed test environment
+
+KubePulse now includes a root-level `terraform/` directory that provisions a minimal AWS EKS environment with VPC, public/private subnets, and a managed node group.
+
+Why this matters:
+- moves the project beyond local-only cluster validation
+- adds infrastructure-as-code proof for platform and reliability roles
+- makes it easier to run KubePulse against a more production-like Kubernetes target
+
+Infra scaffold:
+- `terraform/main.tf`
+- `terraform/variables.tf`
+- `terraform/outputs.tf`
+- `terraform/versions.tf`
+
+This complements KubePulse’s core reliability goal: detecting cases where Kubernetes probes remain healthy while the system is unsafe to operate.
