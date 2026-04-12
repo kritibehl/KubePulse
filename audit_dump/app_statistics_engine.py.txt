@@ -1,0 +1,89 @@
+===== FILE: app/statistics_engine.py =====
+===== LINES =====
+     1	from sqlalchemy import select
+     2	from scipy.stats import chi2_contingency, ttest_ind
+     3	from app.db import get_db_session
+     4	from app.models import LatencyErrorSummary, RecoveryWindowHistory, ScenarioRun
+     5	
+     6	def _safe_ttest(a: list[float], b: list[float]) -> dict:
+     7	    if len(a) < 2 or len(b) < 2:
+     8	        return {"supported": False, "note": "Need at least 2 runs in each group for a t-test."}
+     9	    if len(set(a)) == 1 and len(set(b)) == 1 and a[0] == b[0]:
+    10	        return {"supported": False, "note": "No variance between groups; t-test is not meaningful."}
+    11	    stat, pvalue = ttest_ind(a, b, equal_var=False)
+    12	    return {"supported": True, "t_statistic": round(float(stat), 4), "p_value": round(float(pvalue), 6)}
+    13	
+    14	def _safe_chi2(table: list[list[int]]) -> dict:
+    15	    total = sum(sum(row) for row in table)
+    16	    if total == 0:
+    17	        return {"supported": False, "note": "No observations available for chi-squared comparison."}
+    18	
+    19	    row_sums = [sum(row) for row in table]
+    20	    col_sums = [sum(col) for col in zip(*table)]
+    21	
+    22	    if 0 in row_sums or 0 in col_sums:
+    23	        return {"supported": False, "note": "Chi-squared is not meaningful for a degenerate contingency table."}
+    24	
+    25	    try:
+    26	        chi2, pvalue, _, expected = chi2_contingency(table)
+    27	        return {
+    28	            "supported": True,
+    29	            "chi2_statistic": round(float(chi2), 4),
+    30	            "p_value": round(float(pvalue), 6),
+    31	            "expected": [[round(float(cell), 3) for cell in row] for row in expected],
+    32	        }
+    33	    except Exception as exc:
+    34	        return {"supported": False, "note": f"Chi-squared could not be computed: {exc}"}
+    35	
+    36	def compare_baseline_vs_degraded(scenario: str, run_group: str | None = None) -> dict:
+    37	    with get_db_session() as session:
+    38	        stmt = (
+    39	            select(
+    40	                ScenarioRun.run_kind,
+    41	                ScenarioRun.status,
+    42	                RecoveryWindowHistory.readiness_false_positive,
+    43	                RecoveryWindowHistory.recovery_window_seconds,
+    44	                LatencyErrorSummary.latency_p95_ms,
+    45	            )
+    46	            .join(RecoveryWindowHistory, RecoveryWindowHistory.run_id == ScenarioRun.run_id)
+    47	            .join(LatencyErrorSummary, LatencyErrorSummary.run_id == ScenarioRun.run_id)
+    48	            .where(ScenarioRun.scenario == scenario)
+    49	            .where(ScenarioRun.run_kind.in_(["baseline", "degraded"]))
+    50	        )
+    51	        if run_group:
+    52	            stmt = stmt.where(ScenarioRun.run_group == run_group)
+    53	
+    54	        rows = [dict(row._mapping) for row in session.execute(stmt).all()]
+    55	
+    56	    baseline = [r for r in rows if r["run_kind"] == "baseline"]
+    57	    degraded = [r for r in rows if r["run_kind"] == "degraded"]
+    58	
+    59	    baseline_latency = [float(r["latency_p95_ms"]) for r in baseline]
+    60	    degraded_latency = [float(r["latency_p95_ms"]) for r in degraded]
+    61	    baseline_recovery = [float(r["recovery_window_seconds"]) for r in baseline]
+    62	    degraded_recovery = [float(r["recovery_window_seconds"]) for r in degraded]
+    63	
+    64	    pass_fail_table = [
+    65	        [sum(1 for r in baseline if r["status"] == "pass"), sum(1 for r in baseline if r["status"] != "pass")],
+    66	        [sum(1 for r in degraded if r["status"] == "pass"), sum(1 for r in degraded if r["status"] != "pass")],
+    67	    ]
+    68	    readiness_table = [
+    69	        [sum(1 for r in baseline if not r["readiness_false_positive"]), sum(1 for r in baseline if r["readiness_false_positive"])],
+    70	        [sum(1 for r in degraded if not r["readiness_false_positive"]), sum(1 for r in degraded if r["readiness_false_positive"])],
+    71	    ]
+    72	
+    73	    return {
+    74	        "scenario": scenario,
+    75	        "run_group": run_group,
+    76	        "baseline_count": len(baseline),
+    77	        "degraded_count": len(degraded),
+    78	        "latency_p95_ttest": _safe_ttest(baseline_latency, degraded_latency),
+    79	        "recovery_window_ttest": _safe_ttest(baseline_recovery, degraded_recovery),
+    80	        "pass_fail_chi_squared": _safe_chi2(pass_fail_table),
+    81	        "readiness_integrity_chi_squared": _safe_chi2(readiness_table),
+    82	        "contingency_tables": {
+    83	            "pass_fail": pass_fail_table,
+    84	            "readiness_integrity": readiness_table,
+    85	        },
+    86	    }
+

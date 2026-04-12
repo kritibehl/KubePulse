@@ -1,0 +1,26 @@
+name: AutoOps Integration
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types:
+      - completed
+
+jobs:
+  send-to-autoops:
+    if: failure()
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Capture failure log
+        run: |
+          echo "CI failure in KubePulse" > failure.log
+
+      - name: Send to AutoOps
+        run: |
+          curl -X POST "$AUTOOPS_URL/integrations/github-actions/ingest" \
+            -H "X-AutoOps-Token: $AUTOOPS_TOKEN" \
+            -H "X-Repo-Name: $GITHUB_REPOSITORY" \
+            -H "X-Workflow-Name: $GITHUB_WORKFLOW" \
+            -H "X-Run-Id: $GITHUB_RUN_ID" \
+            -F "file=@failure.log"

@@ -1,0 +1,16 @@
+===== FILE: tests/test_scorecard.py =====
+===== LINES =====
+     1	from app.resilience_scoring import compute_score
+     2	
+     3	def test_restart_penalty():
+     4	
+     5	    report = {
+     6	        "restart_count": 2,
+     7	        "recovery_window_seconds": 5,
+     8	        "readiness_false_positive": False
+     9	    }
+    10	
+    11	    score = compute_score(report)
+    12	
+    13	    assert score < 100
+

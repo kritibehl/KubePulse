@@ -1,0 +1,23 @@
+===== FILE: app/cache.py =====
+===== LINES =====
+     1	import os
+     2	try:
+     3	    import redis
+     4	except Exception:
+     5	    redis = None
+     6	
+     7	REDIS_URL = os.getenv("REDIS_URL")
+     8	_client = redis.from_url(REDIS_URL, decode_responses=True) if redis and REDIS_URL else None
+     9	
+    10	def set_latest_run_for_scenario(scenario: str, run_id: str) -> None:
+    11	    if _client:
+    12	        _client.set(f"kubepulse:latest:{scenario}", run_id)
+    13	
+    14	def cache_health() -> dict:
+    15	    if not _client:
+    16	        return {"enabled": False}
+    17	    try:
+    18	        return {"enabled": True, "ping": bool(_client.ping())}
+    19	    except Exception as exc:
+    20	        return {"enabled": True, "error": str(exc)}
+

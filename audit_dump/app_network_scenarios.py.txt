@@ -1,0 +1,196 @@
+===== FILE: app/network_scenarios.py =====
+===== LINES =====
+     1	from __future__ import annotations
+     2	from datetime import datetime, timedelta, timezone
+     3	
+     4	def _network_profile(scenario: str, run_kind: str | None) -> dict:
+     5	    baseline = {
+     6	        "packet_loss_pct": 0.5,
+     7	        "dns_success_rate": 0.995,
+     8	        "tcp_connect_latency_ms": 18.0,
+     9	        "http_success_rate": 0.992,
+    10	        "cross_zone_degradation_pct": 2.0,
+    11	        "path_recovery_time_seconds": 4.0,
+    12	        "network_availability_gap_pct": 0.3,
+    13	        "connection_failure_rate": 0.008,
+    14	        "latency_injection_ms": 15.0,
+    15	        "tcp_reset_rate": 0.002,
+    16	        "recovery_window_seconds": 5.0,
+    17	        "latency_p50_ms": 110.0,
+    18	        "latency_p95_ms": 165.0,
+    19	        "latency_p99_ms": 210.0,
+    20	        "error_rate": 0.01,
+    21	        "readiness_false_positive": False,
+    22	        "probe_mismatch": False,
+    23	        "status": "pass",
+    24	        "success": True,
+    25	    }
+    26	    degraded = {
+    27	        "packet_loss_pct": 7.5,
+    28	        "dns_success_rate": 0.91,
+    29	        "tcp_connect_latency_ms": 145.0,
+    30	        "http_success_rate": 0.84,
+    31	        "cross_zone_degradation_pct": 24.0,
+    32	        "path_recovery_time_seconds": 16.0,
+    33	        "network_availability_gap_pct": 11.0,
+    34	        "connection_failure_rate": 0.17,
+    35	        "latency_injection_ms": 180.0,
+    36	        "tcp_reset_rate": 0.11,
+    37	        "recovery_window_seconds": 14.0,
+    38	        "latency_p50_ms": 190.0,
+    39	        "latency_p95_ms": 315.0,
+    40	        "latency_p99_ms": 420.0,
+    41	        "error_rate": 0.08,
+    42	        "readiness_false_positive": True,
+    43	        "probe_mismatch": True,
+    44	        "status": "fail",
+    45	        "success": False,
+    46	    }
+    47	
+    48	    profile = dict(degraded if run_kind == "degraded" else baseline)
+    49	
+    50	    scenario_overrides = {
+    51	        "packet_loss": {"packet_loss_pct": 12.0 if run_kind == "degraded" else 1.0},
+    52	        "dns_failure": {
+    53	            "dns_success_rate": 0.55 if run_kind == "degraded" else 0.985,
+    54	            "http_success_rate": 0.72 if run_kind == "degraded" else 0.99,
+    55	            "readiness_false_positive": True if run_kind == "degraded" else False,
+    56	        },
+    57	        "service_latency": {
+    58	            "latency_injection_ms": 240.0 if run_kind == "degraded" else 20.0,
+    59	            "tcp_connect_latency_ms": 175.0 if run_kind == "degraded" else 20.0,
+    60	            "latency_p95_ms": 360.0 if run_kind == "degraded" else 170.0,
+    61	        },
+    62	        "node_partition": {
+    63	            "cross_zone_degradation_pct": 31.0 if run_kind == "degraded" else 4.0,
+    64	            "connection_failure_rate": 0.23 if run_kind == "degraded" else 0.01,
+    65	            "path_recovery_time_seconds": 22.0 if run_kind == "degraded" else 5.0,
+    66	        },
+    67	        "dropped_egress": {
+    68	            "http_success_rate": 0.61 if run_kind == "degraded" else 0.985,
+    69	            "error_rate": 0.13 if run_kind == "degraded" else 0.015,
+    70	        },
+    71	        "degraded_ingress": {
+    72	            "latency_p95_ms": 340.0 if run_kind == "degraded" else 175.0,
+    73	            "error_rate": 0.09 if run_kind == "degraded" else 0.012,
+    74	        },
+    75	        "mtu_mismatch": {
+    76	            "tcp_reset_rate": 0.16 if run_kind == "degraded" else 0.004,
+    77	            "packet_loss_pct": 9.0 if run_kind == "degraded" else 0.7,
+    78	        },
+    79	        "tcp_resets": {
+    80	            "tcp_reset_rate": 0.22 if run_kind == "degraded" else 0.01,
+    81	            "connection_failure_rate": 0.19 if run_kind == "degraded" else 0.012,
+    82	        },
+    83	        "connection_churn": {
+    84	            "connection_failure_rate": 0.21 if run_kind == "degraded" else 0.015,
+    85	            "tcp_connect_latency_ms": 155.0 if run_kind == "degraded" else 24.0,
+    86	        },
+    87	    }
+    88	
+    89	    profile.update(scenario_overrides.get(scenario, {}))
+    90	    return profile
+    91	
+    92	def _build_report(
+    93	    scenario: str,
+    94	    namespace: str,
+    95	    source_service: str,
+    96	    target_service: str,
+    97	    run_group: str | None,
+    98	    run_kind: str | None,
+    99	    dry_run: bool,
+   100	) -> dict:
+   101	    started = datetime.now(timezone.utc)
+   102	    ended = started + timedelta(seconds=1)
+   103	    p = _network_profile(scenario, run_kind)
+   104	
+   105	    pass_fail_reason = (
+   106	        "Baseline network path remained within thresholds."
+   107	        if run_kind != "degraded"
+   108	        else "Injected network degradation exceeded latency/availability thresholds."
+   109	    )
+   110	
+   111	    return {
+   112	        "scenario": scenario,
+   113	        "pod_name": source_service,
+   114	        "namespace": namespace,
+   115	        "started_at": started.isoformat(),
+   116	        "ended_at": ended.isoformat(),
+   117	        "success": p["success"],
+   118	        "recovery_window_seconds": p["recovery_window_seconds"],
+   119	        "restart_count": 0,
+   120	        "probe_mismatch": p["probe_mismatch"],
+   121	        "status": p["status"],
+   122	        "latency_p50_ms": p["latency_p50_ms"],
+   123	        "latency_p95_ms": p["latency_p95_ms"],
+   124	        "latency_p99_ms": p["latency_p99_ms"],
+   125	        "error_rate": p["error_rate"],
+   126	        "baseline_latency_p50_ms": 110.0,
+   127	        "baseline_latency_p95_ms": 165.0,
+   128	        "baseline_latency_p99_ms": 210.0,
+   129	        "baseline_error_rate": 0.01,
+   130	        "observed_latency_p50_ms": p["latency_p50_ms"],
+   131	        "observed_latency_p95_ms": p["latency_p95_ms"],
+   132	        "observed_latency_p99_ms": p["latency_p99_ms"],
+   133	        "observed_error_rate": p["error_rate"],
+   134	        "latency_p50_drift_pct": round(((p["latency_p50_ms"] - 110.0) / 110.0) * 100, 2),
+   135	        "latency_p95_drift_pct": round(((p["latency_p95_ms"] - 165.0) / 165.0) * 100, 2),
+   136	        "latency_p99_drift_pct": round(((p["latency_p99_ms"] - 210.0) / 210.0) * 100, 2),
+   137	        "error_rate_delta": round(p["error_rate"] - 0.01, 4),
+   138	        "stdout": f"{'Dry run: simulated' if dry_run else 'Executed'} {scenario} disruption from {source_service} to {target_service}",
+   139	        "stderr": "",
+   140	        "error": None,
+   141	        "readiness_before": "ready",
+   142	        "readiness_after": "ready" if not p["readiness_false_positive"] else "ready-but-network-degraded",
+   143	        "readiness_false_positive": p["readiness_false_positive"],
+   144	        "pass_fail_reason": pass_fail_reason,
+   145	        "recommendation": "Pending remediation analysis.",
+   146	        "run_group": run_group,
+   147	        "run_kind": run_kind,
+   148	        "source_service": source_service,
+   149	        "target_service": target_service,
+   150	        "disruption_type": scenario,
+   151	        "dns_success_rate": p["dns_success_rate"],
+   152	        "tcp_connect_latency_ms": p["tcp_connect_latency_ms"],
+   153	        "http_success_rate": p["http_success_rate"],
+   154	        "cross_zone_degradation_pct": p["cross_zone_degradation_pct"],
+   155	        "path_recovery_time_seconds": p["path_recovery_time_seconds"],
+   156	        "network_availability_gap_pct": p["network_availability_gap_pct"],
+   157	        "connection_failure_rate": p["connection_failure_rate"],
+   158	        "packet_loss_pct": p["packet_loss_pct"],
+   159	        "latency_injection_ms": p["latency_injection_ms"],
+   160	        "tcp_reset_rate": p["tcp_reset_rate"],
+   161	        "mtu_mismatch_detected": scenario == "mtu_mismatch",
+   162	        "dependency_edges": [
+   163	            {"source": source_service, "target": target_service, "protocol": "http"},
+   164	            {"source": target_service, "target": "shared-db", "protocol": "tcp"},
+   165	        ],
+   166	    }
+   167	
+   168	def inject_packet_loss(namespace: str, source_service: str, target_service: str, dry_run: bool, run_group: str | None, run_kind: str | None) -> dict:
+   169	    return _build_report("packet_loss", namespace, source_service, target_service, run_group, run_kind, dry_run)
+   170	
+   171	def inject_dns_failure(namespace: str, source_service: str, target_service: str, dry_run: bool, run_group: str | None, run_kind: str | None) -> dict:
+   172	    return _build_report("dns_failure", namespace, source_service, target_service, run_group, run_kind, dry_run)
+   173	
+   174	def inject_service_latency(namespace: str, source_service: str, target_service: str, dry_run: bool, run_group: str | None, run_kind: str | None) -> dict:
+   175	    return _build_report("service_latency", namespace, source_service, target_service, run_group, run_kind, dry_run)
+   176	
+   177	def inject_node_partition(namespace: str, source_service: str, target_service: str, dry_run: bool, run_group: str | None, run_kind: str | None) -> dict:
+   178	    return _build_report("node_partition", namespace, source_service, target_service, run_group, run_kind, dry_run)
+   179	
+   180	def inject_dropped_egress(namespace: str, source_service: str, target_service: str, dry_run: bool, run_group: str | None, run_kind: str | None) -> dict:
+   181	    return _build_report("dropped_egress", namespace, source_service, target_service, run_group, run_kind, dry_run)
+   182	
+   183	def inject_degraded_ingress(namespace: str, source_service: str, target_service: str, dry_run: bool, run_group: str | None, run_kind: str | None) -> dict:
+   184	    return _build_report("degraded_ingress", namespace, source_service, target_service, run_group, run_kind, dry_run)
+   185	
+   186	def inject_mtu_mismatch(namespace: str, source_service: str, target_service: str, dry_run: bool, run_group: str | None, run_kind: str | None) -> dict:
+   187	    return _build_report("mtu_mismatch", namespace, source_service, target_service, run_group, run_kind, dry_run)
+   188	
+   189	def inject_tcp_resets(namespace: str, source_service: str, target_service: str, dry_run: bool, run_group: str | None, run_kind: str | None) -> dict:
+   190	    return _build_report("tcp_resets", namespace, source_service, target_service, run_group, run_kind, dry_run)
+   191	
+   192	def inject_connection_churn(namespace: str, source_service: str, target_service: str, dry_run: bool, run_group: str | None, run_kind: str | None) -> dict:
+   193	    return _build_report("connection_churn", namespace, source_service, target_service, run_group, run_kind, dry_run)
+

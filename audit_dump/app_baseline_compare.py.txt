@@ -1,0 +1,40 @@
+===== FILE: app/baseline_compare.py =====
+===== LINES =====
+     1	from app.metrics_probe import probe_endpoint
+     2	
+     3	
+     4	def collect_baseline(url: str) -> dict:
+     5	    return probe_endpoint(url, requests_count=25)
+     6	
+     7	
+     8	def compare_to_baseline(baseline: dict, observed: dict) -> dict:
+     9	    baseline_p50 = baseline.get("latency_p50_ms", 0.0)
+    10	    baseline_p95 = baseline.get("latency_p95_ms", 0.0)
+    11	    baseline_p99 = baseline.get("latency_p99_ms", 0.0)
+    12	    baseline_error_rate = baseline.get("error_rate", 0.0)
+    13	
+    14	    observed_p50 = observed.get("latency_p50_ms", 0.0)
+    15	    observed_p95 = observed.get("latency_p95_ms", 0.0)
+    16	    observed_p99 = observed.get("latency_p99_ms", 0.0)
+    17	    observed_error_rate = observed.get("error_rate", 0.0)
+    18	
+    19	    def pct_drift(baseline_value: float, observed_value: float) -> float:
+    20	        if baseline_value <= 0:
+    21	            return 0.0
+    22	        return round(((observed_value - baseline_value) / baseline_value) * 100.0, 2)
+    23	
+    24	    return {
+    25	        "baseline_latency_p50_ms": baseline_p50,
+    26	        "baseline_latency_p95_ms": baseline_p95,
+    27	        "baseline_latency_p99_ms": baseline_p99,
+    28	        "baseline_error_rate": baseline_error_rate,
+    29	        "observed_latency_p50_ms": observed_p50,
+    30	        "observed_latency_p95_ms": observed_p95,
+    31	        "observed_latency_p99_ms": observed_p99,
+    32	        "observed_error_rate": observed_error_rate,
+    33	        "latency_p50_drift_pct": pct_drift(baseline_p50, observed_p50),
+    34	        "latency_p95_drift_pct": pct_drift(baseline_p95, observed_p95),
+    35	        "latency_p99_drift_pct": pct_drift(baseline_p99, observed_p99),
+    36	        "error_rate_delta": round(observed_error_rate - baseline_error_rate, 4),
+    37	    }
+

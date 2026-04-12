@@ -1,0 +1,142 @@
+===== FILE: app/path_trace_correlation.py =====
+===== LINES =====
+     1	from __future__ import annotations
+     2	from typing import Dict, List, Optional
+     3	
+     4	def _pairwise(path: Optional[List[str]]) -> List[str]:
+     5	    if not path or len(path) < 2:
+     6	        return []
+     7	    return [f"{path[i]}->{path[i+1]}" for i in range(len(path) - 1)]
+     8	
+     9	def _baseline_hop_latencies(path: Optional[List[str]]) -> Dict[str, float]:
+    10	    hops = _pairwise(path)
+    11	    if not hops:
+    12	        return {}
+    13	    # simple deterministic baseline model
+    14	    return {hop: 20.0 for hop in hops}
+    15	
+    16	def _degraded_hop_latencies(
+    17	    baseline_path: Optional[List[str]],
+    18	    final_path: Optional[List[str]],
+    19	    broken_hop: Optional[str],
+    20	    scenario: str,
+    21	) -> Dict[str, float]:
+    22	    baseline = _baseline_hop_latencies(final_path)
+    23	    if not final_path:
+    24	        return {}
+    25	
+    26	    hop_map = dict(baseline)
+    27	    final_hops = _pairwise(final_path)
+    28	
+    29	    # scenario-specific latency inflation
+    30	    if scenario == "link_failure_failover":
+    31	        for hop in final_hops:
+    32	            hop_map[hop] = 35.0
+    33	        if "router-a->auth" in hop_map:
+    34	            hop_map["router-a->auth"] = 80.0
+    35	
+    36	    elif scenario == "asymmetric_path":
+    37	        for hop in final_hops:
+    38	            hop_map[hop] = 30.0
+    39	        if "edge->router-b" in hop_map:
+    40	            hop_map["edge->router-b"] = 70.0
+    41	
+    42	    elif scenario == "link_flap":
+    43	        for hop in final_hops:
+    44	            hop_map[hop] = 45.0
+    45	
+    46	    elif scenario == "blackhole":
+    47	        for hop in final_hops:
+    48	            hop_map[hop] = 999.0
+    49	
+    50	    return hop_map
+    51	
+    52	def correlate_path_trace(report: dict) -> dict:
+    53	    baseline_path = report.get("baseline_path")
+    54	    final_path = report.get("final_path")
+    55	    scenario = report.get("scenario", "unknown")
+    56	    broken_hop = report.get("broken_hop")
+    57	
+    58	    baseline_hops = _pairwise(baseline_path)
+    59	    final_hops = _pairwise(final_path)
+    60	
+    61	    baseline_lat = _baseline_hop_latencies(baseline_path)
+    62	    final_lat = _degraded_hop_latencies(baseline_path, final_path, broken_hop, scenario)
+    63	
+    64	    removed_hops = [h for h in baseline_hops if h not in final_hops]
+    65	    added_hops = [h for h in final_hops if h not in baseline_hops]
+    66	
+    67	    latency_deltas = []
+    68	    for hop in final_hops:
+    69	        before = baseline_lat.get(hop, 20.0 if hop in baseline_hops else 0.0)
+    70	        after = final_lat.get(hop, before)
+    71	        latency_deltas.append({
+    72	            "hop": hop,
+    73	            "before_ms": round(before, 2),
+    74	            "after_ms": round(after, 2),
+    75	            "delta_ms": round(after - before, 2),
+    76	        })
+    77	
+    78	    degraded_hop = None
+    79	    if latency_deltas:
+    80	        degraded_hop = max(latency_deltas, key=lambda x: x["delta_ms"])["hop"]
+    81	
+    82	    before_after_timeline = [
+    83	        {
+    84	            "phase": "before",
+    85	            "path": baseline_path,
+    86	            "hops": baseline_hops,
+    87	            "total_estimated_path_latency_ms": round(sum(baseline_lat.values()), 2),
+    88	        },
+    89	        {
+    90	            "phase": "after",
+    91	            "path": final_path,
+    92	            "hops": final_hops,
+    93	            "total_estimated_path_latency_ms": round(sum(final_lat.values()), 2),
+    94	        },
+    95	    ]
+    96	
+    97	    trace_style_events = []
+    98	    t = 0.0
+    99	    for hop in baseline_hops:
+   100	        trace_style_events.append({
+   101	            "phase": "before",
+   102	            "hop": hop,
+   103	            "start_ms": round(t, 2),
+   104	            "duration_ms": round(baseline_lat.get(hop, 20.0), 2),
+   105	        })
+   106	        t += baseline_lat.get(hop, 20.0)
+   107	
+   108	    t = 0.0
+   109	    for hop in final_hops:
+   110	        trace_style_events.append({
+   111	            "phase": "after",
+   112	            "hop": hop,
+   113	            "start_ms": round(t, 2),
+   114	            "duration_ms": round(final_lat.get(hop, 20.0), 2),
+   115	        })
+   116	        t += final_lat.get(hop, 20.0)
+   117	
+   118	    artifact = {
+   119	        "baseline_path": baseline_path,
+   120	        "final_path": final_path,
+   121	        "removed_hops": removed_hops,
+   122	        "added_hops": added_hops,
+   123	        "broken_hop": broken_hop,
+   124	        "degraded_hop": degraded_hop,
+   125	        "latency_deltas": latency_deltas,
+   126	        "before_after_timeline": before_after_timeline,
+   127	        "trace_style_events": trace_style_events,
+   128	        "path_shift_summary": (
+   129	            f"path shifted from {' -> '.join(baseline_path)} to {' -> '.join(final_path)}"
+   130	            if baseline_path and final_path and baseline_path != final_path
+   131	            else "no path shift"
+   132	        ),
+   133	    }
+   134	
+   135	    return {
+   136	        "path_trace_correlation": artifact,
+   137	        "degraded_hop": degraded_hop,
+   138	        "path_shift_summary": artifact["path_shift_summary"],
+   139	    }
+

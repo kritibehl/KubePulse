@@ -1,0 +1,91 @@
+===== FILE: app/dashboard_export.py =====
+===== LINES =====
+     1	import csv
+     2	from pathlib import Path
+     3	from sqlalchemy import select
+     4	from app.db import get_db_session
+     5	from app.models import (
+     6	    LatencyErrorSummary,
+     7	    NetworkHealthHistory,
+     8	    RecoveryWindowHistory,
+     9	    ScenarioRun,
+    10	    ScoreHistory,
+    11	)
+    12	
+    13	def export_dashboard_dataset(path: str = "exports/dashboard_dataset.csv") -> str:
+    14	    output = Path(path)
+    15	    output.parent.mkdir(exist_ok=True)
+    16	
+    17	    with get_db_session() as session:
+    18	        rows = session.execute(
+    19	            select(
+    20	                ScenarioRun.run_id,
+    21	                ScenarioRun.scenario,
+    22	                ScenarioRun.run_group,
+    23	                ScenarioRun.run_kind,
+    24	                ScenarioRun.status,
+    25	                ScenarioRun.validity_status,
+    26	                ScenarioRun.confidence_score,
+    27	                ScenarioRun.created_at,
+    28	                ScenarioRun.recommendation,
+    29	                ScoreHistory.resilience_score,
+    30	                ScoreHistory.slo_met,
+    31	                ScoreHistory.slo_availability_target,
+    32	                ScoreHistory.slo_latency_p99_target_ms,
+    33	                ScoreHistory.slo_error_rate_target,
+    34	                ScoreHistory.availability_achieved_pct,
+    35	                ScoreHistory.latency_p99_achieved_ms,
+    36	                ScoreHistory.error_rate_achieved_pct,
+    37	                ScoreHistory.error_budget_remaining_pct,
+    38	                RecoveryWindowHistory.recovery_window_seconds,
+    39	                RecoveryWindowHistory.restart_count,
+    40	                RecoveryWindowHistory.readiness_false_positive,
+    41	                LatencyErrorSummary.latency_p95_ms,
+    42	                LatencyErrorSummary.latency_p95_drift_pct,
+    43	                LatencyErrorSummary.error_rate,
+    44	                LatencyErrorSummary.error_rate_delta,
+    45	                NetworkHealthHistory.network_health_score,
+    46	                NetworkHealthHistory.dns_success_rate,
+    47	                NetworkHealthHistory.tcp_connect_latency_ms,
+    48	                NetworkHealthHistory.http_success_rate,
+    49	                NetworkHealthHistory.cross_zone_degradation_pct,
+    50	                NetworkHealthHistory.path_recovery_time_seconds,
+    51	                NetworkHealthHistory.network_availability_gap_pct,
+    52	                NetworkHealthHistory.fallback_success_rate_pct,
+    53	                NetworkHealthHistory.degraded_serving_mode,
+    54	                NetworkHealthHistory.full_outage,
+    55	                NetworkHealthHistory.convergence_seconds,
+    56	                NetworkHealthHistory.path_changes_total,
+    57	                NetworkHealthHistory.unreachable_windows_total,
+    58	                NetworkHealthHistory.degraded_path_requests_total,
+    59	                NetworkHealthHistory.unreachable_window_seconds,
+    60	                NetworkHealthHistory.safe_to_operate,
+    61	            )
+    62	            .join(ScoreHistory, ScoreHistory.run_id == ScenarioRun.run_id)
+    63	            .join(RecoveryWindowHistory, RecoveryWindowHistory.run_id == ScenarioRun.run_id)
+    64	            .join(LatencyErrorSummary, LatencyErrorSummary.run_id == ScenarioRun.run_id)
+    65	            .join(NetworkHealthHistory, NetworkHealthHistory.run_id == ScenarioRun.run_id)
+    66	            .order_by(ScenarioRun.created_at.asc())
+    67	        ).all()
+    68	
+    69	    with output.open("w", newline="", encoding="utf-8") as f:
+    70	        writer = csv.writer(f)
+    71	        writer.writerow([
+    72	            "run_id", "scenario", "run_group", "run_kind", "status", "validity_status",
+    73	            "confidence_score", "created_at", "recommendation", "resilience_score",
+    74	            "slo_met", "slo_availability_target", "slo_latency_p99_target_ms",
+    75	            "slo_error_rate_target", "availability_achieved_pct", "latency_p99_achieved_ms",
+    76	            "error_rate_achieved_pct", "error_budget_remaining_pct",
+    77	            "recovery_window_seconds", "restart_count", "readiness_false_positive",
+    78	            "latency_p95_ms", "latency_p95_drift_pct", "error_rate", "error_rate_delta",
+    79	            "network_health_score", "dns_success_rate", "tcp_connect_latency_ms",
+    80	            "http_success_rate", "cross_zone_degradation_pct", "path_recovery_time_seconds",
+    81	            "network_availability_gap_pct", "fallback_success_rate_pct",
+    82	            "degraded_serving_mode", "full_outage",
+    83	            "convergence_seconds", "path_changes_total", "unreachable_windows_total",
+    84	            "degraded_path_requests_total", "unreachable_window_seconds", "safe_to_operate"
+    85	        ])
+    86	        for row in rows:
+    87	            writer.writerow(list(row))
+    88	    return str(output)
+

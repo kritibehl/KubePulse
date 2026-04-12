@@ -1,0 +1,16 @@
+===== FILE: app/recommendations.py =====
+===== LINES =====
+     1	
+     2	def generate_recommendation(report):
+     3	
+     4	    if report.get("readiness_false_positive"):
+     5	        return "Improve readiness probe to detect degraded state."
+     6	
+     7	    if report["restart_count"] > 2:
+     8	        return "Investigate crash loops or memory pressure."
+     9	
+    10	    if report["recovery_window_seconds"] > 20:
+    11	        return "Improve service startup or dependency recovery."
+    12	
+    13	    return "System behavior within resilience thresholds."
+

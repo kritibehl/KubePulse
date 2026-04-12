@@ -1,0 +1,288 @@
+===== FILE: app/topology_decision_lab.py =====
+===== LINES =====
+     1	from __future__ import annotations
+     2	from dataclasses import dataclass
+     3	from datetime import datetime, timedelta, timezone
+     4	from typing import Dict, List, Optional, Tuple
+     5	import heapq
+     6	import uuid
+     7	
+     8	@dataclass
+     9	class Link:
+    10	    a: str
+    11	    b: str
+    12	    weight: float
+    13	    up: bool = True
+    14	
+    15	class Topology:
+    16	    def __init__(self, links: List[Link]):
+    17	        self.links = links
+    18	
+    19	    def adjacency(self) -> Dict[str, List[Tuple[str, float]]]:
+    20	        adj: Dict[str, List[Tuple[str, float]]] = {}
+    21	        for l in self.links:
+    22	            if not l.up:
+    23	                continue
+    24	            adj.setdefault(l.a, []).append((l.b, l.weight))
+    25	            adj.setdefault(l.b, []).append((l.a, l.weight))
+    26	        return adj
+    27	
+    28	    def shortest_path(self, src: str, dst: str) -> Tuple[Optional[List[str]], float]:
+    29	        adj = self.adjacency()
+    30	        if src not in adj or dst not in adj:
+    31	            return None, float("inf")
+    32	
+    33	        pq: List[Tuple[float, str, List[str]]] = [(0.0, src, [src])]
+    34	        best: Dict[str, float] = {}
+    35	
+    36	        while pq:
+    37	            cost, node, path = heapq.heappop(pq)
+    38	            if node in best and best[node] <= cost:
+    39	                continue
+    40	            best[node] = cost
+    41	            if node == dst:
+    42	                return path, cost
+    43	            for nxt, w in adj.get(node, []):
+    44	                heapq.heappush(pq, (cost + w, nxt, path + [nxt]))
+    45	        return None, float("inf")
+    46	
+    47	    def set_link_state(self, x: str, y: str, up: bool):
+    48	        for l in self.links:
+    49	            if {l.a, l.b} == {x, y}:
+    50	                l.up = up
+    51	
+    52	    def set_link_weight(self, x: str, y: str, weight: float):
+    53	        for l in self.links:
+    54	            if {l.a, l.b} == {x, y}:
+    55	                l.weight = weight
+    56	
+    57	def default_topology() -> Topology:
+    58	    return Topology([
+    59	        Link("edge", "router-a", 1.0, True),
+    60	        Link("edge", "router-b", 2.0, True),
+    61	        Link("router-a", "api", 1.0, True),
+    62	        Link("router-b", "api", 1.0, True),
+    63	        Link("api", "auth", 1.0, True),
+    64	        Link("auth", "downstream", 1.0, True),
+    65	        Link("router-a", "auth", 3.0, True),
+    66	        Link("router-b", "auth", 2.0, True),
+    67	    ])
+    68	
+    69	def _evt(offset_s: int, kind: str, detail: str) -> dict:
+    70	    ts = datetime.now(timezone.utc) + timedelta(seconds=offset_s)
+    71	    return {"ts": ts.isoformat(), "kind": kind, "detail": detail}
+    72	
+    73	def _decision_artifact(
+    74	    *,
+    75	    scenario: str,
+    76	    probes_healthy: bool,
+    77	    slo_met: bool,
+    78	    safe_to_operate: bool,
+    79	    what_probes_missed: List[str],
+    80	    recommendation: str,
+    81	) -> dict:
+    82	    return {
+    83	        "scenario": scenario,
+    84	        "probes_say_healthy": probes_healthy,
+    85	        "slo_met": slo_met,
+    86	        "safe_to_operate": safe_to_operate,
+    87	        "what_probes_missed": what_probes_missed,
+    88	        "recommendation_action": recommendation,
+    89	    }
+    90	
+    91	def run_topology_decision_scenario(name: str) -> dict:
+    92	    topo = default_topology()
+    93	    started = datetime.now(timezone.utc)
+    94	
+    95	    baseline_path, baseline_cost = topo.shortest_path("edge", "downstream")
+    96	    timeline = [_evt(0, "baseline_path", f"{baseline_path} cost={baseline_cost}")]
+    97	
+    98	    path_changes_total = 0
+    99	    unreachable_window_seconds = 0.0
+   100	    degraded_path_requests_total = 0
+   101	    convergence_seconds = 0.0
+   102	    final_path = baseline_path
+   103	    final_cost = baseline_cost
+   104	    broken_hop = None
+   105	    reroute_detail = None
+   106	    path_recovery_status = "stable"
+   107	    probes_false_positive = False
+   108	    what_probes_missed: List[str] = []
+   109	
+   110	    if name == "link_failure_failover":
+   111	        broken_hop = "router-a<->api"
+   112	        topo.set_link_state("router-a", "api", False)
+   113	        timeline.append(_evt(1, "link_down", broken_hop))
+   114	        new_path, new_cost = topo.shortest_path("edge", "downstream")
+   115	        if new_path is not None and new_path != baseline_path:
+   116	            path_changes_total = 1
+   117	            degraded_path_requests_total = 12
+   118	            convergence_seconds = 2.4
+   119	            path_recovery_status = "rerouted"
+   120	            reroute_detail = {"old_path": baseline_path, "new_path": new_path}
+   121	            timeline.append(_evt(3, "reroute", f"{baseline_path} -> {new_path}"))
+   122	            final_path, final_cost = new_path, new_cost
+   123	            probes_false_positive = True
+   124	            what_probes_missed = [
+   125	                "Readiness stayed green while requests shifted onto a degraded failover path.",
+   126	                "User-facing latency increased even after reachability recovered.",
+   127	            ]
+   128	        else:
+   129	            path_recovery_status = "failed"
+   130	
+   131	    elif name == "blackhole":
+   132	        broken_hop = "auth ingress"
+   133	        topo.set_link_state("api", "auth", False)
+   134	        topo.set_link_state("router-a", "auth", False)
+   135	        topo.set_link_state("router-b", "auth", False)
+   136	        timeline.append(_evt(1, "blackhole", "auth ingress disconnected"))
+   137	        new_path, new_cost = topo.shortest_path("edge", "downstream")
+   138	        if new_path is None:
+   139	            unreachable_window_seconds = 18.0
+   140	            degraded_path_requests_total = 25
+   141	            path_recovery_status = "unreachable"
+   142	            final_path, final_cost = None, float("inf")
+   143	            timeline.append(_evt(2, "unreachable", "No end-to-end path to downstream"))
+   144	            probes_false_positive = True
+   145	            what_probes_missed = [
+   146	                "Service health appeared normal before user-facing reachability collapsed.",
+   147	                "Dependency path was broken even though individual services could still appear alive.",
+   148	            ]
+   149	        else:
+   150	            final_path, final_cost = new_path, new_cost
+   151	
+   152	    elif name == "asymmetric_path":
+   153	        broken_hop = "edge<->router-a cost inflation"
+   154	        topo.set_link_weight("edge", "router-a", 5.0)
+   155	        topo.set_link_weight("edge", "router-b", 1.0)
+   156	        timeline.append(_evt(1, "weight_change", "edge-router-a 1.0 -> 5.0"))
+   157	        new_path, new_cost = topo.shortest_path("edge", "downstream")
+   158	        if new_path is not None and new_path != baseline_path:
+   159	            path_changes_total = 1
+   160	            degraded_path_requests_total = 9
+   161	            convergence_seconds = 1.7
+   162	            path_recovery_status = "rerouted"
+   163	            reroute_detail = {"old_path": baseline_path, "new_path": new_path}
+   164	            timeline.append(_evt(2, "reroute", f"{baseline_path} -> {new_path}"))
+   165	            final_path, final_cost = new_path, new_cost
+   166	            probes_false_positive = True
+   167	            what_probes_missed = [
+   168	                "Requests still served, but the new path introduced material latency drift.",
+   169	            ]
+   170	
+   171	    elif name == "link_flap":
+   172	        broken_hop = "router-a<->api flap"
+   173	        for i in range(3):
+   174	            topo.set_link_state("router-a", "api", False)
+   175	            timeline.append(_evt(1 + i * 2, "link_down", broken_hop))
+   176	            topo.set_link_state("router-a", "api", True)
+   177	            timeline.append(_evt(2 + i * 2, "link_up", broken_hop))
+   178	        final_path, final_cost = topo.shortest_path("edge", "downstream")
+   179	        path_changes_total = 6
+   180	        degraded_path_requests_total = 18
+   181	        convergence_seconds = 6.0
+   182	        path_recovery_status = "flapping_then_stable"
+   183	        reroute_detail = {"old_path": baseline_path, "new_path": final_path}
+   184	        probes_false_positive = True
+   185	        what_probes_missed = [
+   186	            "Readiness stayed green during route churn.",
+   187	            "Intermittent instability degraded requests without a clean outage signal.",
+   188	        ]
+   189	
+   190	    else:
+   191	        raise ValueError(f"Unsupported topology decision scenario: {name}")
+   192	
+   193	    success = final_path is not None
+   194	    availability_pct = 0.0 if not success else (92.0 if final_path != baseline_path or degraded_path_requests_total else 100.0)
+   195	    p50_ms = 120.0 if final_path == baseline_path else (220.0 if success else 0.0)
+   196	    p95_ms = 240.0 if final_path == baseline_path else (540.0 if success else 0.0)
+   197	    p99_ms = 420.0 if final_path == baseline_path else (880.0 if success else 0.0)
+   198	    error_rate = 0.0 if final_path == baseline_path else (0.02 if success else 0.18)
+   199	    path_extra_latency_ms = 0.0 if (not success or final_path == baseline_path) else max(0.0, (final_cost - baseline_cost) * 80.0)
+   200	
+   201	    slo_met = availability_pct >= 99.5 and p99_ms <= 900.0 and (error_rate * 100.0) <= 1.0
+   202	    safe_to_operate = success and slo_met and not probes_false_positive
+   203	    recommendation = (
+   204	        "continue" if safe_to_operate
+   205	        else ("reroute" if success and final_path != baseline_path else "block")
+   206	    )
+   207	
+   208	    decision = _decision_artifact(
+   209	        scenario=name,
+   210	        probes_healthy=bool(probes_false_positive or success),
+   211	        slo_met=slo_met,
+   212	        safe_to_operate=safe_to_operate,
+   213	        what_probes_missed=what_probes_missed,
+   214	        recommendation=recommendation,
+   215	    )
+   216	
+   217	    ended = started + timedelta(seconds=max(1, int(convergence_seconds) + 1))
+   218	
+   219	    return {
+   220	        "run_id": uuid.uuid4().hex,
+   221	        "scenario": name,
+   222	        "pod_name": "topology-lab",
+   223	        "namespace": "default",
+   224	        "started_at": started.isoformat(),
+   225	        "ended_at": ended.isoformat(),
+   226	        "success": success,
+   227	        "status": "pass" if success else "fail",
+   228	        "recovery_window_seconds": convergence_seconds if success else unreachable_window_seconds,
+   229	        "restart_count": 0,
+   230	        "probe_mismatch": probes_false_positive,
+   231	        "latency_p50_ms": p50_ms,
+   232	        "latency_p95_ms": p95_ms,
+   233	        "latency_p99_ms": p99_ms,
+   234	        "error_rate": error_rate,
+   235	        "baseline_latency_p50_ms": 120.0,
+   236	        "baseline_latency_p95_ms": 240.0,
+   237	        "baseline_latency_p99_ms": 420.0,
+   238	        "baseline_error_rate": 0.0,
+   239	        "observed_latency_p50_ms": p50_ms,
+   240	        "observed_latency_p95_ms": p95_ms,
+   241	        "observed_latency_p99_ms": p99_ms,
+   242	        "observed_error_rate": error_rate,
+   243	        "latency_p50_drift_pct": 0.0 if p50_ms == 0.0 else round(((p50_ms - 120.0) / 120.0) * 100.0, 2),
+   244	        "latency_p95_drift_pct": 0.0 if p95_ms == 0.0 else round(((p95_ms - 240.0) / 240.0) * 100.0, 2),
+   245	        "latency_p99_drift_pct": 0.0 if p99_ms == 0.0 else round(((p99_ms - 420.0) / 420.0) * 100.0, 2),
+   246	        "error_rate_delta": round(error_rate - 0.0, 4),
+   247	        "availability_achieved_pct_simulated": availability_pct,
+   248	        "baseline_path": baseline_path,
+   249	        "baseline_path_cost": baseline_cost,
+   250	        "final_path": final_path,
+   251	        "final_path_cost": None if final_path is None else final_cost,
+   252	        "path_change_timeline": timeline,
+   253	        "broken_hop": broken_hop,
+   254	        "reroute_detail": reroute_detail,
+   255	        "partial_recovery": bool(success and final_path != baseline_path),
+   256	        "convergence_seconds": convergence_seconds,
+   257	        "path_changes_total": path_changes_total,
+   258	        "unreachable_windows_total": int(unreachable_window_seconds > 0),
+   259	        "unreachable_window_seconds": unreachable_window_seconds,
+   260	        "degraded_path_requests_total": degraded_path_requests_total,
+   261	        "path_recovery_status": path_recovery_status,
+   262	        "path_extra_latency_ms": path_extra_latency_ms,
+   263	        "readiness_before": "ready",
+   264	        "readiness_after": "ready-but-degraded" if probes_false_positive and success else ("not-ready" if not success else "ready"),
+   265	        "readiness_false_positive": probes_false_positive,
+   266	        "cross_zone_degradation_pct": 0.0 if final_path == baseline_path else 18.0,
+   267	        "path_recovery_time_seconds": convergence_seconds,
+   268	        "network_availability_gap_pct": round(max(0.0, 100.0 - availability_pct), 2),
+   269	        "pass_fail_reason": (
+   270	            "Topology converged onto a degraded alternate path." if success and final_path != baseline_path
+   271	            else ("Topology remained healthy." if success else "Downstream path unreachable after link event.")
+   272	        ),
+   273	        "recommendation": (
+   274	            "Continue" if safe_to_operate
+   275	            else ("Reroute to alternate stable path." if success else "Block rollout and restore broken path.")
+   276	        ),
+   277	        "decision_artifact": decision,
+   278	        "probes_say_healthy": decision["probes_say_healthy"],
+   279	        "safe_to_operate": decision["safe_to_operate"],
+   280	        "what_probes_missed": decision["what_probes_missed"],
+   281	        "recommendation_action": decision["recommendation_action"],
+   282	        "stdout": f"Simulated topology scenario: {name}",
+   283	        "stderr": "",
+   284	        "error": None,
+   285	    }
+

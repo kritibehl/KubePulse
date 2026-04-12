@@ -1,0 +1,13 @@
+===== FILE: app/weak_points.py =====
+===== LINES =====
+     1	def suspected_weak_point(anomalies: list[str]) -> str:
+     2	    if "readiness_false_positive" in anomalies:
+     3	        return "health signaling"
+     4	    if "high_latency" in anomalies:
+     5	        return "degraded request path"
+     6	    if "error_spike" in anomalies:
+     7	        return "failure handling or dependency behavior"
+     8	    if "restart_instability" in anomalies:
+     9	        return "probe or restart stability"
+    10	    return "no major weak point detected"
+

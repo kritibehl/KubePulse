@@ -1,0 +1,66 @@
+===== FILE: app/slo_evaluator.py =====
+===== LINES =====
+     1	from __future__ import annotations
+     2	
+     3	def evaluate_slo(report: dict) -> dict:
+     4	    slo = report.get("slo") or {}
+     5	    ai_quality = report.get("ai_quality") or {}
+     6	    availability_target = float(slo.get("availability_target", 99.5))
+     7	    latency_p99_target_ms = float(slo.get("latency_p99_target_ms", 500.0))
+     8	    error_rate_target = float(slo.get("error_rate_target", 1.0))
+     9	    window_minutes = int(slo.get("window_minutes", 30))
+    10	    fallback_success_rate_target = float(ai_quality.get("fallback_success_rate_target", 0.0))
+    11	    degraded_serving_allowed = bool(ai_quality.get("degraded_serving_allowed", True))
+    12	
+    13	    success = bool(report.get("success", False))
+    14	    error_rate_fraction = float(report.get("error_rate", 0.0))
+    15	    latency_p99_ms = float(report.get("latency_p99_ms", 0.0))
+    16	    fallback_success_rate_pct = float(report.get("fallback_success_rate_pct", 0.0))
+    17	    degraded_serving_mode = bool(report.get("degraded_serving_mode", False))
+    18	    full_outage = bool(report.get("full_outage", False))
+    19	
+    20	    availability_achieved = float(report.get("availability_achieved_pct_simulated", 100.0 if success else 0.0))
+    21	    error_rate_achieved = round(error_rate_fraction * 100.0, 3)
+    22	
+    23	    availability_met = availability_achieved >= availability_target
+    24	    latency_met = latency_p99_ms <= latency_p99_target_ms
+    25	    error_rate_met = error_rate_achieved <= error_rate_target
+    26	    fallback_met = True if fallback_success_rate_target == 0.0 else fallback_success_rate_pct >= fallback_success_rate_target
+    27	    degraded_mode_met = degraded_serving_allowed or not degraded_serving_mode
+    28	    outage_met = not full_outage
+    29	
+    30	    slo_met = availability_met and latency_met and error_rate_met and fallback_met and degraded_mode_met and outage_met
+    31	
+    32	    allowed_error_budget_pct = round(100.0 - availability_target, 3)
+    33	    actual_burn_pct = round(max(0.0, 100.0 - availability_achieved), 3)
+    34	
+    35	    if allowed_error_budget_pct == 0:
+    36	        error_budget_remaining_pct = 0.0 if actual_burn_pct > 0 else 100.0
+    37	    else:
+    38	        error_budget_remaining_pct = round(
+    39	            max(0.0, 100.0 * (1.0 - (actual_burn_pct / allowed_error_budget_pct))),
+    40	            3,
+    41	        )
+    42	
+    43	    return {
+    44	        "slo_availability_target": availability_target,
+    45	        "slo_latency_p99_target_ms": latency_p99_target_ms,
+    46	        "slo_error_rate_target": error_rate_target,
+    47	        "slo_window_minutes": window_minutes,
+    48	        "availability_achieved_pct": round(availability_achieved, 3),
+    49	        "latency_p99_achieved_ms": round(latency_p99_ms, 3),
+    50	        "error_rate_achieved_pct": error_rate_achieved,
+    51	        "error_budget_remaining_pct": error_budget_remaining_pct,
+    52	        "slo_met": slo_met,
+    53	        "fallback_success_rate_target_pct": fallback_success_rate_target,
+    54	        "fallback_success_rate_pct": round(fallback_success_rate_pct, 3),
+    55	        "slo_summary": {
+    56	            "availability": {"achieved_pct": round(availability_achieved, 3), "target_pct": availability_target, "met": availability_met},
+    57	            "latency_p99": {"achieved_ms": round(latency_p99_ms, 3), "target_ms": latency_p99_target_ms, "met": latency_met},
+    58	            "error_rate": {"achieved_pct": error_rate_achieved, "target_pct": error_rate_target, "met": error_rate_met},
+    59	            "fallback_success_rate": {"achieved_pct": round(fallback_success_rate_pct, 3), "target_pct": fallback_success_rate_target, "met": fallback_met},
+    60	            "degraded_serving_mode": {"allowed": degraded_serving_allowed, "observed": degraded_serving_mode, "met": degraded_mode_met},
+    61	            "full_outage": {"observed": full_outage, "met": outage_met},
+    62	        },
+    63	    }
+

@@ -1,0 +1,24 @@
+===== FILE: app/readiness_validator.py =====
+===== LINES =====
+     1	def detect_readiness_false_positive(
+     2	    readiness_before: str,
+     3	    readiness_after: str,
+     4	    error_rate: float,
+     5	    latency_p95_ms: float,
+     6	    latency_threshold_ms: float = 500,
+     7	    error_rate_threshold: float = 0.05
+     8	):
+     9	    """
+    10	    Detect readiness false positive where service is degraded but probe is still ready.
+    11	    """
+    12	
+    13	    degraded = (
+    14	        latency_p95_ms > latency_threshold_ms or
+    15	        error_rate > error_rate_threshold
+    16	    )
+    17	
+    18	    if readiness_before == "ready" and readiness_after == "ready" and degraded:
+    19	        return True
+    20	
+    21	    return False
+

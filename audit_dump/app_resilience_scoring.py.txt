@@ -1,0 +1,20 @@
+===== FILE: app/resilience_scoring.py =====
+===== LINES =====
+     1	
+     2	def compute_score(report):
+     3	
+     4	    score = 100
+     5	
+     6	    if report["restart_count"] > 0:
+     7	        score -= 20
+     8	
+     9	    if report["recovery_window_seconds"] > 20:
+    10	        score -= 30
+    11	
+    12	    if report.get("readiness_false_positive"):
+    13	        score -= 40
+    14	
+    15	    score = max(score, 0)
+    16	
+    17	    return score
+

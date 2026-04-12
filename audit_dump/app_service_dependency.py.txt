@@ -1,0 +1,40 @@
+===== FILE: app/service_dependency.py =====
+===== LINES =====
+     1	from __future__ import annotations
+     2	
+     3	def infer_dependency_analysis(report: dict) -> dict:
+     4	    source = report.get("source_service", report.get("pod_name", "unknown-source"))
+     5	    target = report.get("target_service", "unknown-target")
+     6	    edges = report.get("dependency_edges") or [
+     7	        {"source": source, "target": target, "protocol": "http"},
+     8	        {"source": target, "target": "shared-db", "protocol": "tcp"},
+     9	    ]
+    10	
+    11	    latency_error_propagation_path = [edge["source"] for edge in edges] + [edges[-1]["target"]]
+    12	    blast_radius_services = sorted({source, target, "shared-db", "frontend-gateway"})
+    13	
+    14	    scenario = report.get("scenario", "unknown")
+    15	    if scenario == "dns_failure":
+    16	        likely_root_cause = "cluster DNS resolution path"
+    17	        impacted_segment = "service discovery"
+    18	    elif scenario in {"packet_loss", "tcp_resets", "connection_churn", "mtu_mismatch"}:
+    19	        likely_root_cause = f"{source}->{target} transport path"
+    20	        impacted_segment = "inter-service TCP path"
+    21	    elif scenario in {"node_partition", "dropped_egress", "degraded_ingress"}:
+    22	        likely_root_cause = "node or edge network segment"
+    23	        impacted_segment = "cross-node / ingress-egress network path"
+    24	    else:
+    25	        likely_root_cause = target
+    26	        impacted_segment = "upstream dependency path"
+    27	
+    28	    return {
+    29	        "services": blast_radius_services,
+    30	        "edges": edges,
+    31	        "latency_error_propagation_path": latency_error_propagation_path,
+    32	        "blast_radius_services": blast_radius_services,
+    33	        "likely_root_cause": likely_root_cause,
+    34	        "impacted_network_segment": impacted_segment,
+    35	        "upstream_service": source,
+    36	        "downstream_service": target,
+    37	    }
+
