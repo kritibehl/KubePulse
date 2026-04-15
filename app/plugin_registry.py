@@ -1,7 +1,15 @@
 from app.network_degradation_engine import run_network_degradation
 
 def list_plugins() -> list[str]:
-    return ["packet_loss", "jitter", "intermittent_disconnect", "partial_partition", "recovery_oscillation"]
+    return [
+        "packet_loss",
+        "dns_failure",
+        "partial_partition",
+        "retry_storm",
+        "jitter",
+        "intermittent_disconnect",
+        "recovery_oscillation",
+    ]
 
 class _Plugin:
     def __init__(self, name: str):

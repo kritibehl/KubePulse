@@ -599,3 +599,26 @@ Infra scaffold:
 - `terraform/versions.tf`
 
 This complements KubePulse’s core reliability goal: detecting cases where Kubernetes probes remain healthy while the system is unsafe to operate.
+
+## Release Safety Framing
+
+Resilience validation for systems that look healthy but are operationally unsafe.
+
+Kubernetes can tell you whether a pod responds.  
+KubePulse tells you whether the service should still receive traffic.
+
+### Release Gate Decision
+
+Example output:
+
+```json
+{
+  "safe_to_operate": false,
+  "release_decision": "block",
+  "reason": "latency spike + probe false positive"
+}
+cd ~/KubePulse || exit 1
+source .venv/bin/activate
+
+pkill -f uvicorn || true
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8000

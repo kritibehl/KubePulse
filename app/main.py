@@ -46,6 +46,7 @@ from pathlib import Path
 from validators.rollout_risk import compute_rollout_risk
 from app.remediation_planner import build_remediation_plan
 from reports.operator_action_plan import build_operator_action_plan
+from app.release_gate import apply_release_gate
 from app.plugin_registry import get_plugin, list_plugins
 from app.operator_dashboard import build_operator_dashboard
 from app.regression_compare import compare_baseline_candidate
@@ -125,7 +126,6 @@ def _network_response(builder, request: NetworkScenarioRequest) -> ResilienceRep
         run_kind=request.run_kind,
     )
     result = _finalize_result(result)
-    return ResilienceReport(**result)
 
 @app.get("/health")
 def health() -> dict:
@@ -164,7 +164,6 @@ def run_scenario_by_name(name: str) -> ResilienceReport:
         scenario = load_scenario(name)
         result = run_scenario_definition(scenario)
         result = _finalize_result(result)
-        return ResilienceReport(**result)
     except FileNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
@@ -180,7 +179,6 @@ def run_scenario_with_group(name: str, request: HistoricalScenarioRequest) -> Re
         result["run_group"] = request.run_group
         result["run_kind"] = request.run_kind
         result = _finalize_result(result)
-        return ResilienceReport(**result)
     except FileNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
@@ -195,7 +193,6 @@ def run_cpu_stress(request: ScenarioRequest) -> ResilienceReport:
             dry_run=request.dry_run,
         )
         result = _finalize_result(result)
-        return ResilienceReport(**result)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -208,7 +205,6 @@ def run_memory_stress(request: ScenarioRequest) -> ResilienceReport:
             dry_run=request.dry_run,
         )
         result = _finalize_result(result)
-        return ResilienceReport(**result)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -354,6 +350,8 @@ def multi_service_cascade() -> ResilienceReport:
     result = _finalize_result(result)
     result["safe_to_operate"] = False
     result["recommendation_action"] = "block"
+    result["release_decision"] = "block"
+    result["reason"] = "latency spike + probe false positive"
     result["recommendation"] = "block | Dependency latency propagation detected. Investigate downstream service before rollout."
     return ResilienceReport(**result)
 
@@ -418,7 +416,6 @@ def run_plugin_scenario(name: str) -> ResilienceReport:
     result["safe_to_operate"] = False
     result["recommendation_action"] = "block"
     result["recommendation"] = "block | Investigate plugin-triggered degradation before rollout."
-    return ResilienceReport(**result)
 
 @app.post("/compare/baseline-vs-candidate")
 def compare_baseline_candidate_route() -> dict:

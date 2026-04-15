@@ -1,0 +1,57 @@
+name: kubepulse-release-gate
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt || true
+          pip install fastapi uvicorn pytest pydantic prometheus-client sqlalchemy pyyaml requests scipy
+
+      - name: Run tests
+        run: python -m pytest -q
+
+      - name: Start KubePulse
+        run: |
+          python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 > kubepulse.log 2>&1 &
+          echo $! > kubepulse.pid
+
+      - name: Wait for server
+        run: |
+          for i in {1..20}; do
+            if curl -fsS http://127.0.0.1:8000/health; then exit 0; fi
+            sleep 1
+          done
+          cat kubepulse.log
+          exit 1
+
+      - name: Run gate scenarios
+        run: |
+          curl -fsS -X POST http://127.0.0.1:8000/scenarios/multi-service-cascade > candidate.json
+          python scripts/kubepulse_compare.py candidate.json candidate.json > compare.json
+          cat candidate.json
+          cat compare.json
+
+      - name: Enforce release decision
+        run: |
+          python - <<'PY'
+          import json, sys
+          with open("candidate.json") as f:
+              data = json.load(f)
+          if data.get("release_decision") == "block":
+              print("Blocking release:", data.get("reason"))
+              sys.exit(1)
+          print("Release allowed")
+          PY

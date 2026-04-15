@@ -279,6 +279,8 @@ def run_topology_decision_scenario(name: str) -> dict:
         "safe_to_operate": decision["safe_to_operate"],
         "what_probes_missed": decision["what_probes_missed"],
         "recommendation_action": decision["recommendation_action"],
+        "release_decision": decision["recommendation_action"],
+        "reason": "probe false positive + degraded path behavior",
         "stdout": f"Simulated topology scenario: {name}",
         "stderr": "",
         "error": None,
