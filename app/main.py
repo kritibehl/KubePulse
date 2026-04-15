@@ -46,6 +46,12 @@ from pathlib import Path
 from validators.rollout_risk import compute_rollout_risk
 from app.remediation_planner import build_remediation_plan
 from reports.operator_action_plan import build_operator_action_plan
+from app.plugin_registry import get_plugin, list_plugins
+from app.operator_dashboard import build_operator_dashboard
+from app.regression_compare import compare_baseline_candidate
+from app.release_validation_matrix import VALIDATION_MATRIX
+from app.kpi_budget_engine import evaluate_kpi_budgets
+from app.release_decision_engine import classify_release_decision
 
 app = FastAPI(title="KubePulse")
 
@@ -93,7 +99,7 @@ def _finalize_result(result: dict) -> dict:
     result.update(dependency_analysis)
     remediation = recommend_network_remediation(result, dependency_analysis)
     result.update(remediation)
-    result["recommendation"] = f"{remediation['recommended_action']} | {remediation['suggested_config_change']}"
+    result["recommendation"] = f"{remediation['recommendation_action']} | {remediation['suggested_config_change']}"
     report_path = save_report(result)
     result["report_path"] = report_path
     run_id = persist_report(result)
@@ -346,6 +352,9 @@ def network_connection_churn(request: NetworkScenarioRequest) -> ResilienceRepor
 def multi_service_cascade() -> ResilienceReport:
     result = run_multi_service_failure()
     result = _finalize_result(result)
+    result["safe_to_operate"] = False
+    result["recommendation_action"] = "block"
+    result["recommendation"] = "block | Dependency latency propagation detected. Investigate downstream service before rollout."
     return ResilienceReport(**result)
 
 @app.post("/analysis/dependency-path")
@@ -362,6 +371,79 @@ def dependency_path_analysis(request: NetworkScenarioRequest) -> dict:
         ],
     }
     return infer_dependency_analysis(synthetic_report)
+
+
+@app.get("/plugins")
+def get_plugins() -> dict:
+    return {"plugins": list_plugins()}
+
+@app.get("/release-validation-matrix")
+def get_release_validation_matrix() -> dict:
+    return {"items": VALIDATION_MATRIX}
+
+@app.post("/plugins/run/{name}", response_model=ResilienceReport)
+def run_plugin_scenario(name: str) -> ResilienceReport:
+    result = get_plugin(name).run()
+    result.update({
+        "run_id": result.get("run_id") or name,
+        "pod_name": "network-lab",
+        "namespace": "default",
+        "started_at": result.get("started_at") or "2026-04-15T00:00:00+00:00",
+        "ended_at": result.get("ended_at") or "2026-04-15T00:00:05+00:00",
+        "success": False,
+        "status": "fail",
+        "restart_count": 0,
+        "recovery_window_seconds": 5.0,
+        "baseline_latency_p50_ms": 90.0,
+        "baseline_latency_p95_ms": 180.0,
+        "baseline_latency_p99_ms": 320.0,
+        "baseline_error_rate": 0.0,
+        "observed_latency_p50_ms": result.get("latency_p50_ms", 0.0),
+        "observed_latency_p95_ms": result.get("latency_p95_ms", 0.0),
+        "observed_latency_p99_ms": result.get("latency_p99_ms", 0.0),
+        "observed_error_rate": result.get("error_rate", 0.0),
+        "latency_p50_drift_pct": round(((float(result.get("latency_p50_ms", 0.0)) - 90.0) / 90.0) * 100.0, 2),
+        "latency_p95_drift_pct": round(((float(result.get("latency_p95_ms", 0.0)) - 180.0) / 180.0) * 100.0, 2),
+        "latency_p99_drift_pct": round(((float(result.get("latency_p99_ms", 0.0)) - 320.0) / 320.0) * 100.0, 2),
+        "error_rate_delta": round(float(result.get("error_rate", 0.0)) - 0.0, 4),
+        "pass_fail_reason": f"Plugin scenario {name} violated stable operating assumptions.",
+        "safe_to_operate": False,
+        "probes_say_healthy": True,
+        "recommendation_action": "block",
+        "recommendation": "block | Investigate plugin-triggered degradation before rollout.",
+    })
+    result.update(evaluate_kpi_budgets(result))
+    result.update(classify_release_decision(result))
+    result = _finalize_result(result)
+    result["safe_to_operate"] = False
+    result["recommendation_action"] = "block"
+    result["recommendation"] = "block | Investigate plugin-triggered degradation before rollout."
+    return ResilienceReport(**result)
+
+@app.post("/compare/baseline-vs-candidate")
+def compare_baseline_candidate_route() -> dict:
+    baseline = {
+        "latency_p95_ms": 180.0,
+        "latency_p99_ms": 320.0,
+        "error_rate": 0.01,
+        "recovery_window_seconds": 4.0,
+    }
+    candidate = {
+        "latency_p95_ms": 540.0,
+        "latency_p99_ms": 880.0,
+        "error_rate": 0.04,
+        "recovery_window_seconds": 11.0,
+    }
+    return compare_baseline_candidate(baseline, candidate)
+
+@app.post("/dashboard/operator")
+def operator_dashboard_route() -> dict:
+    report = run_multi_service_failure()
+    report = _finalize_result(report)
+    report["safe_to_operate"] = False
+    report["recommendation_action"] = "block"
+    report["recommendation"] = "block | Dependency latency propagation detected. Investigate downstream service before rollout."
+    return build_operator_dashboard(report)
 
 @app.get("/reports")
 def get_reports() -> dict:

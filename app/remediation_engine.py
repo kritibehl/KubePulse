@@ -41,7 +41,7 @@ def recommend_network_remediation(report: dict, dependency_analysis: dict) -> di
 
     return {
         "probable_source_of_degradation": probable_source,
-        "recommended_action": action,
+        "recommendation_action": action,
         "confidence": round(confidence, 2),
         "suggested_rollback": rollback,
         "suggested_config_change": config_change,
