@@ -1,0 +1,39 @@
+===== FILE: app/pack_runner.py =====
+===== LINES =====
+     1	from pathlib import Path
+     2	import yaml
+     3	
+     4	from app.scenario_loader import load_scenario
+     5	from app.scenario_runner import run_scenario_definition
+     6	
+     7	
+     8	def load_pack(name: str) -> dict:
+     9	    pack_path = Path("packs") / f"{name}.yaml"
+    10	    if not pack_path.exists():
+    11	        raise FileNotFoundError(f"Pack '{name}' not found at {pack_path}")
+    12	
+    13	    with open(pack_path, "r", encoding="utf-8") as f:
+    14	        return yaml.safe_load(f)
+    15	
+    16	
+    17	def run_pack(name: str) -> dict:
+    18	    pack = load_pack(name)
+    19	    results = []
+    20	
+    21	    for scenario_name in pack.get("scenarios", []):
+    22	        scenario = load_scenario(scenario_name)
+    23	        result = run_scenario_definition(scenario)
+    24	        results.append(result)
+    25	
+    26	    total = len(results)
+    27	    passed = sum(1 for r in results if r.get("status") == "pass")
+    28	    failed = total - passed
+    29	
+    30	    return {
+    31	        "pack": name,
+    32	        "total_scenarios": total,
+    33	        "passed": passed,
+    34	        "failed": failed,
+    35	        "results": results,
+    36	    }
+

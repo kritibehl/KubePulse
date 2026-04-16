@@ -1,0 +1,55 @@
+===== FILE: app/resilience_score.py =====
+===== LINES =====
+     1	def compute_resilience_score(scorecard: dict) -> dict:
+     2	    """
+     3	    Compute a resilience score from scenario metrics.
+     4	    """
+     5	
+     6	    recovery_time = scorecard.get("recovery_window_seconds", 0)
+     7	    latency_p95 = scorecard.get("latency_p95_ms", 0)
+     8	    error_rate = scorecard.get("error_rate", 0)
+     9	    probe_mismatch = scorecard.get("probe_mismatch", False)
+    10	
+    11	    # Recovery score
+    12	    if recovery_time <= 5:
+    13	        recovery_score = 100
+    14	    elif recovery_time <= 10:
+    15	        recovery_score = 90
+    16	    elif recovery_time <= 20:
+    17	        recovery_score = 75
+    18	    else:
+    19	        recovery_score = 50
+    20	
+    21	    # Latency stability score
+    22	    if latency_p95 <= 200:
+    23	        latency_score = 100
+    24	    elif latency_p95 <= 400:
+    25	        latency_score = 80
+    26	    else:
+    27	        latency_score = 60
+    28	
+    29	    # Error score
+    30	    if error_rate == 0:
+    31	        error_score = 100
+    32	    elif error_rate <= 0.01:
+    33	        error_score = 90
+    34	    elif error_rate <= 0.05:
+    35	        error_score = 75
+    36	    else:
+    37	        error_score = 50
+    38	
+    39	    # Probe integrity score
+    40	    probe_score = 0 if probe_mismatch else 100
+    41	
+    42	    resilience_score = round(
+    43	        (recovery_score + latency_score + error_score + probe_score) / 4
+    44	    )
+    45	
+    46	    return {
+    47	        "resilience_score": resilience_score,
+    48	        "recovery_score": recovery_score,
+    49	        "latency_score": latency_score,
+    50	        "error_score": error_score,
+    51	        "probe_integrity_score": probe_score,
+    52	    }
+

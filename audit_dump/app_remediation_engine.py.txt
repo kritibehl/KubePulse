@@ -1,0 +1,51 @@
+===== FILE: app/remediation_engine.py =====
+===== LINES =====
+     1	from __future__ import annotations
+     2	
+     3	def recommend_network_remediation(report: dict, dependency_analysis: dict) -> dict:
+     4	    scenario = report.get("scenario", "unknown")
+     5	    dns_success_rate = float(report.get("dns_success_rate", 1.0))
+     6	    tcp_connect_latency_ms = float(report.get("tcp_connect_latency_ms", 0.0))
+     7	    http_success_rate = float(report.get("http_success_rate", 1.0))
+     8	    readiness_false_positive = bool(report.get("readiness_false_positive", False))
+     9	    root_cause = dependency_analysis.get("likely_root_cause", "unknown")
+    10	
+    11	    probable_source = root_cause
+    12	    action = "observe"
+    13	    rollback = "No rollback required."
+    14	    confidence = 0.62
+    15	    config_change = "No immediate config change."
+    16	
+    17	    if scenario == "dns_failure" or dns_success_rate < 0.9:
+    18	        action = "reroute"
+    19	        rollback = "Rollback recent DNS policy or service-discovery changes."
+    20	        config_change = "Validate CoreDNS, stub domains, and service discovery policy."
+    21	        confidence = 0.88
+    22	    elif scenario in {"packet_loss", "mtu_mismatch", "tcp_resets", "connection_churn"}:
+    23	        action = "isolate"
+    24	        rollback = "Rollback recent network policy, MTU, or transport tuning changes."
+    25	        config_change = "Inspect CNI path, MTU alignment, and transport retries."
+    26	        confidence = 0.84
+    27	    elif scenario in {"degraded_ingress", "dropped_egress", "node_partition"}:
+    28	        action = "reroute"
+    29	        rollback = "Rollback ingress/egress policy or node-local networking changes."
+    30	        config_change = "Shift traffic away from impaired node/zone and verify network policy."
+    31	        confidence = 0.83
+    32	    elif tcp_connect_latency_ms > 120 or http_success_rate < 0.9:
+    33	        action = "scale"
+    34	        rollback = "Rollback recent capacity or routing changes."
+    35	        config_change = "Increase healthy replicas and reduce load on degraded path."
+    36	        confidence = 0.79
+    37	
+    38	    if readiness_false_positive:
+    39	        config_change += " Tighten readiness probes to reflect real dependency availability."
+    40	        confidence = min(0.95, confidence + 0.05)
+    41	
+    42	    return {
+    43	        "probable_source_of_degradation": probable_source,
+    44	        "recommended_action": action,
+    45	        "confidence": round(confidence, 2),
+    46	        "suggested_rollback": rollback,
+    47	        "suggested_config_change": config_change,
+    48	    }
+

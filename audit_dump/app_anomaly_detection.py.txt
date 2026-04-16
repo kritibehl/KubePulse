@@ -1,0 +1,19 @@
+===== FILE: app/anomaly_detection.py =====
+===== LINES =====
+     1	def classify_anomalies(report: dict) -> list[str]:
+     2	    anomalies = []
+     3	
+     4	    if report.get("readiness_false_positive", False):
+     5	        anomalies.append("readiness_false_positive")
+     6	
+     7	    if report.get("latency_p95_ms", 0.0) > 500:
+     8	        anomalies.append("high_latency")
+     9	
+    10	    if report.get("error_rate", 0.0) > 0.05:
+    11	        anomalies.append("error_spike")
+    12	
+    13	    if report.get("restart_count", 0) > 2:
+    14	        anomalies.append("restart_instability")
+    15	
+    16	    return anomalies
+

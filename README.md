@@ -275,8 +275,368 @@ Python · FastAPI · Kubernetes · Prometheus · Docker · Terraform (AWS EKS) �
 ---
 
 ## Related
-
 - [Faultline](https://github.com/kritibehl/faultline) — exactly-once execution correctness under distributed failure
 - [Postmortem Atlas](https://github.com/kritibehl/postmortem-atlas) — real production outages, structured by failure class
 - [AutoOps-Insight](https://github.com/kritibehl/AutoOps-Insight) — CI failure intelligence and operator triage
 - [DetTrace](https://github.com/kritibehl/dettrace) — deterministic replay for concurrency failures
+=======
+KubePulse validates resilience across backend and AI-service failure modes including:
+
+- pod kill
+- CPU stress
+- network partition
+- DNS failure
+- inference timeout spike
+- vector DB latency degradation
+- embedding-service outage
+- fallback under load
+
+For each scenario, KubePulse is designed to surface:
+
+- recovery time
+- p95/p99 drift
+- availability
+- fallback success
+- error-budget burn
+- degraded-serving vs outage
+
+See: `docs/matrices/scenario_matrix.md`
+
+## What Probes Missed
+
+This is the signature KubePulse idea:
+
+**Green metrics can be misleading.**
+
+KubePulse is built to catch cases where:
+- probes report healthy
+- dashboards stay green
+- components still appear alive
+
+but:
+- dependency paths are broken
+- latency is still elevated
+- fallback quality is degraded
+- the service is not actually safe to operate
+
+
+
+A standout KubePulse feature is exposing cases where health checks looked healthy while service quality was still degraded.
+
+Examples:
+- readiness reported healthy but downstream dependencies were still failing
+- health probes stayed green while latency and user-visible quality remained degraded
+- fallback behavior was serving partial results, but service quality was still unsafe
+
+See: `docs/reports/what_probes_missed.md`
+
+## Scorecard Artifact
+
+KubePulse scorecards are intended to summarize whether a backend or AI service is actually safe to operate after disruption.
+
+See: `docs/scorecards/backend_ai_resilience_scorecard.md`
+
+## Run Comparison
+
+KubePulse can be extended to compare:
+- baseline vs disrupted
+- release A vs release B
+
+See: `docs/reports/run_comparison.md`
+
+## Operational Showcase
+
+KubePulse is designed to be legible as an operator-facing resilience validation tool, not just a failure-injection demo.
+
+### Scenario Matrix
+A matrix view helps compare backend and AI-service failure modes across:
+- recovery time
+- p95/p99 drift
+- availability
+- SLO pass/fail
+- error-budget burn
+- fallback success
+- degraded-serving vs outage
+- probe false positives
+
+See: `docs/showcase/scenario_matrix.md`
+
+### What Probes Missed
+A core KubePulse feature is surfacing cases where readiness looked healthy while user-facing behavior was still degraded.
+
+See: `docs/showcase/what_probes_missed.md`
+
+### Release Compare Mode
+KubePulse can be used for:
+- baseline vs disrupted comparisons
+- previous version vs new version validation
+- service A vs service B comparisons
+
+See: `docs/compare/release_compare_mode.md`
+
+### Scorecard Export
+KubePulse scorecards summarize whether a service is actually safe to operate after disruption.
+
+See: `docs/scorecards/scorecard_export_showcase.md`
+
+### AI Dependency Chain Case
+KubePulse can validate modern backend/AI dependency chains where availability is preserved but user-visible quality still violates SLOs.
+
+See: `docs/showcase/ai_dependency_chain_case.md`
+
+## Operational Showcase
+
+KubePulse is designed to be legible as an operator-facing resilience validation tool, not just a failure-injection demo.
+
+### Scenario Matrix
+A matrix view helps compare backend and AI-service failure modes across:
+- recovery time
+- p95/p99 drift
+- availability
+- SLO pass/fail
+- error-budget burn
+- fallback success
+- degraded-serving vs outage
+- probe false positives
+
+See: `docs/showcase/scenario_matrix.md`
+
+### What Probes Missed
+A core KubePulse feature is surfacing cases where readiness looked healthy while user-facing behavior was still degraded.
+
+See: `docs/showcase/what_probes_missed.md`
+
+### Release Compare Mode
+KubePulse can be used for:
+- baseline vs disrupted comparisons
+- previous version vs new version validation
+- service A vs service B comparisons
+
+See: `docs/compare/release_compare_mode.md`
+
+### Scorecard Export
+KubePulse scorecards summarize whether a service is actually safe to operate after disruption.
+
+See: `docs/scorecards/scorecard_export_showcase.md`
+
+### AI Dependency Chain Case
+KubePulse can validate modern backend/AI dependency chains where availability is preserved but user-visible quality still violates SLOs.
+
+See: `docs/showcase/ai_dependency_chain_case.md`
+
+## Network Topology and Convergence Lab
+
+KubePulse also supports topology-aware resilience validation for service dependency paths.
+
+This module models:
+- multi-hop topology paths (edge -> router/service hop -> api -> auth -> downstream)
+- path maps and route selection
+- link up/down events
+- failover path selection
+- asymmetric path scenarios
+- blackhole / unreachable detection
+- convergence timing after path failure
+
+Key topology metrics:
+- convergence_seconds
+- path_changes_total
+- unreachable_windows_total
+- degraded_path_requests_total
+
+This keeps the project grounded in routing and path-convergence behavior without overclaiming production routing protocol implementation.
+
+## Topology and Decision Layer
+
+KubePulse includes a topology-aware resilience validation layer for degraded network conditions and service dependency paths.
+
+It validates:
+- primary path vs failover path
+- link-down events
+- blackhole / unreachable behavior
+- asymmetric path degradation
+- link flap / route churn
+- convergence timing after failure
+
+Key signals:
+- convergence_seconds
+- path_changes_total
+- unreachable_window_seconds
+- degraded_path_requests_total
+- path_recovery_status
+- safe_to_operate
+- what_probes_missed
+- recommendation_action
+
+This turns KubePulse from failure testing into operator-facing decision support for whether a backend or AI service is truly safe to operate under degraded network conditions.
+
+## Visual Decision Artifact
+
+A single operator-facing artifact makes KubePulse immediately legible by showing:
+- scenario name
+- probes healthy?
+- SLO met?
+- safe to operate?
+- what probes missed
+- recommendation
+- key metrics for convergence, path changes, unreachable window, degraded-path requests, and p95 drift
+
+![Topology Decision Artifact](docs/showcase/topology_decision_artifact.svg)
+
+See also: `docs/scorecards/topology_decision_artifact.md`
+
+## Path / Trace Correlation
+
+For topology and degraded-path scenarios, KubePulse correlates:
+- which hop degraded
+- where latency increased
+- what path changed
+- before/after path timeline
+
+This adds dependency-path reasoning and trace-style artifacts so resilience validation explains *where* the service path changed, not just *that* it changed.
+
+See: `docs/showcase/path_trace_correlation.md`
+
+## Canonical Decision Report
+
+KubePulse should be understood through a single operator-facing decision artifact:
+
+- scenario
+- probes healthy?
+- SLO met?
+- safe to operate?
+- recommendation
+- key metrics
+
+See: `docs/reports/canonical_decision_report.md`
+
+## Compare View
+
+KubePulse supports comparison across:
+- baseline
+- degraded
+- recovered
+
+with emphasis on:
+- convergence
+- availability
+- p95/p99 drift
+- error-budget burn
+- final decision
+
+See: `docs/compare/baseline_degraded_recovered.md`
+
+## Flagship Scenario Artifacts
+
+The most important scenarios surfaced by KubePulse are:
+- link failure failover
+- blackhole
+- link flap
+- asymmetric path
+
+See: `docs/showcase/flagship_scenarios.md`
+
+## What Probes Missed
+
+This is the most important visible concept in KubePulse.
+
+See: `docs/showcase/what_probes_missed.md`
+
+## Compact Metrics
+
+A small table makes the strongest validated outcomes legible at a glance.
+
+See: `docs/showcase/metrics_table.md`
+
+## Architecture Diagram
+
+KubePulse evaluates resilience across a simple service dependency chain:
+
+`edge -> api -> auth -> downstream`
+
+The diagram below shows how a failure path maps into an operator-facing decision artifact.
+
+![Architecture Diagram](docs/showcase/architecture_diagram.svg)
+
+See: `docs/showcase/architecture_diagram.md`
+
+## Green Metrics Can Be Misleading
+
+One of the main goals of KubePulse is to catch cases where health checks remain green but operational recovery is not actually complete.
+
+See:
+- `docs/reports/green_metrics_misleading.md`
+- `docs/showcase/validation_positioning.md`
+
+## Proof Statement
+
+Resilience validation framework that determines whether systems remain operationally safe under degraded conditions, even when conventional health checks stay green.
+
+## Scenario Spec Model
+
+KubePulse scenarios define:
+- fault injected
+- expected blast radius
+- expected signals
+- must-hold invariants
+- must-not-happen conditions
+- safe-to-operate thresholds
+- expected recovery window
+
+## Safe-to-Operate Logic
+
+Every run should answer:
+- probes healthy?
+- service available?
+- SLO met?
+- downstream healthy?
+- error rate acceptable?
+- safe to operate?
+
+## False Green Gallery
+
+See: `docs/showcase/false_green_gallery.md`
+
+## Case Study
+
+See: `docs/case_studies/green_probe_false_safety.md`
+
+## Terraform-backed test environment
+
+KubePulse now includes a root-level `terraform/` directory that provisions a minimal AWS EKS environment with VPC, public/private subnets, and a managed node group.
+
+Why this matters:
+- moves the project beyond local-only cluster validation
+- adds infrastructure-as-code proof for platform and reliability roles
+- makes it easier to run KubePulse against a more production-like Kubernetes target
+
+Infra scaffold:
+- `terraform/main.tf`
+- `terraform/variables.tf`
+- `terraform/outputs.tf`
+- `terraform/versions.tf`
+
+This complements KubePulse’s core reliability goal: detecting cases where Kubernetes probes remain healthy while the system is unsafe to operate.
+
+## Release Safety Framing
+
+Resilience validation for systems that look healthy but are operationally unsafe.
+
+Kubernetes can tell you whether a pod responds.  
+KubePulse tells you whether the service should still receive traffic.
+
+### Release Gate Decision
+
+Example output:
+
+```json
+{
+  "safe_to_operate": false,
+  "release_decision": "block",
+  "reason": "latency spike + probe false positive"
+}
+cd ~/KubePulse || exit 1
+source .venv/bin/activate
+
+pkill -f uvicorn || true
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+

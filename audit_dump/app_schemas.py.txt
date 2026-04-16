@@ -1,0 +1,141 @@
+===== FILE: app/schemas.py =====
+===== LINES =====
+     1	from typing import Optional
+     2	from pydantic import BaseModel
+     3	
+     4	class ScenarioRequest(BaseModel):
+     5	    pod_name: str
+     6	    namespace: str = "default"
+     7	    dry_run: bool = False
+     8	
+     9	class HistoricalScenarioRequest(ScenarioRequest):
+    10	    run_group: Optional[str] = None
+    11	    run_kind: Optional[str] = None
+    12	
+    13	class NetworkScenarioRequest(BaseModel):
+    14	    namespace: str = "default"
+    15	    source_service: str
+    16	    target_service: str
+    17	    dry_run: bool = True
+    18	    run_group: Optional[str] = None
+    19	    run_kind: Optional[str] = None
+    20	    severity: str = "medium"
+    21	    duration_seconds: int = 30
+    22	
+    23	class ResilienceReport(BaseModel):
+    24	    scenario: str
+    25	    pod_name: str
+    26	    namespace: str
+    27	    started_at: str
+    28	    ended_at: str
+    29	    success: bool
+    30	    recovery_window_seconds: float = 0.0
+    31	    restart_count: int = 0
+    32	    probe_mismatch: bool = False
+    33	    status: str = "pass"
+    34	    latency_p50_ms: float = 0.0
+    35	    latency_p95_ms: float = 0.0
+    36	    latency_p99_ms: float = 0.0
+    37	    error_rate: float = 0.0
+    38	    baseline_latency_p50_ms: float = 0.0
+    39	    baseline_latency_p95_ms: float = 0.0
+    40	    baseline_latency_p99_ms: float = 0.0
+    41	    baseline_error_rate: float = 0.0
+    42	    observed_latency_p50_ms: float = 0.0
+    43	    observed_latency_p95_ms: float = 0.0
+    44	    observed_latency_p99_ms: float = 0.0
+    45	    observed_error_rate: float = 0.0
+    46	    latency_p50_drift_pct: float = 0.0
+    47	    latency_p95_drift_pct: float = 0.0
+    48	    latency_p99_drift_pct: float = 0.0
+    49	    error_rate_delta: float = 0.0
+    50	    resilience_score: int = 0
+    51	    recovery_score: int = 0
+    52	    latency_score: int = 0
+    53	    error_score: int = 0
+    54	    probe_integrity_score: int = 0
+    55	    network_health_score: int = 0
+    56	    dns_score: int = 0
+    57	    tcp_score: int = 0
+    58	    http_score: int = 0
+    59	    cross_zone_score: int = 0
+    60	    path_recovery_score: int = 0
+    61	    readiness_integrity_score: int = 0
+    62	    availability_alignment_score: int = 0
+    63	    dns_success_rate: float = 1.0
+    64	    tcp_connect_latency_ms: float = 0.0
+    65	    http_success_rate: float = 1.0
+    66	    cross_zone_degradation_pct: float = 0.0
+    67	    path_recovery_time_seconds: float = 0.0
+    68	    network_availability_gap_pct: float = 0.0
+    69	    connection_failure_rate: float = 0.0
+    70	    packet_loss_pct: float = 0.0
+    71	    latency_injection_ms: float = 0.0
+    72	    tcp_reset_rate: float = 0.0
+    73	    mtu_mismatch_detected: bool = False
+    74	    source_service: Optional[str] = None
+    75	    target_service: Optional[str] = None
+    76	    probable_source_of_degradation: Optional[str] = None
+    77	    recommended_action: Optional[str] = None
+    78	    confidence: float = 0.0
+    79	    suggested_rollback: Optional[str] = None
+    80	    suggested_config_change: Optional[str] = None
+    81	    stdout: str = ""
+    82	    stderr: str = ""
+    83	    error: Optional[str] = None
+    84	    report_path: Optional[str] = None
+    85	    readiness_before: str = "ready"
+    86	    readiness_after: str = "ready"
+    87	    readiness_false_positive: bool = False
+    88	    pass_fail_reason: str = "Scenario satisfied configured thresholds."
+    89	    recommendation: str = "No action required."
+    90	    run_id: Optional[str] = None
+    91	    run_group: Optional[str] = None
+    92	    run_kind: Optional[str] = None
+    93	    validity_status: str = "valid"
+    94	    confidence_score: float = 1.0
+    95	    data_sufficiency_notes: str = "Sufficient data captured for reporting."
+    96	    missing_fields: list[str] = []
+    97	    fallback_success_rate_pct: float = 0.0
+    98	    degraded_serving_mode: bool = False
+    99	    full_outage: bool = False
+   100	    user_visible_quality: str = "healthy"
+   101	    ai_dependency: Optional[str] = None
+   102	    ai_failure_mode: Optional[str] = None
+   103	    baseline_path: Optional[list[str]] = None
+   104	    baseline_path_cost: Optional[float] = None
+   105	    final_path: Optional[list[str]] = None
+   106	    final_path_cost: Optional[float] = None
+   107	    path_change_timeline: Optional[list[dict]] = None
+   108	    broken_hop: Optional[str] = None
+   109	    reroute_detail: Optional[dict] = None
+   110	    partial_recovery: bool = False
+   111	    convergence_seconds: float = 0.0
+   112	    path_changes_total: int = 0
+   113	    unreachable_windows_total: int = 0
+   114	    unreachable_window_seconds: float = 0.0
+   115	    degraded_path_requests_total: int = 0
+   116	    path_recovery_status: str = "stable"
+   117	    path_extra_latency_ms: float = 0.0
+   118	    probes_say_healthy: bool = False
+   119	    safe_to_operate: bool = False
+   120	    what_probes_missed: list[str] = []
+   121	    recommendation_action: Optional[str] = None
+   122	    decision_artifact: Optional[dict] = None
+   123	    degraded_hop: Optional[str] = None
+   124	    path_shift_summary: Optional[str] = None
+   125	    path_trace_correlation: Optional[dict] = None
+   126	    baseline_path: Optional[list[str]] = None
+   127	    baseline_path_cost: Optional[float] = None
+   128	    final_path: Optional[list[str]] = None
+   129	    final_path_cost: Optional[float] = None
+   130	    path_change_timeline: Optional[list[dict]] = None
+   131	    broken_hop: Optional[str] = None
+   132	    reroute_detail: Optional[dict] = None
+   133	    partial_recovery: bool = False
+   134	    convergence_seconds: float = 0.0
+   135	    path_changes_total: int = 0
+   136	    unreachable_windows_total: int = 0
+   137	    degraded_path_requests_total: int = 0
+   138	    path_extra_latency_ms: float = 0.0
+

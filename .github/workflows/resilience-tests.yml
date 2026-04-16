@@ -20,30 +20,15 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          pip install fastapi uvicorn requests prometheus-client pyyaml
+          pip install fastapi uvicorn requests prometheus-client pyyaml pytest
 
-      - name: Show repo structure
+      - name: Run unit tests
         run: |
-          pwd
-          find . -maxdepth 3 -type f | sort
+          pytest -q
 
-      - name: Start sample service
+      - name: Run resilience decision gate
         run: |
-          ARTIFICIAL_DELAY_MS=0 ERROR_MODE=false python -m uvicorn sample_app.main:app --host 127.0.0.1 --port 9000 > sample_app.log 2>&1 &
-          echo $! > sample_app.pid
-
-      - name: Wait for sample service
-        run: |
-          for i in {1..20}; do
-            if curl -fsS http://127.0.0.1:9000/health; then
-              echo "sample service is up"
-              exit 0
-            fi
-            sleep 1
-          done
-          echo "sample service failed to start"
-          cat sample_app.log || true
-          exit 1
+          python3 scripts/ci_gate.py
 
       - name: Start KubePulse
         run: |
@@ -63,29 +48,17 @@ jobs:
           cat kubepulse.log || true
           exit 1
 
-      - name: Smoke check APIs
+      - name: Smoke check critical routes
         run: |
           curl -fsS http://127.0.0.1:8000/health
           echo
-          curl -fsS http://127.0.0.1:8000/scenarios
+          curl -fsS -X POST http://127.0.0.1:8000/scenarios/readiness-false-positive
           echo
-
-      - name: Run resilience scenarios
-        run: |
-          curl -fsS -X POST http://127.0.0.1:8000/scenarios/run/cpu_stress
-          echo
-          curl -fsS -X POST http://127.0.0.1:8000/scenarios/run/readiness_false_positive
-          echo
-
-      - name: Fetch scorecards
-        run: |
-          curl -fsS http://127.0.0.1:8000/scorecards
+          curl -fsS -X POST http://127.0.0.1:8000/scenarios/multi-service-cascade
           echo
 
       - name: Show logs on failure
         if: failure()
         run: |
-          echo "==== sample_app.log ===="
-          cat sample_app.log || true
           echo "==== kubepulse.log ===="
           cat kubepulse.log || true

@@ -1,0 +1,21 @@
+===== FILE: app/scenario_loader.py =====
+===== LINES =====
+     1	from pathlib import Path
+     2	import yaml
+     3	
+     4	
+     5	SCENARIOS_DIR = Path("scenarios")
+     6	
+     7	
+     8	def load_scenario(name: str) -> dict:
+     9	    scenario_path = SCENARIOS_DIR / f"{name}.yaml"
+    10	    if not scenario_path.exists():
+    11	        raise FileNotFoundError(f"Scenario '{name}' not found at {scenario_path}")
+    12	
+    13	    with open(scenario_path, "r", encoding="utf-8") as f:
+    14	        return yaml.safe_load(f)
+    15	
+    16	
+    17	def list_scenarios() -> list[str]:
+    18	    return sorted(path.stem for path in SCENARIOS_DIR.glob("*.yaml"))
+

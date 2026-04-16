@@ -1,22 +1,23 @@
 {
-  "scenario": "link_failure_failover",
+  "scenario": "multi_service_cascade",
   "probes_healthy": true,
   "service_available": true,
   "slo_met": false,
-  "downstream_healthy": true,
+  "downstream_healthy": false,
   "error_rate_acceptable": false,
   "safe_to_operate": false,
-  "recommendation": "reroute",
+  "recommendation": "block",
   "key_metrics": {
-    "convergence_seconds": 2.4,
-    "degraded_path_requests_total": 12,
+    "convergence_seconds": 0.0,
+    "degraded_path_requests_total": 37,
     "unreachable_window_seconds": 0.0,
-    "path_changes_total": 1,
-    "latency_p95_ms": 540.0,
-    "latency_p99_ms": 880.0
+    "path_changes_total": 2,
+    "latency_p95_ms": 780.0,
+    "latency_p99_ms": 1200.0
   },
   "what_probes_missed": [
-    "Readiness stayed green while requests shifted onto a degraded failover path.",
-    "User-facing latency increased even after reachability recovered."
+    "Downstream DB latency propagated upstream while probes stayed green.",
+    "Tail latency exceeded SLO before container health changed.",
+    "User-facing degradation occurred without a restart or readiness flip."
   ]
 }

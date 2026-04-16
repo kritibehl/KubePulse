@@ -1,0 +1,98 @@
+===== FILE: app/models.py =====
+===== LINES =====
+     1	from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String, Text
+     2	from sqlalchemy.orm import Mapped, mapped_column
+     3	from app.db import Base
+     4	
+     5	class ScenarioRun(Base):
+     6	    __tablename__ = "scenario_runs"
+     7	    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+     8	    run_id: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+     9	    scenario: Mapped[str] = mapped_column(String(128), index=True)
+    10	    pod_name: Mapped[str] = mapped_column(String(255))
+    11	    namespace: Mapped[str] = mapped_column(String(255))
+    12	    disruption_type: Mapped[str] = mapped_column(String(128), index=True)
+    13	    run_group: Mapped[str | None] = mapped_column(String(128), index=True, nullable=True)
+    14	    run_kind: Mapped[str | None] = mapped_column(String(32), index=True, nullable=True)
+    15	    started_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True))
+    16	    ended_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True))
+    17	    success: Mapped[bool] = mapped_column(Boolean)
+    18	    status: Mapped[str] = mapped_column(String(32), index=True)
+    19	    recommendation: Mapped[str] = mapped_column(Text, default="")
+    20	    report_path: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    21	    validity_status: Mapped[str] = mapped_column(String(32), index=True, default="valid")
+    22	    confidence_score: Mapped[float] = mapped_column(Float, default=1.0)
+    23	    data_sufficiency_notes: Mapped[str] = mapped_column(Text, default="")
+    24	    missing_fields: Mapped[str] = mapped_column(Text, default="")
+    25	    created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True))
+    26	
+    27	class ScoreHistory(Base):
+    28	    __tablename__ = "score_history"
+    29	    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    30	    run_id: Mapped[str] = mapped_column(String(64), ForeignKey("scenario_runs.run_id"), index=True)
+    31	    resilience_score: Mapped[int] = mapped_column(Integer, default=0)
+    32	    recovery_score: Mapped[int] = mapped_column(Integer, default=0)
+    33	    latency_score: Mapped[int] = mapped_column(Integer, default=0)
+    34	    error_score: Mapped[int] = mapped_column(Integer, default=0)
+    35	    probe_integrity_score: Mapped[int] = mapped_column(Integer, default=0)
+    36	    slo_availability_target: Mapped[float] = mapped_column(Float, default=99.5)
+    37	    slo_latency_p99_target_ms: Mapped[float] = mapped_column(Float, default=500.0)
+    38	    slo_error_rate_target: Mapped[float] = mapped_column(Float, default=1.0)
+    39	    slo_window_minutes: Mapped[int] = mapped_column(Integer, default=30)
+    40	    availability_achieved_pct: Mapped[float] = mapped_column(Float, default=0.0)
+    41	    latency_p99_achieved_ms: Mapped[float] = mapped_column(Float, default=0.0)
+    42	    error_rate_achieved_pct: Mapped[float] = mapped_column(Float, default=0.0)
+    43	    error_budget_remaining_pct: Mapped[float] = mapped_column(Float, default=0.0)
+    44	    slo_met: Mapped[bool] = mapped_column(Boolean, default=False)
+    45	
+    46	class RecoveryWindowHistory(Base):
+    47	    __tablename__ = "recovery_window_history"
+    48	    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    49	    run_id: Mapped[str] = mapped_column(String(64), ForeignKey("scenario_runs.run_id"), index=True)
+    50	    recovery_window_seconds: Mapped[float] = mapped_column(Float, default=0.0)
+    51	    restart_count: Mapped[int] = mapped_column(Integer, default=0)
+    52	    readiness_false_positive: Mapped[bool] = mapped_column(Boolean, default=False)
+    53	    probe_mismatch: Mapped[bool] = mapped_column(Boolean, default=False)
+    54	
+    55	class LatencyErrorSummary(Base):
+    56	    __tablename__ = "latency_error_summaries"
+    57	    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    58	    run_id: Mapped[str] = mapped_column(String(64), ForeignKey("scenario_runs.run_id"), index=True)
+    59	    latency_p50_ms: Mapped[float] = mapped_column(Float, default=0.0)
+    60	    latency_p95_ms: Mapped[float] = mapped_column(Float, default=0.0)
+    61	    latency_p99_ms: Mapped[float] = mapped_column(Float, default=0.0)
+    62	    error_rate: Mapped[float] = mapped_column(Float, default=0.0)
+    63	    baseline_latency_p50_ms: Mapped[float] = mapped_column(Float, default=0.0)
+    64	    baseline_latency_p95_ms: Mapped[float] = mapped_column(Float, default=0.0)
+    65	    baseline_latency_p99_ms: Mapped[float] = mapped_column(Float, default=0.0)
+    66	    baseline_error_rate: Mapped[float] = mapped_column(Float, default=0.0)
+    67	    observed_latency_p50_ms: Mapped[float] = mapped_column(Float, default=0.0)
+    68	    observed_latency_p95_ms: Mapped[float] = mapped_column(Float, default=0.0)
+    69	    observed_latency_p99_ms: Mapped[float] = mapped_column(Float, default=0.0)
+    70	    observed_error_rate: Mapped[float] = mapped_column(Float, default=0.0)
+    71	    latency_p50_drift_pct: Mapped[float] = mapped_column(Float, default=0.0)
+    72	    latency_p95_drift_pct: Mapped[float] = mapped_column(Float, default=0.0)
+    73	    latency_p99_drift_pct: Mapped[float] = mapped_column(Float, default=0.0)
+    74	    error_rate_delta: Mapped[float] = mapped_column(Float, default=0.0)
+    75	
+    76	class NetworkHealthHistory(Base):
+    77	    __tablename__ = "network_health_history"
+    78	    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    79	    run_id: Mapped[str] = mapped_column(String(64), ForeignKey("scenario_runs.run_id"), index=True)
+    80	    network_health_score: Mapped[int] = mapped_column(Integer, default=0)
+    81	    dns_success_rate: Mapped[float] = mapped_column(Float, default=1.0)
+    82	    tcp_connect_latency_ms: Mapped[float] = mapped_column(Float, default=0.0)
+    83	    http_success_rate: Mapped[float] = mapped_column(Float, default=1.0)
+    84	    cross_zone_degradation_pct: Mapped[float] = mapped_column(Float, default=0.0)
+    85	    path_recovery_time_seconds: Mapped[float] = mapped_column(Float, default=0.0)
+    86	    network_availability_gap_pct: Mapped[float] = mapped_column(Float, default=0.0)
+    87	    fallback_success_rate_pct: Mapped[float] = mapped_column(Float, default=0.0)
+    88	    degraded_serving_mode: Mapped[bool] = mapped_column(Boolean, default=False)
+    89	    full_outage: Mapped[bool] = mapped_column(Boolean, default=False)
+    90	    convergence_seconds: Mapped[float] = mapped_column(Float, default=0.0)
+    91	    path_changes_total: Mapped[int] = mapped_column(Integer, default=0)
+    92	    unreachable_windows_total: Mapped[int] = mapped_column(Integer, default=0)
+    93	    degraded_path_requests_total: Mapped[int] = mapped_column(Integer, default=0)
+    94	    unreachable_window_seconds: Mapped[float] = mapped_column(Float, default=0.0)
+    95	    safe_to_operate: Mapped[bool] = mapped_column(Boolean, default=False)
+

@@ -1,0 +1,62 @@
+===== FILE: app/thresholds.py =====
+===== LINES =====
+     1	def evaluate_thresholds(result: dict, scenario: dict) -> dict:
+     2	    thresholds = scenario.get("thresholds", {})
+     3	
+     4	    recovery_window_max = thresholds.get("recovery_window_seconds_max")
+     5	    restart_count_max = thresholds.get("restart_count_max")
+     6	    readiness_false_positive_allowed = thresholds.get(
+     7	        "readiness_false_positive_allowed",
+     8	        False,
+     9	    )
+    10	
+    11	    failures = []
+    12	
+    13	    if (
+    14	        recovery_window_max is not None
+    15	        and result.get("recovery_window_seconds", 0.0) > recovery_window_max
+    16	    ):
+    17	        failures.append(
+    18	            f"Recovery window {result.get('recovery_window_seconds')}s exceeded "
+    19	            f"threshold {recovery_window_max}s."
+    20	        )
+    21	
+    22	    if (
+    23	        restart_count_max is not None
+    24	        and result.get("restart_count", 0) > restart_count_max
+    25	    ):
+    26	        failures.append(
+    27	            f"Restart count {result.get('restart_count')} exceeded "
+    28	            f"threshold {restart_count_max}."
+    29	        )
+    30	
+    31	    if (
+    32	        not readiness_false_positive_allowed
+    33	        and result.get("readiness_false_positive", False)
+    34	    ):
+    35	        failures.append(
+    36	            "Readiness false positive detected while scenario disallowed it."
+    37	        )
+    38	
+    39	    if failures:
+    40	        result["status"] = "fail"
+    41	        result["pass_fail_reason"] = " ".join(failures)
+    42	        if result.get("readiness_false_positive", False):
+    43	            result["recommendation"] = (
+    44	                "Tighten readiness checks to better reflect degraded service state."
+    45	            )
+    46	        elif result.get("restart_count", 0) > 0:
+    47	            result["recommendation"] = (
+    48	                "Investigate restart behavior and probe stability under disruption."
+    49	            )
+    50	        else:
+    51	            result["recommendation"] = (
+    52	                "Review recovery behavior against scenario thresholds."
+    53	            )
+    54	    else:
+    55	        result["status"] = "pass"
+    56	        result["pass_fail_reason"] = "Scenario satisfied configured thresholds."
+    57	        result["recommendation"] = "No action required."
+    58	
+    59	    return result
+

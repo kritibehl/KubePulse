@@ -1,0 +1,210 @@
+===== FILE: app/chaos_injector.py =====
+===== LINES =====
+     1	import subprocess
+     2	from datetime import datetime, timezone
+     3	
+     4	from app.baseline_compare import collect_baseline, compare_to_baseline
+     5	from app.metrics_probe import probe_endpoint
+     6	
+     7	
+     8	def _now() -> str:
+     9	    return datetime.now(timezone.utc).isoformat()
+    10	
+    11	
+    12	def _run_kubectl_command(command_parts: list[str]) -> dict:
+    13	    start_time = _now()
+    14	
+    15	    try:
+    16	        completed = subprocess.run(
+    17	            command_parts,
+    18	            check=True,
+    19	            capture_output=True,
+    20	            text=True,
+    21	        )
+    22	        success = True
+    23	        error = None
+    24	    except subprocess.CalledProcessError as e:
+    25	        completed = e
+    26	        success = False
+    27	        error = str(e)
+    28	
+    29	    end_time = _now()
+    30	
+    31	    return {
+    32	        "started_at": start_time,
+    33	        "ended_at": end_time,
+    34	        "success": success,
+    35	        "recovery_window_seconds": 0.0,
+    36	        "restart_count": 0,
+    37	        "probe_mismatch": False,
+    38	        "status": "pass" if success else "fail",
+    39	        "stdout": completed.stdout if hasattr(completed, "stdout") else "",
+    40	        "stderr": completed.stderr if hasattr(completed, "stderr") else "",
+    41	        "error": error,
+    42	        "readiness_before": "ready",
+    43	        "readiness_after": "ready" if success else "not_ready",
+    44	        "readiness_false_positive": False,
+    45	        "latency_p50_ms": 120.0 if success else 700.0,
+    46	        "latency_p95_ms": 120.0 if success else 800.0,
+    47	        "latency_p99_ms": 140.0 if success else 900.0,
+    48	        "error_rate": 0.01 if success else 0.10,
+    49	    }
+    50	
+    51	
+    52	def inject_cpu_stress(
+    53	    pod_name: str,
+    54	    namespace: str = "default",
+    55	    dry_run: bool = False,
+    56	) -> dict:
+    57	    if not pod_name:
+    58	        raise ValueError("Invalid pod name provided.")
+    59	
+    60	    if dry_run:
+    61	        return {
+    62	            "scenario": "cpu_stress",
+    63	            "pod_name": pod_name,
+    64	            "namespace": namespace,
+    65	            "started_at": _now(),
+    66	            "ended_at": _now(),
+    67	            "success": True,
+    68	            "recovery_window_seconds": 8.0,
+    69	            "restart_count": 0,
+    70	            "probe_mismatch": False,
+    71	            "status": "pass",
+    72	            "stdout": "Dry run: simulated CPU stress injection",
+    73	            "stderr": "",
+    74	            "error": None,
+    75	            "readiness_before": "ready",
+    76	            "readiness_after": "ready",
+    77	            "readiness_false_positive": False,
+    78	            "latency_p50_ms": 180.0,
+    79	            "latency_p95_ms": 210.0,
+    80	            "latency_p99_ms": 240.0,
+    81	            "error_rate": 0.02,
+    82	        }
+    83	
+    84	    command = [
+    85	        "kubectl",
+    86	        "exec",
+    87	        "-n",
+    88	        namespace,
+    89	        pod_name,
+    90	        "--",
+    91	        "stress",
+    92	        "--cpu",
+    93	        "1",
+    94	        "--timeout",
+    95	        "60s",
+    96	    ]
+    97	
+    98	    result = _run_kubectl_command(command)
+    99	    result.update(
+   100	        {
+   101	            "scenario": "cpu_stress",
+   102	            "pod_name": pod_name,
+   103	            "namespace": namespace,
+   104	        }
+   105	    )
+   106	    return result
+   107	
+   108	
+   109	def inject_memory_stress(
+   110	    pod_name: str,
+   111	    namespace: str = "default",
+   112	    dry_run: bool = False,
+   113	) -> dict:
+   114	    if not pod_name:
+   115	        raise ValueError("Invalid pod name provided.")
+   116	
+   117	    if dry_run:
+   118	        return {
+   119	            "scenario": "memory_stress",
+   120	            "pod_name": pod_name,
+   121	            "namespace": namespace,
+   122	            "started_at": _now(),
+   123	            "ended_at": _now(),
+   124	            "success": True,
+   125	            "recovery_window_seconds": 10.0,
+   126	            "restart_count": 1,
+   127	            "probe_mismatch": False,
+   128	            "status": "pass",
+   129	            "stdout": "Dry run: simulated memory stress injection",
+   130	            "stderr": "",
+   131	            "error": None,
+   132	            "readiness_before": "ready",
+   133	            "readiness_after": "ready",
+   134	            "readiness_false_positive": False,
+   135	            "latency_p50_ms": 200.0,
+   136	            "latency_p95_ms": 240.0,
+   137	            "latency_p99_ms": 280.0,
+   138	            "error_rate": 0.03,
+   139	        }
+   140	
+   141	    command = [
+   142	        "kubectl",
+   143	        "exec",
+   144	        "-n",
+   145	        namespace,
+   146	        pod_name,
+   147	        "--",
+   148	        "stress",
+   149	        "--vm",
+   150	        "1",
+   151	        "--vm-bytes",
+   152	        "50M",
+   153	        "--timeout",
+   154	        "60s",
+   155	    ]
+   156	
+   157	    result = _run_kubectl_command(command)
+   158	    result.update(
+   159	        {
+   160	            "scenario": "memory_stress",
+   161	            "pod_name": pod_name,
+   162	            "namespace": namespace,
+   163	        }
+   164	    )
+   165	    return result
+   166	
+   167	
+   168	def inject_readiness_false_positive(
+   169	    pod_name: str,
+   170	    namespace: str = "default",
+   171	    dry_run: bool = False,
+   172	) -> dict:
+   173	    if not pod_name:
+   174	        raise ValueError("Invalid pod name provided.")
+   175	
+   176	    if dry_run:
+   177	        baseline = collect_baseline("http://127.0.0.1:9000/work")
+   178	        metrics = probe_endpoint("http://127.0.0.1:9000/work", requests_count=25)
+   179	        comparison = compare_to_baseline(baseline, metrics)
+   180	
+   181	        result = {
+   182	            "scenario": "readiness_false_positive",
+   183	            "pod_name": pod_name,
+   184	            "namespace": namespace,
+   185	            "started_at": _now(),
+   186	            "ended_at": _now(),
+   187	            "success": True,
+   188	            "recovery_window_seconds": 12.0,
+   189	            "restart_count": 0,
+   190	            "probe_mismatch": True,
+   191	            "status": "fail",
+   192	            "stdout": "Dry run: readiness remained healthy while service behavior degraded",
+   193	            "stderr": "",
+   194	            "error": None,
+   195	            "readiness_before": "ready",
+   196	            "readiness_after": "ready",
+   197	            "readiness_false_positive": True,
+   198	            "latency_p50_ms": metrics["latency_p50_ms"],
+   199	            "latency_p95_ms": metrics["latency_p95_ms"],
+   200	            "latency_p99_ms": metrics["latency_p99_ms"],
+   201	            "error_rate": metrics["error_rate"],
+   202	        }
+   203	
+   204	        result.update(comparison)
+   205	        return result
+   206	
+   207	    raise NotImplementedError("Real readiness false-positive scenario not implemented yet.")
+

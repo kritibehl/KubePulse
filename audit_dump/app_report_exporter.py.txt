@@ -1,0 +1,72 @@
+===== FILE: app/report_exporter.py =====
+===== LINES =====
+     1	from pathlib import Path
+     2	from app.report_store import read_report
+     3	
+     4	
+     5	EXPORTS_DIR = Path("exports")
+     6	EXPORTS_DIR.mkdir(exist_ok=True)
+     7	
+     8	
+     9	def export_report_markdown(report_path: str) -> str:
+    10	    report = read_report(report_path)
+    11	
+    12	    scenario = report.get("scenario", "unknown")
+    13	    started_at = report.get("started_at", "unknown")
+    14	    status = report.get("status", "unknown")
+    15	    recovery_window_seconds = report.get("recovery_window_seconds", 0.0)
+    16	    restart_count = report.get("restart_count", 0)
+    17	    probe_mismatch = report.get("probe_mismatch", False)
+    18	    readiness_false_positive = report.get("readiness_false_positive", False)
+    19	    readiness_before = report.get("readiness_before", "unknown")
+    20	    readiness_after = report.get("readiness_after", "unknown")
+    21	    pass_fail_reason = report.get(
+    22	        "pass_fail_reason",
+    23	        "No validation reason available.",
+    24	    )
+    25	    recommendation = report.get(
+    26	        "recommendation",
+    27	        "No recommendation available.",
+    28	    )
+    29	    stdout = report.get("stdout", "")
+    30	    stderr = report.get("stderr", "")
+    31	    source_report_path = report.get("report_path", report_path)
+    32	
+    33	    markdown = f"""# KubePulse Resilience Report
+    34	
+    35	## Scenario
+    36	- **Scenario:** {scenario}
+    37	- **Started At:** {started_at}
+    38	- **Status:** {status}
+    39	
+    40	## Scorecard
+    41	- **Recovery Window (s):** {recovery_window_seconds}
+    42	- **Restart Count:** {restart_count}
+    43	- **Probe Mismatch:** {probe_mismatch}
+    44	- **Readiness False Positive:** {readiness_false_positive}
+    45	
+    46	## Readiness Signals
+    47	- **Readiness Before:** {readiness_before}
+    48	- **Readiness After:** {readiness_after}
+    49	
+    50	## Validation
+    51	- **Reason:** {pass_fail_reason}
+    52	- **Recommendation:** {recommendation}
+    53	
+    54	## Execution Output
+    55	### stdout
+    56	
+    57	    {stdout}
+    58	
+    59	### stderr
+    60	
+    61	    {stderr}
+    62	
+    63	## Artifact
+    64	- **Source Report:** {source_report_path}
+    65	"""
+    66	
+    67	    filename = EXPORTS_DIR / f"{Path(report_path).stem}.md"
+    68	    filename.write_text(markdown, encoding="utf-8")
+    69	    return str(filename)
+

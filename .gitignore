@@ -10,3 +10,8 @@ reports/*.json
 !reports/sample_cpu_stress_report.json
 README.backup.md
 kubepulse.db
+
+.venv/
+candidate.json
+__pycache__/
+.DS_Store

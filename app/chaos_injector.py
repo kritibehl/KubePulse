@@ -165,14 +165,6 @@ def inject_memory_stress(
     return result
 
 
-def inject_readiness_false_positive(
-    pod_name: str,
-    namespace: str = "default",
-    dry_run: bool = False,
-) -> dict:
-    if not pod_name:
-        raise ValueError("Invalid pod name provided.")
-
     if dry_run:
         baseline = collect_baseline("http://127.0.0.1:9000/work")
         metrics = probe_endpoint("http://127.0.0.1:9000/work", requests_count=25)

@@ -1,0 +1,407 @@
+===== FILE: app/main.py =====
+===== LINES =====
+     1	from fastapi import FastAPI, HTTPException
+     2	from prometheus_client import make_asgi_app
+     3	
+     4	from app.analytics_store import fetch_history, persist_report, trend_summary
+     5	from app.cache import cache_health
+     6	from app.dashboard_export import export_dashboard_dataset
+     7	from app.ai_service_scenarios import run_ai_service_scenario
+     8	from app.topology_decision_lab import run_topology_decision_scenario
+     9	from app.path_trace_correlation import correlate_path_trace
+    10	from reports.scenario_summary import build_resilience_explanation
+    11	from reports.decision_report import build_decision_report
+    12	from reports.compare_view import build_compare_view
+    13	from validators.dependency_path import build_dependency_path_report
+    14	from validators.probe_analysis import build_probe_gap
+    15	from validators.assertions import evaluate_assertions
+    16	from validators.thresholds import evaluate_thresholds
+    17	from app.chaos_injector import (
+    18	    inject_cpu_stress,
+    19	    inject_memory_stress,
+    20	    inject_readiness_false_positive,
+    21	)
+    22	from app.db import init_db
+    23	from app.network_scenarios import (
+    24	    inject_connection_churn,
+    25	    inject_degraded_ingress,
+    26	    inject_dns_failure,
+    27	    inject_dropped_egress,
+    28	    inject_mtu_mismatch,
+    29	    inject_node_partition,
+    30	    inject_packet_loss,
+    31	    inject_service_latency,
+    32	    inject_tcp_resets,
+    33	)
+    34	from app.network_score import compute_network_health_score
+    35	from app.remediation_engine import recommend_network_remediation
+    36	from app.report_exporter import export_report_markdown
+    37	from app.report_store import list_reports, read_report, save_report
+    38	from app.resilience_score import compute_resilience_score
+    39	from app.scenario_loader import list_scenarios, load_scenario
+    40	from app.scenario_runner import run_scenario_definition
+    41	from app.schemas import HistoricalScenarioRequest, NetworkScenarioRequest, ResilienceReport, ScenarioRequest
+    42	from app.service_dependency import infer_dependency_analysis
+    43	from app.slo_evaluator import evaluate_slo
+    44	from app.statistics_engine import compare_baseline_vs_degraded
+    45	from pathlib import Path
+    46	from validators.rollout_risk import compute_rollout_risk
+    47	from app.remediation_planner import build_remediation_plan
+    48	from reports.operator_action_plan import build_operator_action_plan
+    49	
+    50	app = FastAPI(title="KubePulse")
+    51	metrics_app = make_asgi_app()
+    52	app.mount("/metrics", metrics_app)
+    53	
+    54	@app.on_event("startup")
+    55	def startup() -> None:
+    56	    init_db()
+    57	
+    58	def _finalize_result(result: dict) -> dict:
+    59	    result.update(compute_resilience_score(result))
+    60	    result.update(compute_network_health_score(result))
+    61	    result.update(evaluate_slo(result))
+    62	    if result.get("baseline_path") or result.get("final_path"):
+    63	        result.update(correlate_path_trace(result))
+    64	    scenario_spec = {}
+    65	    scenario_file = Path("scenarios") / f"{result.get('scenario')}.yaml"
+    66	    if scenario_file.exists():
+    67	        import yaml
+    68	        scenario_spec = yaml.safe_load(scenario_file.read_text()) or {}
+    69	    result.update(build_compare_view(result))
+    70	    result.update(build_probe_gap(result))
+    71	    result.update(build_dependency_path_report(result))
+    72	    result.update(evaluate_thresholds(result, scenario_spec))
+    73	    result.update(build_resilience_explanation(result))
+    74	    result["safe_to_operate"] = bool(
+    75	        result.get("availability_ok", False)
+    76	        and result.get("p95_ok", False)
+    77	        and result.get("p99_ok", False)
+    78	        and result.get("error_rate_ok", False)
+    79	        and result.get("slo_met", False)
+    80	        and not result.get("readiness_false_positive", False)
+    81	    )
+    82	    result["probes_say_healthy"] = bool(result.get("readiness_before") == "ready")
+    83	    if not result.get("recommendation_action"):
+    84	        result["recommendation_action"] = (
+    85	            "continue" if result["safe_to_operate"]
+    86	            else ("block" if result.get("status") == "fail" else "reroute")
+    87	        )
+    88	    result.update(build_decision_report(result))
+    89	    dependency_analysis = infer_dependency_analysis(result)
+    90	    result.update(dependency_analysis)
+    91	    remediation = recommend_network_remediation(result, dependency_analysis)
+    92	    result.update(remediation)
+    93	    result["recommendation"] = f"{remediation['recommended_action']} | {remediation['suggested_config_change']}"
+    94	    report_path = save_report(result)
+    95	    result["report_path"] = report_path
+    96	    run_id = persist_report(result)
+    97	    result["run_id"] = run_id
+    98	    rollout_risk = compute_rollout_risk(result)
+    99	    remediation_plan = build_remediation_plan(result, rollout_risk)
+   100	    operator_action_plan = build_operator_action_plan(result, rollout_risk, remediation_plan)
+   101	
+   102	    result["rollout_risk"] = rollout_risk
+   103	    result["remediation_plan"] = remediation_plan
+   104	    result["operator_action_plan"] = operator_action_plan
+   105	    result["deployment_decision"] = remediation_plan.get("deployment_decision")
+   106	
+   107	    return result
+   108	
+   109	def _network_response(builder, request: NetworkScenarioRequest) -> ResilienceReport:
+   110	    result = builder(
+   111	        namespace=request.namespace,
+   112	        source_service=request.source_service,
+   113	        target_service=request.target_service,
+   114	        dry_run=request.dry_run,
+   115	        run_group=request.run_group,
+   116	        run_kind=request.run_kind,
+   117	    )
+   118	    result = _finalize_result(result)
+   119	    return ResilienceReport(**result)
+   120	
+   121	@app.get("/health")
+   122	def health() -> dict:
+   123	    return {"status": "ok", "cache": cache_health()}
+   124	
+   125	@app.get("/scenarios")
+   126	def get_scenarios() -> dict:
+   127	    return {"scenarios": list_scenarios()}
+   128	
+   129	@app.get("/network/scenarios")
+   130	def get_network_scenarios() -> dict:
+   131	    return {
+   132	        "network_scenarios": [
+   133	            "packet_loss",
+   134	            "dns_failure",
+   135	            "service_latency",
+   136	            "node_partition",
+   137	            "dropped_egress",
+   138	            "degraded_ingress",
+   139	            "mtu_mismatch",
+   140	            "tcp_resets",
+   141	            "connection_churn",
+   142	        ]
+   143	    }
+   144	
+   145	@app.get("/scenarios/{name}")
+   146	def get_scenario(name: str) -> dict:
+   147	    try:
+   148	        return load_scenario(name)
+   149	    except FileNotFoundError as e:
+   150	        raise HTTPException(status_code=404, detail=str(e))
+   151	
+   152	@app.post("/scenarios/run/{name}", response_model=ResilienceReport)
+   153	def run_scenario_by_name(name: str) -> ResilienceReport:
+   154	    try:
+   155	        scenario = load_scenario(name)
+   156	        result = run_scenario_definition(scenario)
+   157	        result = _finalize_result(result)
+   158	        return ResilienceReport(**result)
+   159	    except FileNotFoundError as e:
+   160	        raise HTTPException(status_code=404, detail=str(e))
+   161	    except Exception as e:
+   162	        raise HTTPException(status_code=500, detail=str(e))
+   163	
+   164	@app.post("/scenarios/run/{name}/record", response_model=ResilienceReport)
+   165	def run_scenario_with_group(name: str, request: HistoricalScenarioRequest) -> ResilienceReport:
+   166	    try:
+   167	        scenario = load_scenario(name)
+   168	        scenario["target"] = {"pod_name": request.pod_name, "namespace": request.namespace}
+   169	        scenario["execution"] = {"dry_run": request.dry_run}
+   170	        result = run_scenario_definition(scenario)
+   171	        result["run_group"] = request.run_group
+   172	        result["run_kind"] = request.run_kind
+   173	        result = _finalize_result(result)
+   174	        return ResilienceReport(**result)
+   175	    except FileNotFoundError as e:
+   176	        raise HTTPException(status_code=404, detail=str(e))
+   177	    except Exception as e:
+   178	        raise HTTPException(status_code=500, detail=str(e))
+   179	
+   180	@app.post("/scenarios/cpu-stress", response_model=ResilienceReport)
+   181	def run_cpu_stress(request: ScenarioRequest) -> ResilienceReport:
+   182	    try:
+   183	        result = inject_cpu_stress(
+   184	            pod_name=request.pod_name,
+   185	            namespace=request.namespace,
+   186	            dry_run=request.dry_run,
+   187	        )
+   188	        result = _finalize_result(result)
+   189	        return ResilienceReport(**result)
+   190	    except Exception as e:
+   191	        raise HTTPException(status_code=500, detail=str(e))
+   192	
+   193	@app.post("/scenarios/memory-stress", response_model=ResilienceReport)
+   194	def run_memory_stress(request: ScenarioRequest) -> ResilienceReport:
+   195	    try:
+   196	        result = inject_memory_stress(
+   197	            pod_name=request.pod_name,
+   198	            namespace=request.namespace,
+   199	            dry_run=request.dry_run,
+   200	        )
+   201	        result = _finalize_result(result)
+   202	        return ResilienceReport(**result)
+   203	    except Exception as e:
+   204	        raise HTTPException(status_code=500, detail=str(e))
+   205	
+   206	@app.post("/scenarios/readiness-false-positive", response_model=ResilienceReport)
+   207	def run_readiness_false_positive(request: ScenarioRequest) -> ResilienceReport:
+   208	    try:
+   209	        result = inject_readiness_false_positive(
+   210	            pod_name=request.pod_name,
+   211	            namespace=request.namespace,
+   212	            dry_run=request.dry_run,
+   213	        )
+   214	        result = _finalize_result(result)
+   215	        return ResilienceReport(**result)
+   216	    except Exception as e:
+   217	        raise HTTPException(status_code=500, detail=str(e))
+   218	
+   219	@app.post("/network/packet-loss", response_model=ResilienceReport)
+   220	def network_packet_loss(request: NetworkScenarioRequest) -> ResilienceReport:
+   221	    return _network_response(inject_packet_loss, request)
+   222	
+   223	@app.post("/network/dns-failure", response_model=ResilienceReport)
+   224	def network_dns_failure(request: NetworkScenarioRequest) -> ResilienceReport:
+   225	    return _network_response(inject_dns_failure, request)
+   226	
+   227	@app.post("/network/service-latency", response_model=ResilienceReport)
+   228	def network_service_latency(request: NetworkScenarioRequest) -> ResilienceReport:
+   229	    return _network_response(inject_service_latency, request)
+   230	
+   231	@app.post("/network/node-partition", response_model=ResilienceReport)
+   232	def network_node_partition(request: NetworkScenarioRequest) -> ResilienceReport:
+   233	    return _network_response(inject_node_partition, request)
+   234	
+   235	@app.post("/network/dropped-egress", response_model=ResilienceReport)
+   236	def network_dropped_egress(request: NetworkScenarioRequest) -> ResilienceReport:
+   237	    return _network_response(inject_dropped_egress, request)
+   238	
+   239	@app.post("/network/degraded-ingress", response_model=ResilienceReport)
+   240	def network_degraded_ingress(request: NetworkScenarioRequest) -> ResilienceReport:
+   241	    return _network_response(inject_degraded_ingress, request)
+   242	
+   243	@app.post("/network/mtu-mismatch", response_model=ResilienceReport)
+   244	def network_mtu_mismatch(request: NetworkScenarioRequest) -> ResilienceReport:
+   245	    return _network_response(inject_mtu_mismatch, request)
+   246	
+   247	@app.post("/network/tcp-resets", response_model=ResilienceReport)
+   248	def network_tcp_resets(request: NetworkScenarioRequest) -> ResilienceReport:
+   249	    return _network_response(inject_tcp_resets, request)
+   250	
+   251	
+   252	
+   253	@app.post("/topology/link-failure-failover", response_model=ResilienceReport)
+   254	def topology_link_failure_failover(request: ScenarioRequest) -> ResilienceReport:
+   255	    result = run_topology_decision_scenario("link_failure_failover")
+   256	    result["slo"] = load_scenario("link_failure_failover").get("slo", {})
+   257	    result = _finalize_result(result)
+   258	    return ResilienceReport(**result)
+   259	
+   260	@app.post("/topology/blackhole", response_model=ResilienceReport)
+   261	def topology_blackhole(request: ScenarioRequest) -> ResilienceReport:
+   262	    result = run_topology_decision_scenario("blackhole")
+   263	    result["slo"] = load_scenario("blackhole").get("slo", {})
+   264	    result = _finalize_result(result)
+   265	    return ResilienceReport(**result)
+   266	
+   267	@app.post("/topology/asymmetric-path", response_model=ResilienceReport)
+   268	def topology_asymmetric_path(request: ScenarioRequest) -> ResilienceReport:
+   269	    result = run_topology_decision_scenario("asymmetric_path")
+   270	    result["slo"] = load_scenario("asymmetric_path").get("slo", {})
+   271	    result = _finalize_result(result)
+   272	    return ResilienceReport(**result)
+   273	
+   274	@app.post("/topology/link-flap", response_model=ResilienceReport)
+   275	def topology_link_flap(request: ScenarioRequest) -> ResilienceReport:
+   276	    result = run_topology_decision_scenario("link_flap")
+   277	    result["slo"] = load_scenario("link_flap").get("slo", {})
+   278	    result = _finalize_result(result)
+   279	    return ResilienceReport(**result)
+   280	
+   281	@app.post("/ai/model-inference-timeout", response_model=ResilienceReport)
+   282	def ai_model_inference_timeout(request: ScenarioRequest) -> ResilienceReport:
+   283	    try:
+   284	        result = run_ai_service_scenario("model_inference_timeout", request.pod_name, request.namespace, request.dry_run)
+   285	        result["slo"] = load_scenario("model_inference_timeout").get("slo", {})
+   286	        result["ai_quality"] = load_scenario("model_inference_timeout").get("ai_quality", {})
+   287	        result = _finalize_result(result)
+   288	        return ResilienceReport(**result)
+   289	    except Exception as e:
+   290	        raise HTTPException(status_code=500, detail=str(e))
+   291	
+   292	@app.post("/ai/vector-db-degraded-latency", response_model=ResilienceReport)
+   293	def ai_vector_db_degraded_latency(request: ScenarioRequest) -> ResilienceReport:
+   294	    try:
+   295	        result = run_ai_service_scenario("vector_db_degraded_latency", request.pod_name, request.namespace, request.dry_run)
+   296	        result["slo"] = load_scenario("vector_db_degraded_latency").get("slo", {})
+   297	        result["ai_quality"] = load_scenario("vector_db_degraded_latency").get("ai_quality", {})
+   298	        result = _finalize_result(result)
+   299	        return ResilienceReport(**result)
+   300	    except Exception as e:
+   301	        raise HTTPException(status_code=500, detail=str(e))
+   302	
+   303	@app.post("/ai/embedding-service-unavailable", response_model=ResilienceReport)
+   304	def ai_embedding_service_unavailable(request: ScenarioRequest) -> ResilienceReport:
+   305	    try:
+   306	        result = run_ai_service_scenario("embedding_service_unavailable", request.pod_name, request.namespace, request.dry_run)
+   307	        result["slo"] = load_scenario("embedding_service_unavailable").get("slo", {})
+   308	        result["ai_quality"] = load_scenario("embedding_service_unavailable").get("ai_quality", {})
+   309	        result = _finalize_result(result)
+   310	        return ResilienceReport(**result)
+   311	    except Exception as e:
+   312	        raise HTTPException(status_code=500, detail=str(e))
+   313	
+   314	@app.post("/ai/tool-router-dependency-failure", response_model=ResilienceReport)
+   315	def ai_tool_router_dependency_failure(request: ScenarioRequest) -> ResilienceReport:
+   316	    try:
+   317	        result = run_ai_service_scenario("tool_router_dependency_failure", request.pod_name, request.namespace, request.dry_run)
+   318	        result["slo"] = load_scenario("tool_router_dependency_failure").get("slo", {})
+   319	        result["ai_quality"] = load_scenario("tool_router_dependency_failure").get("ai_quality", {})
+   320	        result = _finalize_result(result)
+   321	        return ResilienceReport(**result)
+   322	    except Exception as e:
+   323	        raise HTTPException(status_code=500, detail=str(e))
+   324	
+   325	@app.post("/ai/partial-fallback-under-load", response_model=ResilienceReport)
+   326	def ai_partial_fallback_under_load(request: ScenarioRequest) -> ResilienceReport:
+   327	    try:
+   328	        result = run_ai_service_scenario("partial_fallback_under_load", request.pod_name, request.namespace, request.dry_run)
+   329	        result["slo"] = load_scenario("partial_fallback_under_load").get("slo", {})
+   330	        result["ai_quality"] = load_scenario("partial_fallback_under_load").get("ai_quality", {})
+   331	        result = _finalize_result(result)
+   332	        return ResilienceReport(**result)
+   333	    except Exception as e:
+   334	        raise HTTPException(status_code=500, detail=str(e))
+   335	
+   336	@app.post("/network/connection-churn", response_model=ResilienceReport)
+   337	def network_connection_churn(request: NetworkScenarioRequest) -> ResilienceReport:
+   338	    return _network_response(inject_connection_churn, request)
+   339	
+   340	@app.post("/analysis/dependency-path")
+   341	def dependency_path_analysis(request: NetworkScenarioRequest) -> dict:
+   342	    synthetic_report = {
+   343	        "scenario": "dependency_path_analysis",
+   344	        "pod_name": request.source_service,
+   345	        "namespace": request.namespace,
+   346	        "source_service": request.source_service,
+   347	        "target_service": request.target_service,
+   348	        "dependency_edges": [
+   349	            {"source": request.source_service, "target": request.target_service, "protocol": "http"},
+   350	            {"source": request.target_service, "target": "shared-db", "protocol": "tcp"},
+   351	        ],
+   352	    }
+   353	    return infer_dependency_analysis(synthetic_report)
+   354	
+   355	@app.get("/reports")
+   356	def get_reports() -> dict:
+   357	    return {"reports": list_reports()}
+   358	
+   359	@app.get("/reports/latest")
+   360	def get_latest_report() -> dict:
+   361	    reports = list_reports()
+   362	    if not reports:
+   363	        raise HTTPException(status_code=404, detail="No reports found")
+   364	    latest = reports[-1]
+   365	    return read_report(latest)
+   366	
+   367	@app.get("/reports/export/latest")
+   368	def export_latest_report() -> dict:
+   369	    reports = list_reports()
+   370	    if not reports:
+   371	        raise HTTPException(status_code=404, detail="No reports found")
+   372	    latest = reports[-1]
+   373	    export_path = export_report_markdown(latest)
+   374	    return {"source_report": latest, "export_path": export_path}
+   375	
+   376	@app.get("/scorecard/latest")
+   377	def get_latest_scorecard() -> dict:
+   378	    reports = list_reports()
+   379	    if not reports:
+   380	        raise HTTPException(status_code=404, detail="No reports found")
+   381	    latest = read_report(reports[-1])
+   382	    return latest
+   383	
+   384	@app.get("/scorecards")
+   385	def get_scorecards() -> dict:
+   386	    reports = list_reports()
+   387	    return {"scorecards": [read_report(report_path) for report_path in reports]}
+   388	
+   389	@app.get("/analytics/history")
+   390	def get_history(scenario: str | None = None, limit: int = 100) -> dict:
+   391	    return {"history": fetch_history(scenario=scenario, limit=limit)}
+   392	
+   393	@app.get("/analytics/trends")
+   394	def get_trends() -> dict:
+   395	    return trend_summary()
+   396	
+   397	@app.get("/analytics/statistics/{scenario}")
+   398	def get_statistics(scenario: str, run_group: str | None = None) -> dict:
+   399	    return compare_baseline_vs_degraded(scenario=scenario, run_group=run_group)
+   400	
+   401	@app.get("/analytics/export/dashboard")
+   402	def export_dashboard() -> dict:
+   403	    export_path = export_dashboard_dataset()
+   404	    return {"export_path": export_path}
+

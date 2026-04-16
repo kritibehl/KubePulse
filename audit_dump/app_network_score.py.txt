@@ -1,0 +1,47 @@
+===== FILE: app/network_score.py =====
+===== LINES =====
+     1	from __future__ import annotations
+     2	
+     3	def _bounded_score(value: float) -> int:
+     4	    return max(0, min(100, int(round(value))))
+     5	
+     6	def compute_network_health_score(report: dict) -> dict:
+     7	    dns_success_rate = float(report.get("dns_success_rate", 1.0))
+     8	    tcp_connect_latency_ms = float(report.get("tcp_connect_latency_ms", 0.0))
+     9	    http_success_rate = float(report.get("http_success_rate", 1.0))
+    10	    cross_zone_degradation_pct = float(report.get("cross_zone_degradation_pct", 0.0))
+    11	    path_recovery_time_seconds = float(report.get("path_recovery_time_seconds", report.get("recovery_window_seconds", 0.0)))
+    12	    readiness_false_positive = bool(report.get("readiness_false_positive", False))
+    13	    network_availability_gap_pct = float(report.get("network_availability_gap_pct", 0.0))
+    14	
+    15	    dns_score = _bounded_score(dns_success_rate * 100)
+    16	    tcp_score = _bounded_score(100 - (tcp_connect_latency_ms / 3.0))
+    17	    http_score = _bounded_score(http_success_rate * 100)
+    18	    cross_zone_score = _bounded_score(100 - (cross_zone_degradation_pct * 2.5))
+    19	    recovery_score = _bounded_score(100 - (path_recovery_time_seconds * 4.5))
+    20	    readiness_integrity_score = 70 if readiness_false_positive else 100
+    21	    availability_alignment_score = _bounded_score(100 - (network_availability_gap_pct * 4))
+    22	
+    23	    overall = round(
+    24	        (
+    25	            dns_score
+    26	            + tcp_score
+    27	            + http_score
+    28	            + cross_zone_score
+    29	            + recovery_score
+    30	            + readiness_integrity_score
+    31	            + availability_alignment_score
+    32	        ) / 7
+    33	    )
+    34	
+    35	    return {
+    36	        "network_health_score": overall,
+    37	        "dns_score": dns_score,
+    38	        "tcp_score": tcp_score,
+    39	        "http_score": http_score,
+    40	        "cross_zone_score": cross_zone_score,
+    41	        "path_recovery_score": recovery_score,
+    42	        "readiness_integrity_score": readiness_integrity_score,
+    43	        "availability_alignment_score": availability_alignment_score,
+    44	    }
+

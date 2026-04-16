@@ -1,0 +1,220 @@
+===== FILE: app/analytics_store.py =====
+===== LINES =====
+     1	from datetime import datetime, timezone
+     2	from uuid import uuid4
+     3	from sqlalchemy import Integer, func, select
+     4	from app.cache import set_latest_run_for_scenario
+     5	from app.data_quality import assess_report_integrity
+     6	from app.db import get_db_session
+     7	from app.models import (
+     8	    LatencyErrorSummary,
+     9	    NetworkHealthHistory,
+    10	    RecoveryWindowHistory,
+    11	    ScenarioRun,
+    12	    ScoreHistory,
+    13	)
+    14	
+    15	def _parse_dt(value: str) -> datetime:
+    16	    return datetime.fromisoformat(value.replace("Z", "+00:00"))
+    17	
+    18	def persist_report(report: dict) -> str:
+    19	    quality = assess_report_integrity(report)
+    20	    run_id = report.get("run_id") or uuid4().hex
+    21	    report["run_id"] = run_id
+    22	    report["validity_status"] = quality["validity_status"]
+    23	    report["confidence_score"] = quality["confidence_score"]
+    24	    report["missing_fields"] = quality["missing_fields"]
+    25	    report["data_sufficiency_notes"] = quality["data_sufficiency_notes"]
+    26	
+    27	    with get_db_session() as session:
+    28	        session.add(
+    29	            ScenarioRun(
+    30	                run_id=run_id,
+    31	                scenario=report["scenario"],
+    32	                pod_name=report.get("pod_name", "unknown"),
+    33	                namespace=report.get("namespace", "default"),
+    34	                disruption_type=report.get("disruption_type", report.get("scenario", "unknown")),
+    35	                run_group=report.get("run_group"),
+    36	                run_kind=report.get("run_kind"),
+    37	                started_at=_parse_dt(report["started_at"]),
+    38	                ended_at=_parse_dt(report["ended_at"]),
+    39	                success=bool(report.get("success", False)),
+    40	                status=report.get("status", "fail"),
+    41	                recommendation=report.get("recommendation", ""),
+    42	                report_path=report.get("report_path"),
+    43	                validity_status=quality["validity_status"],
+    44	                confidence_score=quality["confidence_score"],
+    45	                data_sufficiency_notes=quality["data_sufficiency_notes"],
+    46	                missing_fields=",".join(quality["missing_fields"]),
+    47	                created_at=datetime.now(timezone.utc),
+    48	            )
+    49	        )
+    50	        session.flush()
+    51	        session.add(
+    52	            ScoreHistory(
+    53	                run_id=run_id,
+    54	                resilience_score=int(report.get("resilience_score", 0)),
+    55	                recovery_score=int(report.get("recovery_score", 0)),
+    56	                latency_score=int(report.get("latency_score", 0)),
+    57	                error_score=int(report.get("error_score", 0)),
+    58	                probe_integrity_score=int(report.get("probe_integrity_score", 0)),
+    59	                slo_availability_target=float(report.get("slo_availability_target", 99.5)),
+    60	                slo_latency_p99_target_ms=float(report.get("slo_latency_p99_target_ms", 500.0)),
+    61	                slo_error_rate_target=float(report.get("slo_error_rate_target", 1.0)),
+    62	                slo_window_minutes=int(report.get("slo_window_minutes", 30)),
+    63	                availability_achieved_pct=float(report.get("availability_achieved_pct", 0.0)),
+    64	                latency_p99_achieved_ms=float(report.get("latency_p99_achieved_ms", 0.0)),
+    65	                error_rate_achieved_pct=float(report.get("error_rate_achieved_pct", 0.0)),
+    66	                error_budget_remaining_pct=float(report.get("error_budget_remaining_pct", 0.0)),
+    67	                slo_met=bool(report.get("slo_met", False)),
+    68	            )
+    69	        )
+    70	        session.add(
+    71	            RecoveryWindowHistory(
+    72	                run_id=run_id,
+    73	                recovery_window_seconds=float(report.get("recovery_window_seconds", 0.0)),
+    74	                restart_count=int(report.get("restart_count", 0)),
+    75	                readiness_false_positive=bool(report.get("readiness_false_positive", False)),
+    76	                probe_mismatch=bool(report.get("probe_mismatch", False)),
+    77	            )
+    78	        )
+    79	        session.add(
+    80	            LatencyErrorSummary(
+    81	                run_id=run_id,
+    82	                latency_p50_ms=float(report.get("latency_p50_ms", 0.0)),
+    83	                latency_p95_ms=float(report.get("latency_p95_ms", 0.0)),
+    84	                latency_p99_ms=float(report.get("latency_p99_ms", 0.0)),
+    85	                error_rate=float(report.get("error_rate", 0.0)),
+    86	                baseline_latency_p50_ms=float(report.get("baseline_latency_p50_ms", 0.0)),
+    87	                baseline_latency_p95_ms=float(report.get("baseline_latency_p95_ms", 0.0)),
+    88	                baseline_latency_p99_ms=float(report.get("baseline_latency_p99_ms", 0.0)),
+    89	                baseline_error_rate=float(report.get("baseline_error_rate", 0.0)),
+    90	                observed_latency_p50_ms=float(report.get("observed_latency_p50_ms", 0.0)),
+    91	                observed_latency_p95_ms=float(report.get("observed_latency_p95_ms", 0.0)),
+    92	                observed_latency_p99_ms=float(report.get("observed_latency_p99_ms", 0.0)),
+    93	                observed_error_rate=float(report.get("observed_error_rate", 0.0)),
+    94	                latency_p50_drift_pct=float(report.get("latency_p50_drift_pct", 0.0)),
+    95	                latency_p95_drift_pct=float(report.get("latency_p95_drift_pct", 0.0)),
+    96	                latency_p99_drift_pct=float(report.get("latency_p99_drift_pct", 0.0)),
+    97	                error_rate_delta=float(report.get("error_rate_delta", 0.0)),
+    98	            )
+    99	        )
+   100	        session.add(
+   101	            NetworkHealthHistory(
+   102	                run_id=run_id,
+   103	                network_health_score=int(report.get("network_health_score", 0)),
+   104	                dns_success_rate=float(report.get("dns_success_rate", 1.0)),
+   105	                tcp_connect_latency_ms=float(report.get("tcp_connect_latency_ms", 0.0)),
+   106	                http_success_rate=float(report.get("http_success_rate", 1.0)),
+   107	                cross_zone_degradation_pct=float(report.get("cross_zone_degradation_pct", 0.0)),
+   108	                path_recovery_time_seconds=float(report.get("path_recovery_time_seconds", report.get("recovery_window_seconds", 0.0))),
+   109	                network_availability_gap_pct=float(report.get("network_availability_gap_pct", 0.0)),
+   110	                fallback_success_rate_pct=float(report.get("fallback_success_rate_pct", 0.0)),
+   111	                degraded_serving_mode=bool(report.get("degraded_serving_mode", False)),
+   112	                full_outage=bool(report.get("full_outage", False)),
+   113	                convergence_seconds=float(report.get("convergence_seconds", 0.0)),
+   114	                path_changes_total=int(report.get("path_changes_total", 0)),
+   115	                unreachable_windows_total=int(report.get("unreachable_windows_total", 0)),
+   116	                degraded_path_requests_total=int(report.get("degraded_path_requests_total", 0)),
+   117	                unreachable_window_seconds=float(report.get("unreachable_window_seconds", 0.0)),
+   118	                safe_to_operate=bool(report.get("safe_to_operate", False)),
+   119	            )
+   120	        )
+   121	    set_latest_run_for_scenario(report["scenario"], run_id)
+   122	    return run_id
+   123	
+   124	def fetch_history(scenario: str | None = None, limit: int = 100) -> list[dict]:
+   125	    with get_db_session() as session:
+   126	        stmt = (
+   127	            select(
+   128	                ScenarioRun.run_id,
+   129	                ScenarioRun.scenario,
+   130	                ScenarioRun.run_group,
+   131	                ScenarioRun.run_kind,
+   132	                ScenarioRun.status,
+   133	                ScenarioRun.validity_status,
+   134	                ScenarioRun.confidence_score,
+   135	                ScenarioRun.created_at,
+   136	                ScoreHistory.resilience_score,
+   137	                ScoreHistory.slo_met,
+   138	                ScoreHistory.availability_achieved_pct,
+   139	                ScoreHistory.latency_p99_achieved_ms,
+   140	                ScoreHistory.error_rate_achieved_pct,
+   141	                ScoreHistory.error_budget_remaining_pct,
+   142	                RecoveryWindowHistory.recovery_window_seconds,
+   143	                RecoveryWindowHistory.readiness_false_positive,
+   144	                LatencyErrorSummary.latency_p95_ms,
+   145	                LatencyErrorSummary.error_rate,
+   146	                LatencyErrorSummary.latency_p95_drift_pct,
+   147	                LatencyErrorSummary.error_rate_delta,
+   148	                NetworkHealthHistory.network_health_score,
+   149	                NetworkHealthHistory.dns_success_rate,
+   150	                NetworkHealthHistory.tcp_connect_latency_ms,
+   151	                NetworkHealthHistory.http_success_rate,
+   152	                NetworkHealthHistory.fallback_success_rate_pct,
+   153	                NetworkHealthHistory.degraded_serving_mode,
+   154	                NetworkHealthHistory.full_outage,
+   155	                NetworkHealthHistory.convergence_seconds,
+   156	                NetworkHealthHistory.path_changes_total,
+   157	                NetworkHealthHistory.unreachable_windows_total,
+   158	                NetworkHealthHistory.degraded_path_requests_total,
+   159	                NetworkHealthHistory.unreachable_window_seconds,
+   160	                NetworkHealthHistory.safe_to_operate,
+   161	            )
+   162	            .join(ScoreHistory, ScoreHistory.run_id == ScenarioRun.run_id)
+   163	            .join(RecoveryWindowHistory, RecoveryWindowHistory.run_id == ScenarioRun.run_id)
+   164	            .join(LatencyErrorSummary, LatencyErrorSummary.run_id == ScenarioRun.run_id)
+   165	            .join(NetworkHealthHistory, NetworkHealthHistory.run_id == ScenarioRun.run_id)
+   166	            .order_by(ScenarioRun.created_at.desc())
+   167	            .limit(limit)
+   168	        )
+   169	        if scenario:
+   170	            stmt = stmt.where(ScenarioRun.scenario == scenario)
+   171	        rows = session.execute(stmt).all()
+   172	        return [dict(row._mapping) for row in rows]
+   173	
+   174	def trend_summary() -> dict:
+   175	    with get_db_session() as session:
+   176	        score_rows = session.execute(
+   177	            select(
+   178	                ScenarioRun.scenario,
+   179	                func.avg(ScoreHistory.resilience_score).label("avg_resilience_score"),
+   180	                func.avg(RecoveryWindowHistory.recovery_window_seconds).label("avg_recovery_window_seconds"),
+   181	                func.avg(LatencyErrorSummary.latency_p95_drift_pct).label("avg_latency_p95_drift_pct"),
+   182	                func.avg(LatencyErrorSummary.error_rate_delta).label("avg_error_rate_delta"),
+   183	                func.avg(NetworkHealthHistory.network_health_score).label("avg_network_health_score"),
+   184	                func.avg(NetworkHealthHistory.dns_success_rate).label("avg_dns_success_rate"),
+   185	                func.avg(NetworkHealthHistory.tcp_connect_latency_ms).label("avg_tcp_connect_latency_ms"),
+   186	                func.avg(NetworkHealthHistory.http_success_rate).label("avg_http_success_rate"),
+   187	                func.avg(NetworkHealthHistory.fallback_success_rate_pct).label("avg_fallback_success_rate_pct"),
+   188	                func.sum(func.cast(NetworkHealthHistory.degraded_serving_mode, Integer)).label("degraded_serving_count"),
+   189	                func.sum(func.cast(NetworkHealthHistory.full_outage, Integer)).label("full_outage_count"),
+   190	                func.avg(NetworkHealthHistory.convergence_seconds).label("avg_convergence_seconds"),
+   191	                func.sum(NetworkHealthHistory.path_changes_total).label("path_changes_total"),
+   192	                func.sum(NetworkHealthHistory.unreachable_windows_total).label("unreachable_windows_total"),
+   193	                func.sum(NetworkHealthHistory.degraded_path_requests_total).label("degraded_path_requests_total"),
+   194	                func.avg(NetworkHealthHistory.unreachable_window_seconds).label("avg_unreachable_window_seconds"),
+   195	                func.sum(func.cast(NetworkHealthHistory.safe_to_operate, Integer)).label("safe_to_operate_count"),
+   196	                func.avg(ScoreHistory.error_budget_remaining_pct).label("avg_error_budget_remaining_pct"),
+   197	                func.sum(func.cast(ScoreHistory.slo_met, Integer)).label("slo_met_count"),
+   198	                func.sum(func.cast(RecoveryWindowHistory.readiness_false_positive, Integer)).label("readiness_false_positive_count"),
+   199	            )
+   200	            .join(ScoreHistory, ScoreHistory.run_id == ScenarioRun.run_id)
+   201	            .join(RecoveryWindowHistory, RecoveryWindowHistory.run_id == ScenarioRun.run_id)
+   202	            .join(LatencyErrorSummary, LatencyErrorSummary.run_id == ScenarioRun.run_id)
+   203	            .join(NetworkHealthHistory, NetworkHealthHistory.run_id == ScenarioRun.run_id)
+   204	            .group_by(ScenarioRun.scenario)
+   205	            .order_by(ScenarioRun.scenario.asc())
+   206	        ).all()
+   207	
+   208	        recommendation_rows = session.execute(
+   209	            select(ScenarioRun.recommendation, func.count().label("count"))
+   210	            .group_by(ScenarioRun.recommendation)
+   211	            .order_by(func.count().desc())
+   212	        ).all()
+   213	
+   214	    return {
+   215	        "scenario_trends": [dict(row._mapping) for row in score_rows],
+   216	        "recommendation_distribution": [dict(row._mapping) for row in recommendation_rows],
+   217	    }
+

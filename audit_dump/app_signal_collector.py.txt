@@ -1,0 +1,49 @@
+===== FILE: app/signal_collector.py =====
+===== LINES =====
+     1	import subprocess
+     2	import json
+     3	
+     4	
+     5	def get_pod_restarts(pod, namespace="default"):
+     6	    cmd = [
+     7	        "kubectl",
+     8	        "get",
+     9	        "pod",
+    10	        pod,
+    11	        "-n",
+    12	        namespace,
+    13	        "-o",
+    14	        "json"
+    15	    ]
+    16	
+    17	    output = subprocess.check_output(cmd).decode()
+    18	    data = json.loads(output)
+    19	
+    20	    restarts = 0
+    21	    for c in data["status"]["containerStatuses"]:
+    22	        restarts += c["restartCount"]
+    23	
+    24	    return restarts
+    25	
+    26	
+    27	def get_pod_ready(pod, namespace="default"):
+    28	    cmd = [
+    29	        "kubectl",
+    30	        "get",
+    31	        "pod",
+    32	        pod,
+    33	        "-n",
+    34	        namespace,
+    35	        "-o",
+    36	        "json"
+    37	    ]
+    38	
+    39	    output = subprocess.check_output(cmd).decode()
+    40	    data = json.loads(output)
+    41	
+    42	    for cond in data["status"]["conditions"]:
+    43	        if cond["type"] == "Ready":
+    44	            return cond["status"] == "True"
+    45	
+    46	    return False
+

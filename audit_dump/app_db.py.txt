@@ -1,0 +1,29 @@
+===== FILE: app/db.py =====
+===== LINES =====
+     1	import os
+     2	from contextlib import contextmanager
+     3	from sqlalchemy import create_engine
+     4	from sqlalchemy.orm import declarative_base, sessionmaker
+     5	
+     6	DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./kubepulse.db")
+     7	connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
+     8	engine = create_engine(DATABASE_URL, future=True, echo=False, connect_args=connect_args)
+     9	SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True)
+    10	Base = declarative_base()
+    11	
+    12	@contextmanager
+    13	def get_db_session():
+    14	    session = SessionLocal()
+    15	    try:
+    16	        yield session
+    17	        session.commit()
+    18	    except Exception:
+    19	        session.rollback()
+    20	        raise
+    21	    finally:
+    22	        session.close()
+    23	
+    24	def init_db() -> None:
+    25	    from app import models  # noqa: F401
+    26	    Base.metadata.create_all(bind=engine)
+

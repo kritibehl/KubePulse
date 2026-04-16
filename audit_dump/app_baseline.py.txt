@@ -1,0 +1,21 @@
+===== FILE: app/baseline.py =====
+===== LINES =====
+     1	import time
+     2	from app.signal_collector import get_pod_restarts
+     3	
+     4	
+     5	def collect_baseline(pod, namespace="default", duration=10):
+     6	
+     7	    start = time.time()
+     8	
+     9	    restart_before = get_pod_restarts(pod, namespace)
+    10	
+    11	    time.sleep(duration)
+    12	
+    13	    restart_after = get_pod_restarts(pod, namespace)
+    14	
+    15	    return {
+    16	        "baseline_duration": duration,
+    17	        "restart_delta": restart_after - restart_before
+    18	    }
+

@@ -1,0 +1,42 @@
+===== FILE: app/metrics_probe.py =====
+===== LINES =====
+     1	import time
+     2	import math
+     3	import requests
+     4	
+     5	def percentile(values, pct):
+     6	    if not values:
+     7	        return 0.0
+     8	    values = sorted(values)
+     9	    k = math.ceil((pct / 100) * len(values)) - 1
+    10	    k = max(0, min(k, len(values) - 1))
+    11	    return float(values[k])
+    12	
+    13	def probe_endpoint(url: str, requests_count: int = 25, timeout: float = 2.0):
+    14	    latencies_ms = []
+    15	    errors = 0
+    16	
+    17	    for _ in range(requests_count):
+    18	        start = time.perf_counter()
+    19	        try:
+    20	            response = requests.get(url, timeout=timeout)
+    21	            elapsed = (time.perf_counter() - start) * 1000
+    22	            latencies_ms.append(elapsed)
+    23	
+    24	            if response.status_code >= 500:
+    25	                errors += 1
+    26	        except requests.RequestException:
+    27	            elapsed = (time.perf_counter() - start) * 1000
+    28	            latencies_ms.append(elapsed)
+    29	            errors += 1
+    30	
+    31	    total = len(latencies_ms)
+    32	    error_rate = errors / total if total else 0.0
+    33	
+    34	    return {
+    35	        "latency_p50_ms": round(percentile(latencies_ms, 50), 2),
+    36	        "latency_p95_ms": round(percentile(latencies_ms, 95), 2),
+    37	        "latency_p99_ms": round(percentile(latencies_ms, 99), 2),
+    38	        "error_rate": round(error_rate, 4),
+    39	    }
+

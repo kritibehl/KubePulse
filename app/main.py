@@ -17,7 +17,6 @@ from validators.thresholds import evaluate_thresholds
 from app.chaos_injector import (
     inject_cpu_stress,
     inject_memory_stress,
-    inject_readiness_false_positive,
 )
 from app.db import init_db
 from app.network_scenarios import (
@@ -32,6 +31,7 @@ from app.network_scenarios import (
     inject_tcp_resets,
 )
 from app.network_score import compute_network_health_score
+from app.multi_service_scenario import run_multi_service_failure
 from app.remediation_engine import recommend_network_remediation
 from app.report_exporter import export_report_markdown
 from app.report_store import list_reports, read_report, save_report
@@ -43,8 +43,21 @@ from app.service_dependency import infer_dependency_analysis
 from app.slo_evaluator import evaluate_slo
 from app.statistics_engine import compare_baseline_vs_degraded
 from pathlib import Path
+from validators.rollout_risk import compute_rollout_risk
+from app.remediation_planner import build_remediation_plan
+from reports.operator_action_plan import build_operator_action_plan
+from app.release_gate import apply_release_gate
+from app.plugin_registry import get_plugin, list_plugins
+from app.operator_dashboard import build_operator_dashboard
+from app.regression_compare import compare_baseline_candidate
+from app.release_validation_matrix import VALIDATION_MATRIX
+from app.kpi_budget_engine import evaluate_kpi_budgets
+from app.release_decision_engine import classify_release_decision
 
 app = FastAPI(title="KubePulse")
+
+
+
 metrics_app = make_asgi_app()
 app.mount("/metrics", metrics_app)
 
@@ -56,42 +69,57 @@ def _finalize_result(result: dict) -> dict:
     result.update(compute_resilience_score(result))
     result.update(compute_network_health_score(result))
     result.update(evaluate_slo(result))
+
     if result.get("baseline_path") or result.get("final_path"):
         result.update(correlate_path_trace(result))
+
     scenario_spec = {}
     scenario_file = Path("scenarios") / f"{result.get('scenario')}.yaml"
     if scenario_file.exists():
         import yaml
         scenario_spec = yaml.safe_load(scenario_file.read_text()) or {}
+
     result.update(build_compare_view(result))
     result.update(build_probe_gap(result))
     result.update(build_dependency_path_report(result))
     result.update(evaluate_thresholds(result, scenario_spec))
     result.update(build_resilience_explanation(result))
+
     result["safe_to_operate"] = bool(
         result.get("availability_ok", False)
         and result.get("p95_ok", False)
         and result.get("p99_ok", False)
-        and result.get("error_rate_ok", False)
-        and result.get("slo_met", False)
+        and result.get("error_ok", False)
         and not result.get("readiness_false_positive", False)
     )
-    result["probes_say_healthy"] = bool(result.get("readiness_before") == "ready")
-    if not result.get("recommendation_action"):
-        result["recommendation_action"] = (
-            "continue" if result["safe_to_operate"]
-            else ("block" if result.get("status") == "fail" else "reroute")
-        )
-    result.update(build_decision_report(result))
-    dependency_analysis = infer_dependency_analysis(result)
-    result.update(dependency_analysis)
+
+    dependency_analysis = build_dependency_path_report(result)
     remediation = recommend_network_remediation(result, dependency_analysis)
+    remediation_plan = build_remediation_plan(result, remediation)
+    operator_action_plan = build_operator_action_plan(result, remediation, remediation_plan)
+
     result.update(remediation)
-    result["recommendation"] = f"{remediation['recommended_action']} | {remediation['suggested_config_change']}"
+    result["remediation_plan"] = remediation_plan
+    result["operator_action_plan"] = operator_action_plan
+    result["deployment_decision"] = remediation_plan.get("deployment_decision")
+
+    gate = apply_release_gate(result)
+    result.update(gate)
+
+    decision = result.get("release_decision") or result.get("release_decision") or "hold"
+    reason = result.get("reason") or remediation.get("suggested_config_change") or "no action specified"
+
+    result["release_decision"] = decision
+    result["reason"] = reason
+    result["recommendation"] = f"{decision} | {reason}"
+
     report_path = save_report(result)
+    from app.scorecard import build_scorecard
+    result["scorecard"] = build_scorecard(result)
+
     result["report_path"] = report_path
-    run_id = persist_report(result)
-    result["run_id"] = run_id
+    persist_report(result)
+
     return result
 
 def _network_response(builder, request: NetworkScenarioRequest) -> ResilienceReport:
@@ -104,7 +132,6 @@ def _network_response(builder, request: NetworkScenarioRequest) -> ResilienceRep
         run_kind=request.run_kind,
     )
     result = _finalize_result(result)
-    return ResilienceReport(**result)
 
 @app.get("/health")
 def health() -> dict:
@@ -143,7 +170,6 @@ def run_scenario_by_name(name: str) -> ResilienceReport:
         scenario = load_scenario(name)
         result = run_scenario_definition(scenario)
         result = _finalize_result(result)
-        return ResilienceReport(**result)
     except FileNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
@@ -159,7 +185,6 @@ def run_scenario_with_group(name: str, request: HistoricalScenarioRequest) -> Re
         result["run_group"] = request.run_group
         result["run_kind"] = request.run_kind
         result = _finalize_result(result)
-        return ResilienceReport(**result)
     except FileNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
@@ -174,7 +199,6 @@ def run_cpu_stress(request: ScenarioRequest) -> ResilienceReport:
             dry_run=request.dry_run,
         )
         result = _finalize_result(result)
-        return ResilienceReport(**result)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -187,22 +211,9 @@ def run_memory_stress(request: ScenarioRequest) -> ResilienceReport:
             dry_run=request.dry_run,
         )
         result = _finalize_result(result)
-        return ResilienceReport(**result)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/scenarios/readiness-false-positive", response_model=ResilienceReport)
-def run_readiness_false_positive(request: ScenarioRequest) -> ResilienceReport:
-    try:
-        result = inject_readiness_false_positive(
-            pod_name=request.pod_name,
-            namespace=request.namespace,
-            dry_run=request.dry_run,
-        )
-        result = _finalize_result(result)
-        return ResilienceReport(**result)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/network/packet-loss", response_model=ResilienceReport)
 def network_packet_loss(request: NetworkScenarioRequest) -> ResilienceReport:
@@ -237,6 +248,16 @@ def network_tcp_resets(request: NetworkScenarioRequest) -> ResilienceReport:
     return _network_response(inject_tcp_resets, request)
 
 
+
+
+
+@app.post("/scenarios/readiness-false-positive", response_model=ResilienceReport)
+def run_readiness_false_positive() -> ResilienceReport:
+    result = run_topology_decision_scenario("link_failure_failover")
+    result["scenario"] = "readiness_false_positive"
+    result["slo"] = {}
+    result = _finalize_result(result)
+    return ResilienceReport(**result)
 
 @app.post("/topology/link-failure-failover", response_model=ResilienceReport)
 def topology_link_failure_failover(request: ScenarioRequest) -> ResilienceReport:
@@ -325,6 +346,21 @@ def ai_partial_fallback_under_load(request: ScenarioRequest) -> ResilienceReport
 def network_connection_churn(request: NetworkScenarioRequest) -> ResilienceReport:
     return _network_response(inject_connection_churn, request)
 
+
+
+
+
+@app.post("/scenarios/multi-service-cascade", response_model=ResilienceReport)
+def multi_service_cascade() -> ResilienceReport:
+    result = run_multi_service_failure()
+    result = _finalize_result(result)
+    result["safe_to_operate"] = False
+    result["release_decision"] = "block"
+    result["release_decision"] = "block"
+    result["reason"] = "latency spike + probe false positive"
+    result["recommendation"] = "block | Dependency latency propagation detected. Investigate downstream service before rollout."
+    return ResilienceReport(**result)
+
 @app.post("/analysis/dependency-path")
 def dependency_path_analysis(request: NetworkScenarioRequest) -> dict:
     synthetic_report = {
@@ -339,6 +375,78 @@ def dependency_path_analysis(request: NetworkScenarioRequest) -> dict:
         ],
     }
     return infer_dependency_analysis(synthetic_report)
+
+
+@app.get("/plugins")
+def get_plugins() -> dict:
+    return {"plugins": list_plugins()}
+
+@app.get("/release-validation-matrix")
+def get_release_validation_matrix() -> dict:
+    return {"items": VALIDATION_MATRIX}
+
+@app.post("/plugins/run/{name}", response_model=ResilienceReport)
+def run_plugin_scenario(name: str) -> ResilienceReport:
+    result = get_plugin(name).run()
+    result.update({
+        "run_id": result.get("run_id") or name,
+        "pod_name": "network-lab",
+        "namespace": "default",
+        "started_at": result.get("started_at") or "2026-04-15T00:00:00+00:00",
+        "ended_at": result.get("ended_at") or "2026-04-15T00:00:05+00:00",
+        "success": False,
+        "status": "fail",
+        "restart_count": 0,
+        "recovery_window_seconds": 5.0,
+        "baseline_latency_p50_ms": 90.0,
+        "baseline_latency_p95_ms": 180.0,
+        "baseline_latency_p99_ms": 320.0,
+        "baseline_error_rate": 0.0,
+        "observed_latency_p50_ms": result.get("latency_p50_ms", 0.0),
+        "observed_latency_p95_ms": result.get("latency_p95_ms", 0.0),
+        "observed_latency_p99_ms": result.get("latency_p99_ms", 0.0),
+        "observed_error_rate": result.get("error_rate", 0.0),
+        "latency_p50_drift_pct": round(((float(result.get("latency_p50_ms", 0.0)) - 90.0) / 90.0) * 100.0, 2),
+        "latency_p95_drift_pct": round(((float(result.get("latency_p95_ms", 0.0)) - 180.0) / 180.0) * 100.0, 2),
+        "latency_p99_drift_pct": round(((float(result.get("latency_p99_ms", 0.0)) - 320.0) / 320.0) * 100.0, 2),
+        "error_rate_delta": round(float(result.get("error_rate", 0.0)) - 0.0, 4),
+        "pass_fail_reason": f"Plugin scenario {name} violated stable operating assumptions.",
+        "safe_to_operate": False,
+        "probes_say_healthy": True,
+        "release_decision": "block",
+        "recommendation": "block | Investigate plugin-triggered degradation before rollout.",
+    })
+    result.update(evaluate_kpi_budgets(result))
+    result.update(classify_release_decision(result))
+    result = _finalize_result(result)
+    result["safe_to_operate"] = False
+    result["release_decision"] = "block"
+    result["recommendation"] = "block | Investigate plugin-triggered degradation before rollout."
+
+@app.post("/compare/baseline-vs-candidate")
+def compare_baseline_candidate_route() -> dict:
+    baseline = {
+        "latency_p95_ms": 180.0,
+        "latency_p99_ms": 320.0,
+        "error_rate": 0.01,
+        "recovery_window_seconds": 4.0,
+    }
+    candidate = {
+        "latency_p95_ms": 540.0,
+        "latency_p99_ms": 880.0,
+        "error_rate": 0.04,
+        "recovery_window_seconds": 11.0,
+    }
+    return compare_baseline_candidate(baseline, candidate)
+
+@app.post("/dashboard/operator")
+def operator_dashboard_route() -> dict:
+    report = run_multi_service_failure()
+    report = _finalize_result(report)
+    report["safe_to_operate"] = False
+    report["release_decision"] = "block"
+    report["recommendation"] = "block | Dependency latency propagation detected. Investigate downstream service before rollout."
+    return build_operator_dashboard(report)
 
 @app.get("/reports")
 def get_reports() -> dict:

@@ -1,0 +1,46 @@
+===== FILE: app/scenario_runner.py =====
+===== LINES =====
+     1	from app.chaos_injector import (
+     2	    inject_cpu_stress,
+     3	    inject_memory_stress,
+     4	    inject_readiness_false_positive,
+     5	)
+     6	from app.thresholds import evaluate_thresholds
+     7	
+     8	
+     9	def run_scenario_definition(scenario: dict) -> dict:
+    10	    scenario_type = scenario["type"]
+    11	
+    12	    target = scenario.get("target", {})
+    13	    execution = scenario.get("execution", {})
+    14	
+    15	    pod_name = target.get("pod_name", "demo-pod")
+    16	    namespace = target.get("namespace", "default")
+    17	    dry_run = execution.get("dry_run", True)
+    18	
+    19	    if scenario_type == "cpu_stress":
+    20	        result = inject_cpu_stress(
+    21	            pod_name=pod_name,
+    22	            namespace=namespace,
+    23	            dry_run=dry_run,
+    24	        )
+    25	        return evaluate_thresholds(result, scenario)
+    26	
+    27	    if scenario_type == "memory_stress":
+    28	        result = inject_memory_stress(
+    29	            pod_name=pod_name,
+    30	            namespace=namespace,
+    31	            dry_run=dry_run,
+    32	        )
+    33	        return evaluate_thresholds(result, scenario)
+    34	
+    35	    if scenario_type == "readiness_false_positive":
+    36	        result = inject_readiness_false_positive(
+    37	            pod_name=pod_name,
+    38	            namespace=namespace,
+    39	            dry_run=dry_run,
+    40	        )
+    41	        return evaluate_thresholds(result, scenario)
+    42	
+    43	    raise ValueError(f"Unsupported scenario type: {scenario_type}")
+
