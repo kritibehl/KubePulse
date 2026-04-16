@@ -84,6 +84,7 @@ def _decision_artifact(
         "probes_say_healthy": probes_healthy,
         "slo_met": slo_met,
         "safe_to_operate": safe_to_operate,
+        "recommendation_action": "block" if safe_to_operate is False else "continue",
         "what_probes_missed": what_probes_missed,
         "release_decision": recommendation,
     }
@@ -275,6 +276,7 @@ def run_topology_decision_scenario(name: str) -> dict:
             else ("Reroute to alternate stable path." if success else "Block rollout and restore broken path.")
         ),
         "decision_artifact": decision,
+        "recommendation_action": decision.get("recommendation_action", "block" if not safe_to_operate else "continue"),
         "probes_say_healthy": decision["probes_say_healthy"],
         "safe_to_operate": decision["safe_to_operate"],
         "what_probes_missed": decision["what_probes_missed"],

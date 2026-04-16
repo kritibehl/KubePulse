@@ -70,7 +70,6 @@ def run_multi_service_failure() -> dict:
 
         "pass_fail_reason": "Dependency latency propagated across services while readiness probes remained healthy.",
         "release_decision": "block",
-        "release_decision": "block",
         "reason": "latency spike + probe false positive",
         "recommendation": "block | Dependency latency propagation detected. Investigate downstream service before rollout.",
         "stdout": "Simulated multi-service cascade: edge -> api -> auth -> postgres",
@@ -85,7 +84,7 @@ def run_multi_service_failure() -> dict:
     # keep the explicit unsafe flag regardless of classifier defaults
     report["safe_to_operate"] = False
     report["release_decision"] = "block"
-    report["release_decision"] = "block"
     report["reason"] = "latency spike + probe false positive"
 
+    report["recommendation_action"] = "block" if report.get("safe_to_operate") is False else "continue"
     return report
