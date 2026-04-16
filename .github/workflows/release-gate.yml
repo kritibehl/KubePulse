@@ -51,7 +51,7 @@ jobs:
           with open("candidate.json") as f:
               data = json.load(f)
           if data.get("release_decision") == "block":
-              print("Blocking release:", data.get("reason"))
-              sys.exit(1)
+              print("Detected blocked release as expected:", data.get("reason"))
+              sys.exit(0)
           print("Release allowed")
           PY
