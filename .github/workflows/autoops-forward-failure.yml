@@ -12,8 +12,8 @@ jobs:
       - name: Create failure log
         run: |
           cat > failure.log <<'LOG'
-          ERROR dns lookup failed for kube-registry.internal: no such host
-          WARN retrying deployment image pull after resolver error
+          ERROR latency spike detected after deployment rollout
+          WARN retrying dependency call after resolver instability
           LOG
 
       - name: Send to AutoOps
