@@ -87,7 +87,7 @@ class ResilienceReport(BaseModel):
     source_service: Optional[str] = None
     target_service: Optional[str] = None
     probable_source_of_degradation: Optional[str] = None
-    recommendation_action: Optional[str] = None
+    release_decision: Optional[str] = None
     release_decision: Optional[str] = None
     reason: Optional[str] = None
     confidence: float = 0.0

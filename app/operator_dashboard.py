@@ -3,7 +3,7 @@ def build_operator_dashboard(report: dict) -> dict:
         "summary": {
             "scenario": report.get("scenario"),
             "safe_to_operate": report.get("safe_to_operate"),
-            "recommendation_action": report.get("recommendation_action"),
+            "release_decision": report.get("release_decision"),
         },
         "kpis": {
             "latency_p95_ms": report.get("latency_p95_ms"),

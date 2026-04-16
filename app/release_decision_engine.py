@@ -20,5 +20,5 @@ def classify_release_decision(report: Dict[str, Any]) -> Dict[str, Any]:
 
     return {
         "release_safety_level": level,
-        "recommendation_action": action,
+        "release_decision": action,
     }

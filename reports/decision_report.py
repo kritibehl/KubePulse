@@ -11,7 +11,7 @@ def build_decision_report(report: dict) -> dict:
         "downstream_healthy": report.get("status") != "fail",
         "error_rate_acceptable": float(report.get("error_rate_achieved_pct", report.get("error_rate", 0.0) * 100.0)) <= float(report.get("slo_error_rate_target", 1.0)),
         "safe_to_operate": report.get("safe_to_operate"),
-        "recommendation": report.get("recommendation_action") or report.get("recommended_action") or "observe",
+        "recommendation": report.get("release_decision") or "hold",
         "key_metrics": {
             "convergence_seconds": report.get("convergence_seconds", 0.0),
             "degraded_path_requests_total": report.get("degraded_path_requests_total", 0),

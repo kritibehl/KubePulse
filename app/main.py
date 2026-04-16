@@ -69,50 +69,56 @@ def _finalize_result(result: dict) -> dict:
     result.update(compute_resilience_score(result))
     result.update(compute_network_health_score(result))
     result.update(evaluate_slo(result))
+
     if result.get("baseline_path") or result.get("final_path"):
         result.update(correlate_path_trace(result))
+
     scenario_spec = {}
     scenario_file = Path("scenarios") / f"{result.get('scenario')}.yaml"
     if scenario_file.exists():
         import yaml
         scenario_spec = yaml.safe_load(scenario_file.read_text()) or {}
+
     result.update(build_compare_view(result))
     result.update(build_probe_gap(result))
     result.update(build_dependency_path_report(result))
     result.update(evaluate_thresholds(result, scenario_spec))
     result.update(build_resilience_explanation(result))
+
     result["safe_to_operate"] = bool(
         result.get("availability_ok", False)
         and result.get("p95_ok", False)
         and result.get("p99_ok", False)
-        and result.get("error_rate_ok", False)
-        and result.get("slo_met", False)
+        and result.get("error_ok", False)
         and not result.get("readiness_false_positive", False)
     )
-    result["probes_say_healthy"] = bool(result.get("readiness_before") == "ready")
-    if not result.get("recommendation_action"):
-        result["recommendation_action"] = (
-            "continue" if result["safe_to_operate"]
-            else ("block" if result.get("status") == "fail" else "reroute")
-        )
-    result.update(build_decision_report(result))
-    dependency_analysis = infer_dependency_analysis(result)
-    result.update(dependency_analysis)
-    remediation = recommend_network_remediation(result, dependency_analysis)
-    result.update(remediation)
-    result["recommendation"] = f"{remediation['recommendation_action']} | {remediation['suggested_config_change']}"
-    report_path = save_report(result)
-    result["report_path"] = report_path
-    run_id = persist_report(result)
-    result["run_id"] = run_id
-    rollout_risk = compute_rollout_risk(result)
-    remediation_plan = build_remediation_plan(result, rollout_risk)
-    operator_action_plan = build_operator_action_plan(result, rollout_risk, remediation_plan)
 
-    result["rollout_risk"] = rollout_risk
+    dependency_analysis = build_dependency_path_report(result)
+    remediation = recommend_network_remediation(result, dependency_analysis)
+    remediation_plan = build_remediation_plan(result, remediation)
+    operator_action_plan = build_operator_action_plan(result, remediation, remediation_plan)
+
+    result.update(remediation)
     result["remediation_plan"] = remediation_plan
     result["operator_action_plan"] = operator_action_plan
     result["deployment_decision"] = remediation_plan.get("deployment_decision")
+
+    gate = apply_release_gate(result)
+    result.update(gate)
+
+    decision = result.get("release_decision") or result.get("release_decision") or "hold"
+    reason = result.get("reason") or remediation.get("suggested_config_change") or "no action specified"
+
+    result["release_decision"] = decision
+    result["reason"] = reason
+    result["recommendation"] = f"{decision} | {reason}"
+
+    report_path = save_report(result)
+    from app.scorecard import build_scorecard
+    result["scorecard"] = build_scorecard(result)
+
+    result["report_path"] = report_path
+    persist_report(result)
 
     return result
 
@@ -349,7 +355,7 @@ def multi_service_cascade() -> ResilienceReport:
     result = run_multi_service_failure()
     result = _finalize_result(result)
     result["safe_to_operate"] = False
-    result["recommendation_action"] = "block"
+    result["release_decision"] = "block"
     result["release_decision"] = "block"
     result["reason"] = "latency spike + probe false positive"
     result["recommendation"] = "block | Dependency latency propagation detected. Investigate downstream service before rollout."
@@ -407,14 +413,14 @@ def run_plugin_scenario(name: str) -> ResilienceReport:
         "pass_fail_reason": f"Plugin scenario {name} violated stable operating assumptions.",
         "safe_to_operate": False,
         "probes_say_healthy": True,
-        "recommendation_action": "block",
+        "release_decision": "block",
         "recommendation": "block | Investigate plugin-triggered degradation before rollout.",
     })
     result.update(evaluate_kpi_budgets(result))
     result.update(classify_release_decision(result))
     result = _finalize_result(result)
     result["safe_to_operate"] = False
-    result["recommendation_action"] = "block"
+    result["release_decision"] = "block"
     result["recommendation"] = "block | Investigate plugin-triggered degradation before rollout."
 
 @app.post("/compare/baseline-vs-candidate")
@@ -438,7 +444,7 @@ def operator_dashboard_route() -> dict:
     report = run_multi_service_failure()
     report = _finalize_result(report)
     report["safe_to_operate"] = False
-    report["recommendation_action"] = "block"
+    report["release_decision"] = "block"
     report["recommendation"] = "block | Dependency latency propagation detected. Investigate downstream service before rollout."
     return build_operator_dashboard(report)
 
