@@ -28,7 +28,7 @@ jobs:
 
       - name: Run resilience decision gate
         run: |
-          python3 scripts/ci_gate.py
+          PYTHONPATH=. python3 scripts/ci_gate.py
 
       - name: Start KubePulse
         run: |
