@@ -1,0 +1,5 @@
+{"prompt":"Explain what a Kubernetes readiness probe does in one sentence.","max_tokens":64}
+{"prompt":"Summarize why tail latency matters for AI inference systems.","max_tokens":64}
+{"prompt":"What is the difference between p95 and p99 latency?","max_tokens":64}
+{"prompt":"Give one example of a false-green production signal.","max_tokens":64}
+{"prompt":"Why can queue buildup hurt serving throughput?","max_tokens":64}
