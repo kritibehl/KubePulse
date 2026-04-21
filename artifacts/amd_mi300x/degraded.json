@@ -1,0 +1,8 @@
+{
+  "platform": "amd_mi300x",
+  "mode": "degraded_parallel_burst",
+  "requests_total": 12,
+  "latency_p50_ms": 134.1,
+  "latency_p95_ms": 139.09,
+  "latency_p99_ms": 139.09
+}
