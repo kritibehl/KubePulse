@@ -1,0 +1,10 @@
+{
+  "scenario": "amd_ai_serving_long_prompt_burst",
+  "baseline_p95_ms": 200.76,
+  "candidate_p95_ms": 1422.07,
+  "latency_p95_delta_pct": 608.34,
+  "safe_to_operate": false,
+  "release_decision": "block",
+  "reason": "p95 latency regression under long-prompt burst load",
+  "platform": "amd_mi300x"
+}
