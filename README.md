@@ -245,6 +245,43 @@ Every PR runs the full resilience suite. Deployments fail if resilience score dr
 ```
 
 ---
+## AMD MI300X — AI Serving Validation
+
+KubePulse extended to real GPU inference serving: ROCm + vLLM stack on AMD MI300X hardware, same baseline-vs-burst comparison pipeline, same block/continue decision output.
+
+**Baseline (4 requests, short prompts)**
+
+| Signal | Value |
+|---|---|
+| p95 latency | 200.76 ms |
+| safe_to_operate | `true` |
+| release_decision | `continue` |
+
+**Long-prompt burst (24 requests)**
+
+| Signal | Baseline | Burst | Delta |
+|---|---|---|---|
+| p95 latency | 200.76 ms | **1422.07 ms** | **+608.34%** |
+| safe_to_operate | `true` | **`false`** | — |
+| release_decision | `continue` | **`block`** | — |
+
+```json
+{
+  "platform": "amd_mi300x",
+  "model": "microsoft/Phi-3-mini-4k-instruct",
+  "runtime": "vLLM 0.17.1 + ROCm",
+  "baseline_p95_ms": 200.76,
+  "candidate_p95_ms": 1422.07,
+  "latency_p95_delta_pct": 608.34,
+  "safe_to_operate": false,
+  "release_decision": "block",
+  "reason": "p95 latency regression under long-prompt burst load"
+}
+```
+
+The same pipeline that catches Kubernetes probe false positives also catches AI serving regressions — whether the system under test is a distributed microservice or a GPU inference endpoint. The decision contract is identical.
+
+Artifacts: [`amd_results/results/`](amd_results/results/)
 
 ## Why This Matters in Production
 
