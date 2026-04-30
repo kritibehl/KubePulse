@@ -1,0 +1,16 @@
+{
+  "scenario": "latency_injection",
+  "failure_class": "dependency_latency_inflation",
+  "probes_say_healthy": true,
+  "safe_to_operate": false,
+  "release_decision": "block",
+  "reason": "Injected dependency latency caused unsafe p95/p99 drift",
+  "baseline_latency_p95_ms": 180,
+  "observed_latency_p95_ms": 780,
+  "baseline_latency_p99_ms": 320,
+  "observed_latency_p99_ms": 1200,
+  "latency_p95_drift_pct": 333.33,
+  "latency_p99_drift_pct": 275.0,
+  "error_rate_delta": 0.08,
+  "recovery_window_seconds": 12
+}

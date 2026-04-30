@@ -1,0 +1,45 @@
+{
+  "generated_at": "2026-04-30T18:19:03.607608+00:00",
+  "validation_run_count": 3,
+  "validation_runs": [
+    {
+      "scenario": "degraded_path",
+      "failure_class": "degraded_network_route",
+      "probes_say_healthy": true,
+      "safe_to_operate": false,
+      "release_decision": "block",
+      "reason": "Traffic shifted to degraded path with unsafe tail latency",
+      "latency_p95_drift_pct": 333.33,
+      "latency_p99_drift_pct": 275.0,
+      "error_rate_delta": 0.08,
+      "recovery_window_seconds": 12,
+      "source_artifact": "labs/network_reliability/degraded_path_report.json"
+    },
+    {
+      "scenario": "dns_failure",
+      "failure_class": "network_resolution_failure",
+      "probes_say_healthy": true,
+      "safe_to_operate": false,
+      "release_decision": "block",
+      "reason": "DNS resolution failure caused dependency reachability loss while readiness remained healthy",
+      "latency_p95_drift_pct": 210.0,
+      "latency_p99_drift_pct": 240.0,
+      "error_rate_delta": 0.07,
+      "recovery_window_seconds": 14,
+      "source_artifact": "labs/network_reliability/dns_failure_report.json"
+    },
+    {
+      "scenario": "latency_injection",
+      "failure_class": "dependency_latency_inflation",
+      "probes_say_healthy": true,
+      "safe_to_operate": false,
+      "release_decision": "block",
+      "reason": "Injected dependency latency caused unsafe p95/p99 drift",
+      "latency_p95_drift_pct": 333.33,
+      "latency_p99_drift_pct": 275.0,
+      "error_rate_delta": 0.08,
+      "recovery_window_seconds": 12,
+      "source_artifact": "labs/network_reliability/latency_injection_report.json"
+    }
+  ]
+}

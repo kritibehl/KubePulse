@@ -1,0 +1,16 @@
+{
+  "scenario": "dns_failure",
+  "failure_class": "network_resolution_failure",
+  "probes_say_healthy": true,
+  "safe_to_operate": false,
+  "release_decision": "block",
+  "reason": "DNS resolution failure caused dependency reachability loss while readiness remained healthy",
+  "latency_p95_drift_pct": 210.0,
+  "latency_p99_drift_pct": 240.0,
+  "error_rate_delta": 0.07,
+  "recovery_window_seconds": 14,
+  "what_probes_missed": [
+    "Readiness probe did not verify downstream DNS resolution",
+    "Dependency reachability failed while pod-level health remained green"
+  ]
+}

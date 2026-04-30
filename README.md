@@ -342,3 +342,33 @@ amd_results/results/   AMD MI300X serving regression artifacts
 - [DetTrace](https://github.com/kritibehl/dettrace) — deterministic replay for concurrency failures
 - [AutoOps-Insight](https://github.com/kritibehl/AutoOps-Insight) — CI failure intelligence and operator triage
 - [FairEval-Suite](https://github.com/kritibehl/FairEval-Suite) — AI release gating and regression detection
+
+## Validation Data Pipeline
+
+KubePulse exports reproducible validation artifacts for network and rollout-safety scenarios.
+
+Artifacts:
+
+- `labs/network_reliability/dns_failure_report.json`
+- `labs/network_reliability/degraded_path_report.json`
+- `labs/network_reliability/latency_injection_report.json`
+
+Export pipeline:
+
+```bash
+python pipelines/export_validation_runs.py
+
+Output:
+
+reports/validation_runs/validation_run_table.json
+
+The validation table captures:
+
+scenario results
+p95 / p99 latency drift
+error-rate deltas
+degraded-path evidence
+recovery windows
+rollout decisions
+
+This turns scenario runs into reusable validation data for CI/CD, SRE review, and platform release gates.
