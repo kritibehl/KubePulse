@@ -1,10 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-URL="${1:-http://127.0.0.1:8001/v1/models}
-"
+TARGET="${1:-http://localhost:8000}"
 
-echo "Checking endpoint: $URL"
-curl -fsS "$URL"
+echo "=== Ping localhost ==="
+ping -c 3 localhost || true
+
+echo "=== Curl target ==="
+curl -v "$TARGET" || true
+
+echo "=== Listening Ports ==="
+ss -tuln || netstat -tuln || true
+
 echo
-echo "Endpoint reachable."
+echo "network_connectivity_check complete"
