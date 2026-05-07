@@ -372,3 +372,15 @@ recovery windows
 rollout decisions
 
 This turns scenario runs into reusable validation data for CI/CD, SRE review, and platform release gates.
+
+## Kubernetes / Linux Container Validation
+
+KubePulse validates service behavior in containerized environments by comparing baseline and degraded runs under DNS failure, latency injection, degraded-path routing, and unreachable-service scenarios.
+
+It focuses on the gap between container-level health and system-level safety:
+
+- Kubernetes readiness can remain healthy
+- Linux containers can keep running
+- but service behavior can still violate latency, dependency, or rollout-safety budgets
+
+**Stack:** Kubernetes · Linux containers · Python · Docker · CI/CD
