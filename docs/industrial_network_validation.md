@@ -1,15 +1,15 @@
 # Industrial Network Validation Notes
 
-KubePulse includes network validation concepts that map to industrial and lab-style service environments where connectivity, addressing, discovery, and timeout behavior affect deployment safety.
+KubePulse includes network validation concepts that map to industrial, lab, and containerized service environments where addressing, reachability, discovery, and timeout behavior affect deployment safety.
 
 ## Scope
 
-This document covers basic validation procedures for:
+This document covers validation procedures for:
 
 - IP addressing checks
-- device discovery concepts
+- device/service discovery concepts
 - connectivity validation
-- latency and timeout behavior
+- latency and timeout checks
 - unreachable-service troubleshooting
 - basic switch/network troubleshooting notes
 
@@ -32,7 +32,7 @@ ip route
 ping <gateway>
 ping <service-ip>
 nslookup <service-name>
-Device Discovery Concept
+Device / Service Discovery Concept
 
 In industrial or lab-style networks, services and devices may need to be discovered before validation.
 
@@ -41,7 +41,7 @@ Discovery checks may include:
 expected hostname or service name is visible
 service responds on expected port
 dependency endpoint can be reached
-discovered address matches expected deployment topology
+discovered address matches expected topology
 stale or incorrect DNS records are not being used
 
 Example checks:
@@ -51,7 +51,7 @@ nc -vz <service-ip> <port>
 curl -v http://<service-host>/health
 Connectivity Validation
 
-Connectivity validation confirms whether the service path is reachable before evaluating higher-level rollout safety.
+Connectivity validation confirms whether the service path is reachable before evaluating rollout safety.
 
 Checks:
 
@@ -61,7 +61,7 @@ DNS resolves consistently
 network path does not fail intermittently
 connection failures are captured and classified
 
-Example failure classes:
+Failure classes:
 
 service unreachable
 DNS failure
@@ -70,7 +70,7 @@ intermittent disconnect
 partial partition
 Latency and Timeout Checks
 
-A service can be reachable but still unsafe because latency exceeds rollout or SLO budgets.
+A service can be reachable but still unsafe if latency exceeds rollout or SLO budgets.
 
 KubePulse tracks:
 
@@ -81,7 +81,7 @@ timeout behavior
 recovery window
 latency drift from baseline
 
-Example rollout-risk indicators:
+Risk indicators:
 
 p95 latency drift exceeds threshold
 p99 latency spike indicates tail degradation
