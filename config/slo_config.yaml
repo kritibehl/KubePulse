@@ -1,0 +1,13 @@
+latency_budget_ms:
+  p95: 250
+  p99: 500
+
+error_rate_budget: 0.02
+
+recovery_time_budget_seconds: 10
+
+probe_mismatch_policy:
+  block_on_false_green: true
+
+release_policy:
+  rollback_review_on_block: true

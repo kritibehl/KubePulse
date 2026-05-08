@@ -1,0 +1,7 @@
+{
+  "scenario": "latency_spike",
+  "failure_type": "performance",
+  "expected_signal": "p95_latency_budget_violation",
+  "safe_to_operate": false,
+  "release_decision": "block"
+}

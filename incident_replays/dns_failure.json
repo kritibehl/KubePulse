@@ -1,0 +1,7 @@
+{
+  "scenario": "dns_failure",
+  "failure_type": "network",
+  "expected_signal": "dependency_unreachable",
+  "safe_to_operate": false,
+  "release_decision": "block"
+}

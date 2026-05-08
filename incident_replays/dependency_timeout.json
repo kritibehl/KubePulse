@@ -1,0 +1,7 @@
+{
+  "scenario": "dependency_timeout",
+  "failure_type": "dependency",
+  "expected_signal": "timeout_chain",
+  "safe_to_operate": false,
+  "release_decision": "block"
+}

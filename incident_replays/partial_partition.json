@@ -1,0 +1,7 @@
+{
+  "scenario": "partial_partition",
+  "failure_type": "network_partition",
+  "expected_signal": "degraded_path_requests",
+  "safe_to_operate": false,
+  "release_decision": "block"
+}
