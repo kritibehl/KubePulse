@@ -1,0 +1,49 @@
+name: KubePulse Release Gate
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  release-safety-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - run: pip install -r requirements.txt || true
+
+      - run: pytest -q
+
+      - name: Validate release decision artifact
+        run: |
+          python3 - <<'PY'
+import json
+from pathlib import Path
+
+p = Path("labs/ai_server_platform_validation/artifacts/release_decision.json")
+
+if not p.exists():
+    raise SystemExit("missing release_decision.json")
+
+data = json.loads(p.read_text())
+
+decision = data.get("release_decision")
+
+print("release_decision =", decision)
+
+expected = "block"
+
+if decision != expected:
+    raise SystemExit(f"expected release_decision={expected}, got {decision}")
+
+safe = data.get("safe_to_operate")
+if safe is not False:
+    raise SystemExit(f"expected safe_to_operate=false, got {safe}")
+
+print("validated expected blocked rollout artifact")
+PY

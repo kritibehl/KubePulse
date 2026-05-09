@@ -1,0 +1,13 @@
+[
+  {
+    "release_id": "release-101",
+    "safe_to_operate": true,
+    "release_decision": "continue"
+  },
+  {
+    "release_id": "release-102",
+    "safe_to_operate": false,
+    "release_decision": "block",
+    "reason": "p95 latency regression"
+  }
+]

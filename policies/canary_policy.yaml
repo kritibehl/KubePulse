@@ -1,0 +1,10 @@
+max_p95_latency_regression_percent: 20
+max_error_rate: 0.02
+max_recovery_time_seconds: 10
+
+block_on:
+  - p95_latency
+  - error_rate
+  - probe_mismatch_false_green
+
+rollback_review: true

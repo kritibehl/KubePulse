@@ -1,23 +1,17 @@
 version: "3.9"
 
 services:
-  kubepulse-db:
-    image: postgres:16
-    container_name: kubepulse-db
-    environment:
-      POSTGRES_DB: kubepulse
-      POSTGRES_USER: kubepulse
-      POSTGRES_PASSWORD: kubepulse
+  kubepulse:
+    build: .
     ports:
-      - "5432:5432"
-    volumes:
-      - kubepulse-pgdata:/var/lib/postgresql/data
+      - "8000:8000"
 
-  kubepulse-redis:
-    image: redis:7
-    container_name: kubepulse-redis
+  prometheus:
+    image: prom/prometheus
     ports:
-      - "6379:6379"
+      - "9090:9090"
 
-volumes:
-  kubepulse-pgdata:
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3000:3000"

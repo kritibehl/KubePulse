@@ -1,0 +1,42 @@
+{
+  "title": "KubePulse Release Safety",
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Safe To Operate",
+      "targets": [
+        {
+          "expr": "kubepulse_safe_to_operate"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "p95 Latency",
+      "targets": [
+        {
+          "expr": "kubepulse_latency_p95_ms"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Error Rate",
+      "targets": [
+        {
+          "expr": "kubepulse_error_rate"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Release Blocks",
+      "targets": [
+        {
+          "expr": "kubepulse_release_block_total"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 38
+}
