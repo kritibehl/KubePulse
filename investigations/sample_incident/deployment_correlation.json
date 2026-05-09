@@ -1,0 +1,11 @@
+{
+  "release_id": "release-102",
+  "signals": {
+    "p95_latency_regression_percent": 608.34,
+    "error_rate_increase_percent": 8.0,
+    "probe_healthy": true,
+    "safe_to_operate": false
+  },
+  "suspected_root_cause": "long_prompt_burst_resource_saturation",
+  "release_decision": "block"
+}

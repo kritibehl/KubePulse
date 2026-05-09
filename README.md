@@ -384,3 +384,21 @@ It focuses on the gap between container-level health and system-level safety:
 - but service behavior can still violate latency, dependency, or rollout-safety budgets
 
 **Stack:** Kubernetes · Linux containers · Python · Docker · CI/CD
+
+
+## Release Investigation Workflow
+
+KubePulse correlates deployment timelines, latency regressions, probe-health mismatches, and rollback recommendations into operator-facing release investigation reports.
+
+Artifacts include:
+
+- deployment timeline correlation
+- rollback recommendation metadata
+- release investigation reports
+- replayable degradation scenarios
+- release-block decision artifacts
+
+Example report:
+
+`reports/release_investigation_report.md`
+

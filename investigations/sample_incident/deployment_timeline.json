@@ -1,0 +1,8 @@
+{
+  "release_id": "release-102",
+  "deployment_start": "2026-04-21T16:00:00Z",
+  "latency_regression_detected": "2026-04-21T16:03:12Z",
+  "error_rate_increase_detected": "2026-04-21T16:04:02Z",
+  "release_blocked": "2026-04-21T16:05:10Z",
+  "rollback_review_started": "2026-04-21T16:06:00Z"
+}

@@ -1,0 +1,10 @@
+{
+  "release_id": "release-102",
+  "rollback_recommended": true,
+  "reason": [
+    "p95_latency_budget_violation",
+    "probe_mismatch_false_green",
+    "error_rate_budget_violation"
+  ],
+  "recommended_action": "rollback_candidate_release"
+}
