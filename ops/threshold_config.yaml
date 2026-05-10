@@ -1,0 +1,14 @@
+service: kubepulse
+environment: local_validation
+
+thresholds:
+  p95_latency_ms: 250
+  p99_latency_ms: 500
+  error_rate: 0.02
+  recovery_time_seconds: 10
+  release_block_total: 1
+
+security_compliance:
+  require_runbook_link: true
+  require_acknowledgement: true
+  require_audit_status: true

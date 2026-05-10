@@ -1,0 +1,24 @@
+alerts:
+  - name: HighP95Latency
+    metric: kubepulse_latency_p95_ms
+    operator: ">"
+    threshold: 250
+    severity: high
+    probable_cause: "latency regression or overloaded dependency"
+    runbook: "ops/incident_response_runbook.md"
+
+  - name: ErrorRateBudgetViolation
+    metric: kubepulse_error_rate
+    operator: ">"
+    threshold: 0.02
+    severity: critical
+    probable_cause: "failed downstream requests or degraded dependency"
+    runbook: "ops/incident_response_runbook.md"
+
+  - name: UnsafeReleaseDecision
+    metric: kubepulse_safe_to_operate
+    operator: "=="
+    threshold: 0
+    severity: critical
+    probable_cause: "false-green deployment or SLO budget violation"
+    runbook: "ops/incident_response_runbook.md"

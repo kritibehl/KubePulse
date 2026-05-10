@@ -402,3 +402,27 @@ Example report:
 
 `reports/release_investigation_report.md`
 
+
+
+## Infra-Ops Monitoring and Remediation
+
+KubePulse includes threshold-based alerting and remediation workflows for infrastructure operations.
+
+It evaluates service-health signals such as p95 latency regression, error-rate budget violations, recovery time, and safe-to-operate decisions, then generates:
+
+- alert summaries
+- probable cause
+- recommended remediation
+- runbook link
+- lifecycle status: detected -> acknowledged -> remediated
+- security/compliance audit metadata
+
+Artifacts:
+
+- `ops/alert_rules.yaml`
+- `ops/remediation_workflows.yaml`
+- `ops/threshold_config.yaml`
+- `reports/alert_summary.md`
+- `scripts/check_service_health.py`
+- `scripts/generate_alert_summary.py`
+

@@ -1,0 +1,16 @@
+workflow:
+  detected:
+    action: "capture alert context and affected signal"
+    next: acknowledged
+
+  acknowledged:
+    action: "assign owner and validate impacted service path"
+    next: remediating
+
+  remediating:
+    action: "rollback candidate release or isolate degraded dependency"
+    next: remediated
+
+  remediated:
+    action: "confirm metrics return below threshold and close incident"
+    next: closed
