@@ -1,0 +1,3 @@
+date,test_case,expected,actual,status,notes
+2026-05-10,latency_spike,block,block,pass,release gate behaved correctly
+2026-05-10,healthy_baseline,allow,allow,pass,no degradation detected
