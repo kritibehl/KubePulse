@@ -1,0 +1,39 @@
+{
+  "incident_id": "kubepulse-release-102",
+  "release_id": "release-102",
+  "service": "kubepulse",
+  "timeline": [
+    {
+      "time": "2026-04-21T16:00:00Z",
+      "event": "deployment_started",
+      "details": "candidate release started"
+    },
+    {
+      "time": "2026-04-21T16:03:12Z",
+      "event": "slo_breached",
+      "details": "p95 latency exceeded release budget",
+      "metric": "p95_latency_ms",
+      "baseline": 200.76,
+      "candidate": 1422.07
+    },
+    {
+      "time": "2026-04-21T16:04:02Z",
+      "event": "alert_fired",
+      "details": "KubePulseHighP95Latency and KubePulseUnsafeRelease fired",
+      "severity": "sev1"
+    },
+    {
+      "time": "2026-04-21T16:05:10Z",
+      "event": "rollback_recommended",
+      "details": "rollback recommendation engine blocked candidate release",
+      "release_decision": "block",
+      "rollback_candidate": "candidate_release"
+    },
+    {
+      "time": "2026-04-21T16:08:30Z",
+      "event": "service_recovered",
+      "details": "metrics returned below threshold after rollback review",
+      "status": "remediated"
+    }
+  ]
+}

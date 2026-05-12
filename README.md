@@ -510,3 +510,15 @@ KubePulse includes final deployment-realism artifacts for SRE/platform workflows
 - Operational runbooks: `runbooks/`
 
 These artifacts demonstrate Kubernetes packaging, SLO/error-budget analysis, release-block response, degraded-dependency triage, and p95 latency remediation workflows.
+
+
+## Incident Timeline Reconstruction
+
+KubePulse includes incident timeline reconstruction artifacts that sequence release failures from deployment start through recovery.
+
+Artifacts:
+
+- `incident_timelines/release_failure_timeline.json`
+- `incident_timelines/recovery_sequence.md`
+
+The timeline captures alert firing, SLO breach detection, rollback recommendation, service recovery, and operational status transitions.
