@@ -1,0 +1,21 @@
+severity_policy:
+  sev1:
+    condition:
+      release_decision: "block"
+      safe_to_operate: false
+      customer_impact: "high"
+    response: "page primary on-call and start rollback review"
+
+  sev2:
+    condition:
+      release_decision: "block"
+      safe_to_operate: false
+      customer_impact: "medium"
+    response: "notify platform on-call and service owner"
+
+  sev3:
+    condition:
+      release_decision: "continue"
+      safe_to_operate: true
+      customer_impact: "low"
+    response: "track in release review"

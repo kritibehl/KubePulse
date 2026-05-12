@@ -448,3 +448,21 @@ Linux ops scripts:
 - `linux_ops/incident_snapshot.sh`
 
 These artifacts support service-health troubleshooting, release-block investigation, threshold alerting, and incident snapshot capture.
+
+
+## Alert Escalation, Canary Comparison, and Topology Visualization
+
+KubePulse now includes SRE-style alert escalation policies, canary baseline-vs-candidate comparison artifacts, and multi-service topology visualizations.
+
+Artifacts:
+
+- `alerts/escalation_matrix.yaml`
+- `alerts/incident_severity_policy.yaml`
+- `alerts/pager_rotation_example.md`
+- `canary/baseline_vs_candidate.json`
+- `canary/canary_comparison_report.md`
+- `docs/images/canary_baseline_vs_candidate.png`
+- `topology/dependency_graph.json`
+- `docs/images/failure_propagation_topology.png`
+
+These artifacts show how KubePulse handles release escalation, automatic rollback recommendation, and failure propagation across service dependencies.

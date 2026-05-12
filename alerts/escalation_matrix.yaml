@@ -1,0 +1,15 @@
+teams:
+  platform_oncall:
+    severity: ["sev1", "sev2"]
+    escalation_minutes: 5
+    channel: "#platform-oncall"
+
+  sre_secondary:
+    severity: ["sev1"]
+    escalation_minutes: 15
+    channel: "#sre-escalation"
+
+  service_owner:
+    severity: ["sev2", "sev3"]
+    escalation_minutes: 30
+    channel: "#service-owner-review"

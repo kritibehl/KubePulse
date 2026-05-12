@@ -1,0 +1,12 @@
+{
+  "services": ["gateway", "checkout", "inventory", "payments", "recommendations"],
+  "edges": [
+    ["gateway", "checkout"],
+    ["checkout", "inventory"],
+    ["checkout", "payments"],
+    ["gateway", "recommendations"]
+  ],
+  "failure_root": "checkout",
+  "impacted_services": ["inventory", "payments"],
+  "release_decision": "block"
+}

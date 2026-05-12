@@ -1,0 +1,19 @@
+{
+  "release_id": "release-102",
+  "baseline": {
+    "p95_latency_ms": 200.76,
+    "error_rate": 0.01,
+    "safe_to_operate": true
+  },
+  "candidate": {
+    "p95_latency_ms": 1422.07,
+    "error_rate": 0.09,
+    "safe_to_operate": false
+  },
+  "delta": {
+    "p95_latency_regression_percent": 608.34,
+    "error_rate_delta": 0.08
+  },
+  "rollout_decision": "block",
+  "rollback_recommended": true
+}
