@@ -466,3 +466,20 @@ Artifacts:
 - `docs/images/failure_propagation_topology.png`
 
 These artifacts show how KubePulse handles release escalation, automatic rollback recommendation, and failure propagation across service dependencies.
+
+
+## Rollback Recommendation Engine
+
+KubePulse includes rollback recommendation logic that combines:
+
+- baseline-vs-candidate canary regression
+- SLO and error-budget breach signals
+- alert-trigger state
+- impacted services from dependency topology
+- severity classification
+
+Output artifact:
+
+- `rollback/rollback_recommendation.json`
+
+The engine produces a release-block decision, rollback candidate, blocked rollout reasons, impacted services, and incident severity.

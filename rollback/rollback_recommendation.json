@@ -1,0 +1,25 @@
+{
+  "release_id": "release-102",
+  "rollback_recommended": true,
+  "release_decision": "block",
+  "blocked_rollout_reason": [
+    "p95_latency_regression",
+    "error_rate_budget_violation",
+    "candidate_not_safe_to_operate",
+    "alert_triggered",
+    "dependency_impact_detected"
+  ],
+  "rollback_candidate": "candidate_release",
+  "impacted_services": [
+    "inventory",
+    "payments"
+  ],
+  "failure_root": "checkout",
+  "severity": "sev1",
+  "signals": {
+    "p95_latency_regression_percent": 608.34,
+    "error_rate_delta": 0.08,
+    "safe_to_operate": false,
+    "alert_triggered": true
+  }
+}
