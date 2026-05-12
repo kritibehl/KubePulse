@@ -1,0 +1,6 @@
+apiVersion: v2
+name: kubepulse
+description: Helm chart for KubePulse release-safety validation service
+type: application
+version: 0.1.0
+appVersion: "1.0.0"

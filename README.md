@@ -497,3 +497,16 @@ KubePulse includes infrastructure and monitoring artifacts for deployability and
 - Error-budget policy: `policies/error_budget_policy.yaml`
 
 These artifacts demonstrate infrastructure-as-code, Kubernetes readiness/liveness checks, Prometheus alerting, Grafana dashboarding, service-health probes, and error-budget release policies.
+
+
+## Helm Packaging, SLO Burn Rate, and Runbooks
+
+KubePulse includes final deployment-realism artifacts for SRE/platform workflows:
+
+- Helm chart: `helm/kubepulse/`
+- SLO budget artifact: `slo/availability_budget.json`
+- Burn-rate analysis: `slo/burn_rate_analysis.md`
+- SLO dashboard visual: `slo/slo_dashboard.png`
+- Operational runbooks: `runbooks/`
+
+These artifacts demonstrate Kubernetes packaging, SLO/error-budget analysis, release-block response, degraded-dependency triage, and p95 latency remediation workflows.

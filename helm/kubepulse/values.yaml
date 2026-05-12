@@ -1,0 +1,29 @@
+replicaCount: 1
+
+image:
+  repository: kubepulse
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8000
+
+probes:
+  readiness:
+    path: /health
+    initialDelaySeconds: 5
+    periodSeconds: 10
+  liveness:
+    path: /health
+    initialDelaySeconds: 10
+    periodSeconds: 20
+
+resources:
+  requests:
+    cpu: "100m"
+    memory: "128Mi"
+  limits:
+    cpu: "500m"
+    memory: "512Mi"

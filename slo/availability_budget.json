@@ -1,0 +1,21 @@
+{
+  "service": "kubepulse",
+  "slo": {
+    "availability_target": 99.9,
+    "latency_p95_ms": 250,
+    "error_rate_budget": 0.02,
+    "recovery_time_seconds": 10
+  },
+  "observed": {
+    "availability": 99.2,
+    "p95_latency_ms": 1422.07,
+    "error_rate": 0.09,
+    "recovery_time_seconds": 12
+  },
+  "budget_status": {
+    "availability_budget_remaining_percent": 20,
+    "error_budget_burned_percent": 80,
+    "release_gate": "block",
+    "rollback_threshold_met": true
+  }
+}
