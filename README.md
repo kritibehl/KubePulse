@@ -426,3 +426,25 @@ Artifacts:
 - `scripts/check_service_health.py`
 - `scripts/generate_alert_summary.py`
 
+
+
+## Grafana Dashboards and Linux Ops Scripts
+
+KubePulse includes Grafana-style release-safety screenshots and Linux troubleshooting scripts for SRE/operator workflows.
+
+Visual artifacts:
+
+- `grafana/screenshots/p95_spike.png`
+- `grafana/screenshots/release_block.png`
+- `grafana/screenshots/alert_firing.png`
+- `grafana/screenshots/recovery_window.png`
+- `grafana/screenshots/degraded_path_requests.png`
+
+Linux ops scripts:
+
+- `linux_ops/disk_health_check.sh`
+- `linux_ops/network_diag.sh`
+- `linux_ops/service_restart_guard.sh`
+- `linux_ops/incident_snapshot.sh`
+
+These artifacts support service-health troubleshooting, release-block investigation, threshold alerting, and incident snapshot capture.
