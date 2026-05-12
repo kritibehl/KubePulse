@@ -522,3 +522,19 @@ Artifacts:
 - `incident_timelines/recovery_sequence.md`
 
 The timeline captures alert firing, SLO breach detection, rollback recommendation, service recovery, and operational status transitions.
+
+
+## Network and Protocol Probe Notes
+
+KubePulse includes DNS, TCP, HTTP, and TLS probe artifacts plus HTTP/2 health-check notes for protocol-level troubleshooting.
+
+Artifacts:
+
+- `probes/dns_probe.py`
+- `probes/tcp_probe.py`
+- `probes/http_probe.py`
+- `probes/tls_probe.py`
+- `probes/http2_health_probe.md`
+- `docs/network_probe_notes.md`
+
+Scope boundary: KubePulse does not claim QUIC or HTTP/3 support.
