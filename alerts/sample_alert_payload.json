@@ -1,0 +1,21 @@
+{
+  "alert_id": "kubepulse-alert-102",
+  "alert_name": "KubePulseUnsafeRelease",
+  "timestamp": "2026-04-21T16:04:02Z",
+  "severity": "sev1",
+  "affected_service": "checkout",
+  "impacted_services": ["inventory", "payments"],
+  "release_id": "release-102",
+  "safe_to_operate": false,
+  "release_decision": "block",
+  "rollback_recommended": true,
+  "rollback_candidate": "candidate_release",
+  "reason": [
+    "p95_latency_regression",
+    "error_rate_budget_violation",
+    "dependency_impact_detected"
+  ],
+  "escalation_target": "platform_oncall",
+  "runbook": "runbooks/release_block_response.md",
+  "status": "firing"
+}

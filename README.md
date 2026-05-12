@@ -538,3 +538,16 @@ Artifacts:
 - `docs/network_probe_notes.md`
 
 Scope boundary: KubePulse does not claim QUIC or HTTP/3 support.
+
+
+## Alert Pipeline Examples
+
+KubePulse includes sample alert-routing artifacts that show how a fired release-safety alert can trigger escalation and rollback review.
+
+Artifacts:
+
+- `alerts/sample_alert_payload.json`
+- `alerts/pagerduty_style_notification.md`
+- `alerts/slack_alert_example.json`
+
+These examples show severity, affected service, impacted services, rollback recommendation, escalation target, alert timestamp, and runbook link.

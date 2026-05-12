@@ -1,0 +1,44 @@
+{
+  "channel": "#platform-oncall",
+  "username": "KubePulse",
+  "text": ":rotating_light: KubePulse unsafe release detected",
+  "attachments": [
+    {
+      "color": "danger",
+      "title": "KubePulseUnsafeRelease",
+      "fields": [
+        {
+          "title": "Severity",
+          "value": "sev1",
+          "short": true
+        },
+        {
+          "title": "Affected Service",
+          "value": "checkout",
+          "short": true
+        },
+        {
+          "title": "Release",
+          "value": "release-102",
+          "short": true
+        },
+        {
+          "title": "Decision",
+          "value": "block",
+          "short": true
+        },
+        {
+          "title": "Rollback",
+          "value": "candidate_release",
+          "short": true
+        },
+        {
+          "title": "Runbook",
+          "value": "runbooks/release_block_response.md",
+          "short": false
+        }
+      ],
+      "footer": "alert fired -> escalation triggered -> rollback review"
+    }
+  ]
+}
