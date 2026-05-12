@@ -483,3 +483,17 @@ Output artifact:
 - `rollback/rollback_recommendation.json`
 
 The engine produces a release-block decision, rollback candidate, blocked rollout reasons, impacted services, and incident severity.
+
+
+## Deployment, Monitoring, and Health-Probe Artifacts
+
+KubePulse includes infrastructure and monitoring artifacts for deployability and SRE workflows:
+
+- Terraform Cloud Run skeleton: `infra/terraform/cloud_run/`
+- Kubernetes manifests: `k8s/`
+- Prometheus alert rules: `prometheus/kubepulse_alert_rules.yaml`
+- Grafana dashboard JSON: `grafana/dashboards/kubepulse_release_safety_dashboard.json`
+- DNS/TCP/HTTP probes: `probes/`
+- Error-budget policy: `policies/error_budget_policy.yaml`
+
+These artifacts demonstrate infrastructure-as-code, Kubernetes readiness/liveness checks, Prometheus alerting, Grafana dashboarding, service-health probes, and error-budget release policies.

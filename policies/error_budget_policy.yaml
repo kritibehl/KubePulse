@@ -1,0 +1,21 @@
+service: kubepulse
+window: release_validation
+
+budgets:
+  p95_latency_ms: 250
+  p99_latency_ms: 500
+  error_rate: 0.02
+  recovery_time_seconds: 10
+
+actions:
+  warn:
+    condition: "single_budget_violation"
+    action: "notify release owner"
+
+  block:
+    condition: "safe_to_operate=false OR multiple_budget_violations"
+    action: "block rollout and start rollback review"
+
+  rollback_review:
+    condition: "release_decision=block AND dependency_impact_detected=true"
+    action: "open rollback review"

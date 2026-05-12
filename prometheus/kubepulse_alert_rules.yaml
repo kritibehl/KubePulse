@@ -1,0 +1,38 @@
+groups:
+  - name: kubepulse-release-safety
+    rules:
+      - alert: KubePulseUnsafeRelease
+        expr: kubepulse_safe_to_operate == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "KubePulse detected unsafe release"
+          description: "safe_to_operate=false; release should be blocked or reviewed."
+
+      - alert: KubePulseHighP95Latency
+        expr: kubepulse_latency_p95_ms > 250
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "KubePulse p95 latency budget violated"
+          description: "p95 latency exceeded configured SLO budget."
+
+      - alert: KubePulseHighErrorRate
+        expr: kubepulse_error_rate > 0.02
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "KubePulse error-rate budget violated"
+          description: "Error-rate budget exceeded during release validation."
+
+      - alert: KubePulseReleaseBlocked
+        expr: increase(kubepulse_release_block_total[5m]) > 0
+        for: 0m
+        labels:
+          severity: critical
+        annotations:
+          summary: "KubePulse blocked a release"
+          description: "Release-block counter increased."
