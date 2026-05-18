@@ -1,0 +1,20 @@
+{
+  "scenarios": [
+    {
+      "name": "dependency_timeout",
+      "expected_behavior": "release gate blocks rollout"
+    },
+    {
+      "name": "partial_network_partition",
+      "expected_behavior": "latency regression detected"
+    },
+    {
+      "name": "dns_failure",
+      "expected_behavior": "health probe failure"
+    },
+    {
+      "name": "degraded_ai_serving",
+      "expected_behavior": "rollback recommendation generated"
+    }
+  ]
+}

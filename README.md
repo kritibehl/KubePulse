@@ -551,3 +551,16 @@ Artifacts:
 - `alerts/slack_alert_example.json`
 
 These examples show severity, affected service, impacted services, rollback recommendation, escalation target, alert timestamp, and runbook link.
+
+
+## Chaos Testing and False-Green Postmortems
+
+KubePulse includes replayable chaos-test scenarios and operational postmortem artifacts.
+
+Artifacts:
+
+- `chaos/chaos_scenarios.json`
+- `reports/chaos_test_report.md`
+- `reports/false_green_postmortem.md`
+
+These artifacts validate release-safety behavior under dependency timeout, DNS failure, partial network partition, and degraded AI-serving conditions.
