@@ -1,0 +1,19 @@
+{
+  "scenarios": [
+    {
+      "name": "normal_release_traffic",
+      "expected_mbps": 220,
+      "target_link": "edge-gateway->svc-checkout"
+    },
+    {
+      "name": "checkout_to_payments_degraded",
+      "expected_mbps": 230,
+      "target_link": "svc-checkout->svc-payments"
+    },
+    {
+      "name": "inventory_spike",
+      "expected_mbps": 380,
+      "target_link": "svc-checkout->svc-inventory"
+    }
+  ]
+}

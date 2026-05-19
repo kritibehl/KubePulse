@@ -564,3 +564,21 @@ Artifacts:
 - `reports/false_green_postmortem.md`
 
 These artifacts validate release-safety behavior under dependency timeout, DNS failure, partial network partition, and degraded AI-serving conditions.
+
+
+## NetRouteLab Network Automation Validation
+
+KubePulse includes NetRouteLab, a scoped network automation validation lab for release-safety and incident analysis workflows.
+
+Artifacts:
+
+- `netroute_lab/network_topology.json`
+- `netroute_lab/capacity_scenarios.json`
+- `netroute_lab/config_validation_rules.json`
+- `netroute_lab/run_network_validation.py`
+- `netroute_lab/reports/network_validation_report.md`
+- `netroute_lab/reports/capacity_analysis_report.md`
+- `netroute_lab/docs/network_automation_design.md`
+- `netroute_lab/docs/incident_rca_network_outage.md`
+
+NetRouteLab demonstrates DNS/TCP-oriented service-path reasoning, routing-path simulation, network configuration validation, capacity threshold checks, packet-loss/latency scenarios, RCA-style reporting, and repair/replace remediation recommendations.

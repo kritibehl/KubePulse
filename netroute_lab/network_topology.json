@@ -1,0 +1,22 @@
+{
+  "topology_id": "edge-release-network",
+  "nodes": [
+    {"id": "edge-gateway", "role": "ingress", "region": "us-east"},
+    {"id": "svc-checkout", "role": "service", "region": "us-east"},
+    {"id": "svc-inventory", "role": "service", "region": "us-east"},
+    {"id": "svc-payments", "role": "service", "region": "us-east"},
+    {"id": "dns-resolver", "role": "dns", "region": "us-east"}
+  ],
+  "links": [
+    {"source": "edge-gateway", "target": "svc-checkout", "latency_ms": 18, "packet_loss_pct": 0.1, "capacity_mbps": 1000},
+    {"source": "svc-checkout", "target": "svc-inventory", "latency_ms": 45, "packet_loss_pct": 1.2, "capacity_mbps": 400},
+    {"source": "svc-checkout", "target": "svc-payments", "latency_ms": 92, "packet_loss_pct": 4.8, "capacity_mbps": 250},
+    {"source": "edge-gateway", "target": "dns-resolver", "latency_ms": 12, "packet_loss_pct": 0.0, "capacity_mbps": 500}
+  ],
+  "routes": [
+    {"name": "checkout_path", "path": ["edge-gateway", "svc-checkout"]},
+    {"name": "inventory_path", "path": ["edge-gateway", "svc-checkout", "svc-inventory"]},
+    {"name": "payments_path", "path": ["edge-gateway", "svc-checkout", "svc-payments"]},
+    {"name": "dns_path", "path": ["edge-gateway", "dns-resolver"]}
+  ]
+}
