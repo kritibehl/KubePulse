@@ -1,0 +1,25 @@
+{
+  "scenario": "network_aware_release_gate",
+  "dependency_tls_status": "healthy",
+  "dns_resolution_failures": 0,
+  "tcp_connectivity": "reachable",
+  "http2_health_check": "documented",
+  "packet_loss_pct": 4.8,
+  "latency_ms": 92,
+  "capacity_headroom_pct": 8,
+  "degraded_path": "svc-checkout -> svc-payments",
+  "dependency_risk_score": 91,
+  "safe_to_operate": false,
+  "release_decision": "block",
+  "blocked_reason": [
+    "packet_loss_threshold_violation",
+    "latency_threshold_violation",
+    "low_capacity_headroom",
+    "degraded_dependency_path"
+  ],
+  "recommended_remediation": [
+    "reroute traffic away from degraded path",
+    "repair or replace degraded network segment",
+    "rerun network validation before release continuation"
+  ]
+}

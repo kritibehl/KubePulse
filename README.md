@@ -596,3 +596,25 @@ KubePulse includes final SRE/cloud/platform artifacts for deployment-readiness a
 - LitmusChaos-style network latency experiment: `chaos/litmus/`
 
 These artifacts extend KubePulse toward cloud infra, service mesh, observability, networking, and chaos-engineering workflows while keeping scope clearly documented.
+
+
+## Network-Aware Release Risk Scoring
+
+NetRouteLab is KubePulse's infrastructure connectivity and dependency validation layer.
+
+It connects network diagnostics directly to release-safety decisions by evaluating:
+
+- DNS resolution
+- TCP reachability
+- TLS health
+- HTTP/2 health-check notes
+- packet-loss thresholds
+- latency thresholds
+- capacity headroom
+- degraded dependency paths
+
+Example output:
+
+- `netroute_lab/release_decisions/network_aware_release_decision.json`
+
+This ties network diagnostics, dependency health, observability, and rollout safety into one release-block decision.
