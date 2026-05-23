@@ -1,0 +1,19 @@
+apiVersion: litmuschaos.io/v1alpha1
+kind: ChaosEngine
+metadata:
+  name: kubepulse-network-latency
+spec:
+  appinfo:
+    appns: default
+    applabel: "app=kubepulse"
+    appkind: deployment
+  chaosServiceAccount: litmus-admin
+  experiments:
+    - name: pod-network-latency
+      spec:
+        components:
+          env:
+            - name: NETWORK_LATENCY
+              value: "500"
+            - name: TOTAL_CHAOS_DURATION
+              value: "60"

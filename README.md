@@ -582,3 +582,17 @@ Artifacts:
 - `netroute_lab/docs/incident_rca_network_outage.md`
 
 NetRouteLab demonstrates DNS/TCP-oriented service-path reasoning, routing-path simulation, network configuration validation, capacity threshold checks, packet-loss/latency scenarios, RCA-style reporting, and repair/replace remediation recommendations.
+
+
+## Cloud-Native, Service Mesh, and Chaos Artifacts
+
+KubePulse includes final SRE/cloud/platform artifacts for deployment-readiness and operational validation:
+
+- Cloud deployment matrix: `cloud_deployments/deployment_matrix.md`
+- Service mesh notes: `service_mesh/istio_traffic_policy.md`
+- Envoy route example: `service_mesh/envoy_route_example.yaml`
+- Loki logging notes: `observability/loki/loki_pipeline_notes.md`
+- Tempo tracing notes: `observability/tempo/tempo_trace_notes.md`
+- LitmusChaos-style network latency experiment: `chaos/litmus/`
+
+These artifacts extend KubePulse toward cloud infra, service mesh, observability, networking, and chaos-engineering workflows while keeping scope clearly documented.
