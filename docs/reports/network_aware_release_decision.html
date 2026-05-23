@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>KubePulse Network-Aware Release Decision</title>
+</head>
+<body>
+  <h1>KubePulse + NetRouteLab Release Decision Report</h1>
+  <h2>Decision</h2>
+  <ul>
+    <li><b>Safe to operate:</b> False</li>
+    <li><b>Release decision:</b> block</li>
+    <li><b>Dependency risk score:</b> 91</li>
+    <li><b>Degraded path:</b> svc-checkout -> svc-payments</li>
+  </ul>
+
+  <h2>Blocked Reasons</h2>
+  <ul>
+    <li>packet_loss_threshold_violation</li><li>latency_threshold_violation</li><li>low_capacity_headroom</li><li>degraded_dependency_path</li>
+  </ul>
+
+  <h2>Recommended Remediation</h2>
+  <ul>
+    <li>reroute traffic away from degraded path</li><li>repair or replace degraded network segment</li><li>rerun network validation before release continuation</li>
+  </ul>
+
+  <h2>Visuals</h2>
+  <img src="../images/network_aware_release_architecture.png" width="900">
+  <br>
+  <img src="../images/network_aware_release_block_report.png" width="700">
+</body>
+</html>

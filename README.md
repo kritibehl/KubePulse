@@ -618,3 +618,19 @@ Example output:
 - `netroute_lab/release_decisions/network_aware_release_decision.json`
 
 This ties network diagnostics, dependency health, observability, and rollout safety into one release-block decision.
+
+
+## Visual Network-Aware Release Decision Report
+
+KubePulse includes a recruiter-readable network-aware release decision report.
+
+Artifacts:
+
+- `scripts/final_release_decision.py`
+- `scripts/render_network_aware_release_report.py`
+- `docs/images/network_aware_release_architecture.png`
+- `docs/images/network_aware_release_block_report.png`
+- `docs/reports/network_aware_release_decision.html`
+- `netroute_lab/case_studies/network_aware_release_block.md`
+
+This shows the full path from DNS/TCP/TLS and network-risk signals to dependency risk scoring, rollback recommendation, and final release-block decision.
