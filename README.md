@@ -1,4 +1,7 @@
-# KubePulse — Release Safety Validation for Distributed Systems
+# KubePulse
+
+> **Release Demo:** [`docs/reports/network_aware_release_decision.html`](docs/reports/network_aware_release_decision.html)  
+> Run locally: `make release-demo`
 
 **KubePulse blocks unsafe releases when health checks lie.**
 
