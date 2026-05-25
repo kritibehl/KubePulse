@@ -637,3 +637,18 @@ Artifacts:
 - `netroute_lab/case_studies/network_aware_release_block.md`
 
 This shows the full path from DNS/TCP/TLS and network-risk signals to dependency risk scoring, rollback recommendation, and final release-block decision.
+
+## AWS Deployment and CloudWatch Path
+
+KubePulse includes AWS deployment-readiness and monitoring notes for SRE/cloud/platform workflows.
+
+Artifacts:
+
+- `aws/README.md`
+- `aws/ecs/task_definition_example.json`
+- `aws/eks/helm_deployment_notes.md`
+- `aws/cloudwatch/cloudwatch_metrics_mapping.md`
+- `aws/cloudwatch/terraform_cloudwatch_notes.md`
+- `docs/screenshots/release_block_report.png`
+
+These artifacts document ECS/EKS deployment paths, Terraform + CloudWatch monitoring concepts, and a screenshot-ready release-block report.

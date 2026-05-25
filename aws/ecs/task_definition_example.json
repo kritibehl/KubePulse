@@ -1,0 +1,26 @@
+{
+  "family": "kubepulse-release-safety",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024",
+  "containerDefinitions": [
+    {
+      "name": "kubepulse",
+      "image": "kubepulse:latest",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 8000,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        {
+          "name": "KUBEPULSE_ENV",
+          "value": "aws-ecs"
+        }
+      ]
+    }
+  ]
+}
