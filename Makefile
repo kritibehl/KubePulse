@@ -12,3 +12,9 @@ netroute-demo:
 
 test:
 	pytest -q
+
+
+.PHONY: canary-demo
+
+canary-demo:
+	python3 scripts/simulate_canary_rollout.py

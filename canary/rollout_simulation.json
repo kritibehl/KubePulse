@@ -1,0 +1,26 @@
+{
+  "release_id": "release-102",
+  "strategy": "canary",
+  "traffic_steps": [
+    {
+      "candidate_traffic_percent": 10,
+      "p95_latency_ms": 260,
+      "error_rate": 0.02,
+      "decision": "watch"
+    },
+    {
+      "candidate_traffic_percent": 25,
+      "p95_latency_ms": 620,
+      "error_rate": 0.05,
+      "decision": "hold"
+    },
+    {
+      "candidate_traffic_percent": 50,
+      "p95_latency_ms": 1422.07,
+      "error_rate": 0.09,
+      "decision": "block"
+    }
+  ],
+  "rollback_recommended": true,
+  "rollback_reason": "p95 latency and error-rate budgets violated during canary ramp"
+}
