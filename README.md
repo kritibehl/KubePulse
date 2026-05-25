@@ -652,3 +652,20 @@ Artifacts:
 - `docs/screenshots/release_block_report.png`
 
 These artifacts document ECS/EKS deployment paths, Terraform + CloudWatch monitoring concepts, and a screenshot-ready release-block report.
+
+## Kubernetes Autoscaling and Canary Rollout Simulation
+
+KubePulse includes Helm-based HPA packaging and canary rollout simulation artifacts.
+
+Artifacts:
+
+- `helm/kubepulse/templates/hpa.yaml`
+- `autoscaling/hpa_autoscaling_scenario.md`
+- `canary/rollout_simulation.json`
+- `scripts/simulate_canary_rollout.py`
+
+Run:
+
+```bash
+make canary-demo
+These artifacts demonstrate Kubernetes autoscaling checks, canary rollout analysis, and CI/CD-style release blocking when latency or error budgets are violated.
