@@ -1,0 +1,162 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>KubePulse Deployment Safety Dashboard</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f6f8fb;
+      margin: 0;
+      padding: 28px;
+      color: #172033;
+    }
+    .hero {
+      background: white;
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+      margin-bottom: 22px;
+    }
+    .status {
+      display: inline-block;
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-weight: bold;
+      background: #ffe1e1;
+      color: #a10000;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-top: 18px;
+    }
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 18px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.07);
+    }
+    .wave {
+      border-left: 6px solid #999;
+    }
+    .blocked { border-left-color: #d60000; }
+    .frozen { border-left-color: #f2a900; }
+    .ok { border-left-color: #008a3d; }
+    .label {
+      color: #64748b;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+    .value {
+      font-size: 24px;
+      font-weight: bold;
+      margin-top: 6px;
+    }
+    .section-title {
+      margin-top: 30px;
+      margin-bottom: 12px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.07);
+    }
+    th, td {
+      padding: 14px;
+      border-bottom: 1px solid #e8edf3;
+      text-align: left;
+    }
+    th {
+      background: #eef3fb;
+      font-size: 13px;
+      text-transform: uppercase;
+      color: #475569;
+    }
+  </style>
+</head>
+<body>
+  <div class="hero">
+    <h1>KubePulse Deployment Safety Dashboard</h1>
+    <p>Wave-based rollout validation with canary checks, CloudWatch alarm state, dependency health, rollback gate, and recovery state.</p>
+    <span class="status">RELEASE BLOCKED</span>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <div class="label">Release Decision</div>
+      <div class="value">block</div>
+    </div>
+    <div class="card">
+      <div class="label">Rollback</div>
+      <div class="value">triggered</div>
+    </div>
+    <div class="card">
+      <div class="label">Recovery State</div>
+      <div class="value">monitoring</div>
+    </div>
+    <div class="card">
+      <div class="label">Dependency Risk</div>
+      <div class="value">91</div>
+    </div>
+  </div>
+
+  <h2 class="section-title">Rollout Waves</h2>
+  <div class="grid">
+    <div class="card wave blocked">
+      <h3>Wave 1 — 10%</h3>
+      <p><b>Site:</b> edge-site-atl1</p>
+      <p><b>State:</b> blocked</p>
+      <p><b>Canary:</b> fail</p>
+      <p><b>Alarm:</b> ALARM</p>
+      <p><b>Rollback gate:</b> triggered</p>
+    </div>
+    <div class="card wave frozen">
+      <h3>Wave 2 — 25%</h3>
+      <p><b>Sites:</b> edge-site-iad1 / edge-site-ord1</p>
+      <p><b>State:</b> frozen</p>
+      <p><b>Reason:</b> wave 1 failed</p>
+    </div>
+    <div class="card wave frozen">
+      <h3>Wave 3 — 50%</h3>
+      <p><b>Sites:</b> edge-site-sfo1 / edge-site-dfw1</p>
+      <p><b>State:</b> frozen</p>
+      <p><b>Reason:</b> rollback review active</p>
+    </div>
+  </div>
+
+  <h2 class="section-title">Health Signals</h2>
+  <table>
+    <tr>
+      <th>Signal</th>
+      <th>Value</th>
+      <th>Impact</th>
+    </tr>
+    <tr>
+      <td>p95 latency</td>
+      <td>620 ms</td>
+      <td>SLO breach</td>
+    </tr>
+    <tr>
+      <td>p99 latency</td>
+      <td>910 ms</td>
+      <td>tail latency breach</td>
+    </tr>
+    <tr>
+      <td>Error rate</td>
+      <td>5%</td>
+      <td>error budget violated</td>
+    </tr>
+    <tr>
+      <td>Unhealthy dependency</td>
+      <td>svc-payments</td>
+      <td>critical downstream path</td>
+    </tr>
+  </table>
+</body>
+</html>

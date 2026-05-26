@@ -1,0 +1,50 @@
+{
+  "deployment_id": "deploy-204",
+  "overall_state": "blocked",
+  "release_decision": "block",
+  "rollback_triggered": true,
+  "recovery_state": "monitoring",
+  "waves": [
+    {
+      "wave": 1,
+      "site": "edge-site-atl1",
+      "traffic_percent": 10,
+      "state": "blocked",
+      "site_health": "degraded",
+      "canary_validation": "fail",
+      "cloudwatch_alarm": "ALARM",
+      "rollback_gate": "triggered"
+    },
+    {
+      "wave": 2,
+      "site": "edge-site-iad1 / edge-site-ord1",
+      "traffic_percent": 25,
+      "state": "frozen",
+      "site_health": "not_started",
+      "canary_validation": "not_started",
+      "cloudwatch_alarm": "not_checked",
+      "rollback_gate": "waiting"
+    },
+    {
+      "wave": 3,
+      "site": "edge-site-sfo1 / edge-site-dfw1",
+      "traffic_percent": 50,
+      "state": "frozen",
+      "site_health": "not_started",
+      "canary_validation": "not_started",
+      "cloudwatch_alarm": "not_checked",
+      "rollback_gate": "waiting"
+    }
+  ],
+  "dependency": {
+    "name": "svc-payments",
+    "health": "critical",
+    "path": "edge-gateway -> checkout -> payments"
+  },
+  "signals": {
+    "p95_latency_ms": 620,
+    "p99_latency_ms": 910,
+    "error_rate": 0.05,
+    "dependency_risk_score": 91
+  }
+}

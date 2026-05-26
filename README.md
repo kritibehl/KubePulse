@@ -743,3 +743,16 @@ Run:
 ```bash
 make deployment-wave-demo
 This demonstrates wave-based deployment validation, canary checks, rollback gates, CloudWatch alarm checks, and edge-site health reporting.
+
+
+## Deployment Safety Dashboard
+
+KubePulse includes a recruiter-readable deployment visualization UI showing rollout waves, deployment state, blocked rollout, rollback trigger, unhealthy dependency, and recovery state.
+
+Artifacts:
+
+- `ui/deployment_dashboard/index.html`
+- `ui/deployment_dashboard/deployment_state.json`
+- `docs/screenshots/deployment_safety_dashboard.png`
+
+This dashboard makes the rollout safety story visible: wave 1 blocked, future waves frozen, rollback triggered, dependency unhealthy, and recovery under monitoring.
