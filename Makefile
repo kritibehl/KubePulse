@@ -72,3 +72,13 @@ deployment-ui-demo:
 
 security-demo:
 	python3 scripts/security_release_check.py
+
+
+.PHONY: visual-demo
+
+visual-demo:
+	python3 scripts/render_architecture_diagram.py
+	python3 scripts/render_autoscaling_dashboard.py
+	python3 scripts/render_blocked_rollout_report.py
+	python3 scripts/render_deployment_dashboard.py
+	@echo "Visual artifacts generated under docs/screenshots and docs/architecture"
