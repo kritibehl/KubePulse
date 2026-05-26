@@ -1,0 +1,28 @@
+{
+  "deployment_id": "deploy-204",
+  "security_validation": {
+    "tls_enabled": false,
+    "authentication_enabled": false,
+    "health_probes_present": true,
+    "resource_limits_present": false,
+    "insecure_env_vars_detected": [
+      "DEBUG=true",
+      "ALLOW_INSECURE_HTTP=true"
+    ]
+  },
+  "violations": [
+    "missing_tls",
+    "missing_auth",
+    "missing_resource_limits",
+    "insecure_env_var"
+  ],
+  "severity": "critical",
+  "safe_to_operate": false,
+  "release_decision": "block",
+  "recommended_action": [
+    "enable TLS",
+    "enable authentication",
+    "remove insecure environment variables",
+    "add Kubernetes resource limits"
+  ]
+}

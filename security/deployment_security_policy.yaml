@@ -1,0 +1,17 @@
+require_tls: true
+require_authentication: true
+require_health_probes: true
+require_resource_limits: true
+block_insecure_env_vars: true
+
+blocked_env_patterns:
+  - "DEBUG=true"
+  - "DISABLE_AUTH=true"
+  - "ALLOW_INSECURE_HTTP=true"
+
+severity_mapping:
+  missing_tls: high
+  weak_config: medium
+  insecure_env_var: high
+  missing_auth: critical
+  missing_resource_limits: medium

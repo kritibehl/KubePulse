@@ -756,3 +756,20 @@ Artifacts:
 - `docs/screenshots/deployment_safety_dashboard.png`
 
 This dashboard makes the rollout safety story visible: wave 1 blocked, future waves frozen, rollback triggered, dependency unhealthy, and recovery under monitoring.
+
+## Deployment Security Validation
+
+KubePulse includes deployment-policy validation workflows for rollout governance and security-aware release blocking.
+
+Artifacts:
+
+- `security/deployment_security_policy.yaml`
+- `reports/security/deployment_security_report.json`
+- `reports/security/security_governance_summary.md`
+- `scripts/security_release_check.py`
+
+Run:
+
+```bash
+make security-demo
+This validates missing TLS, missing authentication, insecure environment variables, missing resource limits, and unsafe deployment conditions before release continuation.

@@ -66,3 +66,9 @@ deployment-ui-demo:
 	python3 scripts/render_deployment_dashboard.py
 	@echo "Open UI: ui/deployment_dashboard/index.html"
 	@echo "Screenshot: docs/screenshots/deployment_safety_dashboard.png"
+
+
+.PHONY: security-demo
+
+security-demo:
+	python3 scripts/security_release_check.py
