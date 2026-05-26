@@ -40,3 +40,15 @@ aws-release-demo:
 
 capacity-demo:
 	python3 scripts/capacity_release_check.py
+
+
+.PHONY: scaling-demo rollback-demo dependency-demo
+
+scaling-demo:
+	python3 scripts/render_scaling_comparison.py
+
+rollback-demo:
+	python3 scripts/simulate_canary_failure_rollback.py
+
+dependency-demo:
+	python3 scripts/analyze_dependency_health.py

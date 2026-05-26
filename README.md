@@ -704,3 +704,24 @@ Run:
 ```bash
 make capacity-demo
 This demonstrates p95/p99 latency checks, error-rate budget validation, autoscaling threshold analysis, and release-readiness blocking under simulated production-style load.
+
+## Scaling, Rollback, and Dependency Propagation
+
+KubePulse includes simulated production-scaling and rollout-failure artifacts.
+
+Artifacts:
+
+- `scaling/horizontal_scaling_comparison.json`
+- `reports/scaling/horizontal_scaling_comparison.md`
+- `reports/scaling/horizontal_scaling_latency.png`
+- `reports/scaling/horizontal_scaling_queue.png`
+- `rollback/canary_failure_rollback_simulation.json`
+- `topology/service_dependency_health.json`
+
+Run:
+
+```bash
+make scaling-demo
+make rollback-demo
+make dependency-demo
+These workflows demonstrate horizontal scaling comparison, queue-depth recovery, autoscaling recovery timing, failed canary rollback, release freeze logic, and dependency-health propagation.

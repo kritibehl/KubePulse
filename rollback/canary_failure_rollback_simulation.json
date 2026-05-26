@@ -1,0 +1,24 @@
+{
+  "release_id": "release-103",
+  "scenario": "canary_failure_rollback",
+  "rollout": {
+    "stage": "50_percent_canary",
+    "status": "failed",
+    "failed_deployment": "candidate_release"
+  },
+  "signals": {
+    "p95_latency_ms": 1422.07,
+    "error_rate": 0.09,
+    "degraded_dependency_detected": true,
+    "dependency": "svc-payments",
+    "safe_to_operate": false
+  },
+  "rollback": {
+    "automatic_rollback_triggered": true,
+    "rollback_target": "previous_stable_release",
+    "release_freeze": true,
+    "freeze_reason": "candidate caused SLO breach and degraded dependency path",
+    "post_rollback_status": "monitoring"
+  },
+  "release_decision": "block"
+}

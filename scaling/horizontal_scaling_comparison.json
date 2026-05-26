@@ -1,0 +1,32 @@
+{
+  "scenario": "horizontal_scaling_release_validation",
+  "runs": [
+    {
+      "replicas": 1,
+      "queue_depth": 180,
+      "p95_latency_ms": 1422.07,
+      "p99_latency_ms": 1880.4,
+      "error_rate": 0.09,
+      "status": "fail"
+    },
+    {
+      "replicas": 3,
+      "queue_depth": 64,
+      "p95_latency_ms": 640.5,
+      "p99_latency_ms": 910.2,
+      "error_rate": 0.04,
+      "status": "watch"
+    },
+    {
+      "replicas": 5,
+      "queue_depth": 12,
+      "p95_latency_ms": 238.7,
+      "p99_latency_ms": 412.3,
+      "error_rate": 0.01,
+      "status": "pass"
+    }
+  ],
+  "autoscaling_recovery_seconds": 46,
+  "release_decision": "block_until_recovered",
+  "reason": "release remains blocked until p95/p99 latency and queue depth recover below threshold"
+}

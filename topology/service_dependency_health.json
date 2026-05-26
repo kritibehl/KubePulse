@@ -1,0 +1,19 @@
+{
+  "services": {
+    "edge-gateway": {"health": "healthy", "role": "ingress"},
+    "checkout": {"health": "degraded", "role": "core"},
+    "inventory": {"health": "impacted", "role": "downstream"},
+    "payments": {"health": "critical", "role": "downstream"},
+    "recommendations": {"health": "healthy", "role": "downstream"}
+  },
+  "dependencies": [
+    {"upstream": "edge-gateway", "downstream": "checkout"},
+    {"upstream": "checkout", "downstream": "inventory"},
+    {"upstream": "checkout", "downstream": "payments"},
+    {"upstream": "edge-gateway", "downstream": "recommendations"}
+  ],
+  "cascading_failure_detected": true,
+  "failure_root": "checkout",
+  "critical_path": ["edge-gateway", "checkout", "payments"],
+  "release_decision": "block"
+}
