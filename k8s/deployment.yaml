@@ -17,8 +17,14 @@ spec:
       containers:
         - name: kubepulse
           image: kubepulse:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: kubepulse-config
+            - secretRef:
+                name: kubepulse-secret
           readinessProbe:
             httpGet:
               path: /health
@@ -31,3 +37,10 @@ spec:
               port: 8000
             initialDelaySeconds: 10
             periodSeconds: 20
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"

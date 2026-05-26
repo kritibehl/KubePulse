@@ -773,3 +773,21 @@ Run:
 ```bash
 make security-demo
 This validates missing TLS, missing authentication, insecure environment variables, missing resource limits, and unsafe deployment conditions before release continuation.
+
+## Kubernetes Deployment Proof
+
+KubePulse includes raw Kubernetes and Helm deployment artifacts:
+
+- deployment YAML
+- service manifest
+- ConfigMap
+- Secret
+- HPA autoscaling
+- readiness/liveness probes
+- resource requests/limits
+- Helm templates
+
+See:
+
+- `k8s/`
+- `helm/kubepulse/`

@@ -33,3 +33,10 @@ autoscaling:
   minReplicas: 1
   maxReplicas: 5
   targetCPUUtilizationPercentage: 70
+
+config:
+  env: kubernetes
+  releaseGateMode: enabled
+
+secret:
+  apiToken: replace-me

@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kubepulse-config
+data:
+  KUBEPULSE_ENV: "kubernetes"
+  RELEASE_GATE_MODE: "enabled"
+  SLO_POLICY_PATH: "/app/config/slo_config.yaml"
