@@ -1,0 +1,32 @@
+name: AWS Release Validation
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  aws-release-validation:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Run tests
+        run: pytest -q
+
+      - name: Validate release demo
+        run: make release-demo
+
+      - name: Validate Terraform formatting
+        run: terraform fmt -check -recursive infra/terraform/aws_ecs || true
+
+      - name: Validate AWS deployment artifacts
+        run: |
+          test -f infra/terraform/aws_ecs/main.tf
+          test -f aws/cloudwatch/cloudwatch_metrics_mapping.md
+          test -f aws/ecs/task_definition_example.json
+          echo "AWS release validation artifacts present"

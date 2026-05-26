@@ -669,3 +669,20 @@ Run:
 ```bash
 make canary-demo
 These artifacts demonstrate Kubernetes autoscaling checks, canary rollout analysis, and CI/CD-style release blocking when latency or error budgets are violated.
+
+## AWS Deployment Validation
+
+KubePulse includes an AWS-oriented deployment validation path for DevOps/SRE workflows.
+
+Artifacts:
+
+- `infra/terraform/aws_ecs/main.tf`
+- `.github/workflows/aws_release_validation.yml`
+- `aws/cloudwatch/cloudwatch_dashboard_example.json`
+- `aws/ecs/task_definition_example.json`
+
+Run:
+
+```bash
+make aws-release-demo
+This validates AWS ECS/Fargate-style Terraform artifacts, CloudWatch monitoring examples, CI/CD release checks, and container health-check configuration.

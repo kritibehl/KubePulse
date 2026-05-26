@@ -1,0 +1,40 @@
+{
+  "widgets": [
+    {
+      "type": "metric",
+      "properties": {
+        "title": "KubePulse Safe To Operate",
+        "metrics": [
+          ["KubePulse", "SafeToOperate"]
+        ],
+        "period": 60,
+        "stat": "Minimum",
+        "region": "us-east-1"
+      }
+    },
+    {
+      "type": "metric",
+      "properties": {
+        "title": "KubePulse p95 Latency",
+        "metrics": [
+          ["KubePulse", "LatencyP95Ms"]
+        ],
+        "period": 60,
+        "stat": "Average",
+        "region": "us-east-1"
+      }
+    },
+    {
+      "type": "metric",
+      "properties": {
+        "title": "KubePulse Release Blocks",
+        "metrics": [
+          ["KubePulse", "ReleaseBlockTotal"]
+        ],
+        "period": 60,
+        "stat": "Sum",
+        "region": "us-east-1"
+      }
+    }
+  ]
+}
