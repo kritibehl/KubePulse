@@ -1,0 +1,32 @@
+{
+  "deployment_id": "deploy-204",
+  "strategy": "wave_based_rollout",
+  "waves": [
+    {
+      "wave": 1,
+      "sites": ["edge-site-atl1"],
+      "traffic_percent": 10,
+      "required_checks": [
+        "site_health",
+        "canary_validation",
+        "cloudwatch_alarm_check"
+      ]
+    },
+    {
+      "wave": 2,
+      "sites": ["edge-site-iad1", "edge-site-ord1"],
+      "traffic_percent": 25,
+      "required_checks": [
+        "site_health",
+        "canary_validation",
+        "cloudwatch_alarm_check"
+      ]
+    }
+  ],
+  "rollback_policy": {
+    "block_on_alarm": true,
+    "block_on_site_unhealthy": true,
+    "block_on_canary_failure": true,
+    "freeze_next_wave_on_failure": true
+  }
+}
