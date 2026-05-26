@@ -725,3 +725,21 @@ make scaling-demo
 make rollback-demo
 make dependency-demo
 These workflows demonstrate horizontal scaling comparison, queue-depth recovery, autoscaling recovery timing, failed canary rollback, release freeze logic, and dependency-health propagation.
+
+## Deployment Wave Validation
+
+KubePulse includes Amazon-style deployment wave validation artifacts for staged rollout safety.
+
+Artifacts:
+
+- `deployment_waves/wave_config.json`
+- `deployment_waves/wave_validation_summary.json`
+- `reports/site_health/edge_site_health_report.json`
+- `reports/site_health/site_health_rollout_report.md`
+- `scripts/validate_deployment_wave.py`
+
+Run:
+
+```bash
+make deployment-wave-demo
+This demonstrates wave-based deployment validation, canary checks, rollback gates, CloudWatch alarm checks, and edge-site health reporting.

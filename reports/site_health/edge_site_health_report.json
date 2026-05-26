@@ -1,0 +1,20 @@
+{
+  "deployment_id": "deploy-204",
+  "site": "edge-site-atl1",
+  "site_type": "edge_validation_site",
+  "checks": {
+    "dns_resolution": "pass",
+    "tcp_connectivity": "pass",
+    "tls_health": "pass",
+    "container_health": "pass",
+    "p95_latency_ms": 620,
+    "p99_latency_ms": 910,
+    "error_rate": 0.05,
+    "cloudwatch_alarm_state": "ALARM"
+  },
+  "site_health": "degraded",
+  "canary_validation": "fail",
+  "rollback_gate": "triggered",
+  "release_decision": "block",
+  "recommended_action": "freeze next wave and rollback candidate release"
+}

@@ -52,3 +52,9 @@ rollback-demo:
 
 dependency-demo:
 	python3 scripts/analyze_dependency_health.py
+
+
+.PHONY: deployment-wave-demo
+
+deployment-wave-demo:
+	python3 scripts/validate_deployment_wave.py
