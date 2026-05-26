@@ -686,3 +686,21 @@ Run:
 ```bash
 make aws-release-demo
 This validates AWS ECS/Fargate-style Terraform artifacts, CloudWatch monitoring examples, CI/CD release checks, and container health-check configuration.
+
+## Capacity and Scaling Validation
+
+KubePulse includes simulated capacity-validation artifacts for release-readiness workflows.
+
+Artifacts:
+
+- `load_tests/k6_release_load_test.js`
+- `reports/capacity/load_test_summary.json`
+- `reports/capacity/autoscaling_threshold_report.md`
+- `docs/capacity/capacity_planning.md`
+- `scripts/capacity_release_check.py`
+
+Run:
+
+```bash
+make capacity-demo
+This demonstrates p95/p99 latency checks, error-rate budget validation, autoscaling threshold analysis, and release-readiness blocking under simulated production-style load.

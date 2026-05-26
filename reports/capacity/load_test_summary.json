@@ -1,0 +1,14 @@
+{
+  "tool": "k6",
+  "scenario": "release_readiness_load_test",
+  "vus_peak": 50,
+  "duration": "2m",
+  "p95_latency_ms": 620,
+  "p99_latency_ms": 910,
+  "error_rate": 0.05,
+  "autoscaling_threshold_cpu_percent": 70,
+  "autoscaling_recommended": true,
+  "release_ready": false,
+  "release_decision": "block",
+  "reason": "p95/p99 latency and error-rate budgets exceeded under simulated load"
+}

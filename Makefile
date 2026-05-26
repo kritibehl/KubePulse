@@ -34,3 +34,9 @@ aws-release-demo:
 	@echo "- infra/terraform/aws_ecs/main.tf"
 	@echo "- aws/cloudwatch/cloudwatch_dashboard_example.json"
 	@echo "- .github/workflows/aws_release_validation.yml"
+
+
+.PHONY: capacity-demo
+
+capacity-demo:
+	python3 scripts/capacity_release_check.py
