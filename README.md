@@ -815,3 +815,20 @@ KubePulse includes deployment-policy validation workflows:
 - `security_validation/security_validation_report.md`
 
 These detect missing TLS, missing authentication, insecure environment variables, missing resource limits, and unsafe rollout continuation.
+
+## Executive Reporting and Multi-Region Rollout Planning
+
+KubePulse includes operational reporting and staged rollout planning artifacts for AWS-style cloud rollout review.
+
+Artifacts:
+
+- `executive_reporting/weekly_operational_review.md`
+- `executive_reporting/sla_breach_summary.md`
+- `executive_reporting/deployment_health_dashboard.json`
+- `executive_reporting/rollback_frequency_report.md`
+- `multi_region_rollout/regional_wave_plan.md`
+- `multi_region_rollout/blast_radius_control.md`
+- `multi_region_rollout/canary_to_global_rollout.md`
+- `multi_region_rollout/rollback_playbook.md`
+
+These artifacts track deployment health, rollback frequency, SLA breaches, error-budget burn, release-risk trends, canary waves, blast-radius control, rollback playbooks, and staged deployment decisions.

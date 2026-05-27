@@ -1,0 +1,18 @@
+{
+  "report": "deployment_health_dashboard",
+  "period": "weekly",
+  "deployment_health": {
+    "deployments_reviewed": 6,
+    "release_blocks": 2,
+    "rollback_reviews": 2,
+    "sla_breaches": 1,
+    "error_budget_burn_percent": 80,
+    "mean_recovery_seconds": 46
+  },
+  "current_release_risk": {
+    "release_decision": "block",
+    "cloudwatch_alarm_state": "ALARM",
+    "dependency_risk_score": 91,
+    "rollback_required": true
+  }
+}
