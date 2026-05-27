@@ -1,0 +1,30 @@
+{
+  "Namespace": "KubePulse/ReleaseSafety",
+  "MetricData": [
+    {
+      "MetricName": "SafeToOperate",
+      "Value": 0,
+      "Unit": "Count"
+    },
+    {
+      "MetricName": "LatencyP95Ms",
+      "Value": 620,
+      "Unit": "Milliseconds"
+    },
+    {
+      "MetricName": "LatencyP99Ms",
+      "Value": 910,
+      "Unit": "Milliseconds"
+    },
+    {
+      "MetricName": "ErrorRate",
+      "Value": 0.05,
+      "Unit": "None"
+    },
+    {
+      "MetricName": "DependencyRiskScore",
+      "Value": 91,
+      "Unit": "Count"
+    }
+  ]
+}

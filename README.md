@@ -832,3 +832,21 @@ Artifacts:
 - `multi_region_rollout/rollback_playbook.md`
 
 These artifacts track deployment health, rollback frequency, SLA breaches, error-budget burn, release-risk trends, canary waves, blast-radius control, rollback playbooks, and staged deployment decisions.
+
+## AWS Runtime Demo
+
+KubePulse includes a local AWS-aligned runtime demo.
+
+Artifacts:
+
+- `aws_runtime_demo/release_evaluator_lambda.py`
+- `aws_runtime_demo/sample_deployment_event.json`
+- `aws_runtime_demo/s3_artifact_writer.py`
+- `aws_runtime_demo/cloudwatch_metric_payload.json`
+- `aws_runtime_demo/sqs_event_contract.json`
+
+Run:
+
+```bash
+python3 aws_runtime_demo/release_evaluator_lambda.py
+This consumes an SQS-style deployment event, emits CloudWatch-style metrics, writes S3-style release artifacts, and produces an automated block/rollback decision.

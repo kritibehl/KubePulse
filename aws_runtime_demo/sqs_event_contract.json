@@ -1,0 +1,19 @@
+{
+  "contract": "kubepulse_deployment_event",
+  "required_fields": [
+    "deployment_id",
+    "site",
+    "wave",
+    "event_type",
+    "signals"
+  ],
+  "signals": {
+    "safe_to_operate": "boolean",
+    "p95_latency_ms": "number",
+    "p99_latency_ms": "number",
+    "error_rate": "number",
+    "dependency_risk_score": "number",
+    "cloudwatch_alarm_state": "string",
+    "canary_validation": "string"
+  }
+}

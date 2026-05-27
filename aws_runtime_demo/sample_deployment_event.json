@@ -1,0 +1,15 @@
+{
+  "deployment_id": "deploy-204",
+  "site": "edge-site-atl1",
+  "wave": 1,
+  "event_type": "deployment_wave_validation",
+  "signals": {
+    "safe_to_operate": false,
+    "p95_latency_ms": 620,
+    "p99_latency_ms": 910,
+    "error_rate": 0.05,
+    "dependency_risk_score": 91,
+    "cloudwatch_alarm_state": "ALARM",
+    "canary_validation": "fail"
+  }
+}
