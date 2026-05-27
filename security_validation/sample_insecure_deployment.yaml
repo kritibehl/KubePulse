@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: insecure-kubepulse
+spec:
+  template:
+    spec:
+      containers:
+        - name: kubepulse
+          image: kubepulse:latest
+          env:
+            - name: DEBUG
+              value: "true"
+            - name: ALLOW_INSECURE_HTTP
+              value: "true"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000

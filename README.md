@@ -791,3 +791,27 @@ See:
 
 - `k8s/`
 - `helm/kubepulse/`
+
+## AWS-Style Release Safety Architecture
+
+KubePulse includes AWS-style architecture artifacts for release-safety workflows:
+
+- `aws_architecture/aws_reference_architecture.md`
+- `aws_architecture/cloudwatch_alarm_mapping.md`
+- `aws_architecture/sqs_style_event_flow.md`
+- `aws_architecture/s3_artifact_storage_plan.md`
+- `aws_architecture/lambda_style_release_evaluator.py`
+- `aws_architecture/architecture_tradeoffs.md`
+
+These artifacts map deployment events, CloudWatch-style alarms, S3-style release evidence, SQS-style queues, and Lambda-style evaluation workflows into rollback decisions.
+
+## Security Validation Layer
+
+KubePulse includes deployment-policy validation workflows:
+
+- `security_validation/deployment_policy_checks.py`
+- `security_validation/sample_insecure_deployment.yaml`
+- `security_validation/sample_secure_deployment.yaml`
+- `security_validation/security_validation_report.md`
+
+These detect missing TLS, missing authentication, insecure environment variables, missing resource limits, and unsafe rollout continuation.

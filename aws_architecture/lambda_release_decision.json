@@ -1,0 +1,16 @@
+{
+  "deployment_id": "deploy-204",
+  "site": "edge-site-atl1",
+  "release_decision": "block",
+  "safe_to_operate": false,
+  "freeze_next_wave": true,
+  "rollback_required": true,
+  "reasons": [
+    "cloudwatch_alarm_triggered",
+    "canary_validation_failed",
+    "rollback_gate_triggered",
+    "p95_latency_budget_violation",
+    "error_budget_violation",
+    "dependency_risk_threshold_violation"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "deployment_id": "deploy-204",
+  "site": "edge-site-atl1",
+  "events": [
+    {"type": "deployment_started", "status": "ok"},
+    {"type": "canary_validation", "status": "fail"},
+    {"type": "cloudwatch_alarm", "alarm": "HighLatencyAlarm", "state": "ALARM"},
+    {"type": "rollback_gate", "status": "triggered"}
+  ],
+  "signals": {
+    "safe_to_operate": false,
+    "p95_latency_ms": 620,
+    "error_rate": 0.05,
+    "dependency_risk_score": 91
+  }
+}

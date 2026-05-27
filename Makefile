@@ -82,3 +82,13 @@ visual-demo:
 	python3 scripts/render_blocked_rollout_report.py
 	python3 scripts/render_deployment_dashboard.py
 	@echo "Visual artifacts generated under docs/screenshots and docs/architecture"
+
+
+.PHONY: aws-architecture-demo security-validation-demo
+
+aws-architecture-demo:
+	python3 aws_architecture/lambda_style_release_evaluator.py
+
+security-validation-demo:
+	python3 security_validation/deployment_policy_checks.py security_validation/sample_insecure_deployment.yaml
+	python3 security_validation/deployment_policy_checks.py security_validation/sample_secure_deployment.yaml
