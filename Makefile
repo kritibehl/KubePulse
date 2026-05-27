@@ -92,3 +92,8 @@ aws-architecture-demo:
 security-validation-demo:
 	python3 security_validation/deployment_policy_checks.py security_validation/sample_insecure_deployment.yaml
 	python3 security_validation/deployment_policy_checks.py security_validation/sample_secure_deployment.yaml
+
+.PHONY: aws-runtime-demo
+
+aws-runtime-demo:
+	python3 aws_runtime_demo/release_evaluator_lambda.py
