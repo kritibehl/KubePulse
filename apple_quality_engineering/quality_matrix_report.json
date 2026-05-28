@@ -1,0 +1,58 @@
+{
+  "cases_total": 5,
+  "cases_passed": 5,
+  "cases_failed": 0,
+  "release_block_cases": 5,
+  "results": [
+    {
+      "feature": "release_gate",
+      "edge_case": "safe_to_operate_false",
+      "expected_behavior": "block",
+      "regression_risk": "high",
+      "ci_status": "pass",
+      "observed_decision": "block",
+      "quality_status": "pass",
+      "release_block": true
+    },
+    {
+      "feature": "canary_rollout",
+      "edge_case": "p95_latency_budget_violation",
+      "expected_behavior": "block",
+      "regression_risk": "high",
+      "ci_status": "pass",
+      "observed_decision": "block",
+      "quality_status": "pass",
+      "release_block": true
+    },
+    {
+      "feature": "deployment_wave",
+      "edge_case": "cloudwatch_alarm_state_alarm",
+      "expected_behavior": "freeze_next_wave",
+      "regression_risk": "high",
+      "ci_status": "pass",
+      "observed_decision": "freeze_next_wave",
+      "quality_status": "pass",
+      "release_block": true
+    },
+    {
+      "feature": "security_gate",
+      "edge_case": "missing_tls_and_auth",
+      "expected_behavior": "block",
+      "regression_risk": "critical",
+      "ci_status": "pass",
+      "observed_decision": "block",
+      "quality_status": "pass",
+      "release_block": true
+    },
+    {
+      "feature": "capacity_gate",
+      "edge_case": "p99_latency_budget_violation",
+      "expected_behavior": "block",
+      "regression_risk": "high",
+      "ci_status": "pass",
+      "observed_decision": "block",
+      "quality_status": "pass",
+      "release_block": true
+    }
+  ]
+}

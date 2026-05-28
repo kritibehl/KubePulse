@@ -850,3 +850,25 @@ Run:
 ```bash
 python3 aws_runtime_demo/release_evaluator_lambda.py
 This consumes an SQS-style deployment event, emits CloudWatch-style metrics, writes S3-style release artifacts, and produces an automated block/rollback decision.
+
+## Apple-Style Quality Engineering Artifacts
+
+KubePulse includes quality-engineering artifacts for release validation, regression detection, CI scheduling, performance-signal review, and bug reproduction workflows.
+
+Artifacts:
+
+- `apple_quality_engineering/e2e_test_plan.md`
+- `apple_quality_engineering/regression_matrix.md`
+- `apple_quality_engineering/manual_to_automated_test_conversion.md`
+- `apple_quality_engineering/ci_quality_report.md`
+- `apple_quality_engineering/performance_memory_test_notes.md`
+- `apple_quality_engineering/bug_reproduction_template.md`
+- `apple_quality_engineering/run_quality_matrix.py`
+- `tests/test_quality_matrix.py`
+
+Run:
+
+```bash
+make apple-quality-demo
+pytest tests/test_quality_matrix.py -q
+This maps features, edge cases, expected behavior, regression risk, CI status, and release-block decisions into structured test reports.

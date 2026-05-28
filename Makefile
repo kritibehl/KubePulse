@@ -97,3 +97,8 @@ security-validation-demo:
 
 aws-runtime-demo:
 	python3 aws_runtime_demo/release_evaluator_lambda.py
+
+.PHONY: apple-quality-demo
+
+apple-quality-demo:
+	python3 apple_quality_engineering/run_quality_matrix.py
