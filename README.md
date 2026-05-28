@@ -872,3 +872,23 @@ Run:
 make apple-quality-demo
 pytest tests/test_quality_matrix.py -q
 This maps features, edge cases, expected behavior, regression risk, CI status, and release-block decisions into structured test reports.
+
+## Long-Running Soak Testing
+
+KubePulse includes simulated long-running soak-test analysis for quality and release-safety validation.
+
+Artifacts:
+
+- `soak_testing/soak_scenarios.json`
+- `soak_testing/run_soak_analysis.py`
+- `soak_testing/reports/soak_analysis_report.json`
+- `soak_testing/reports/soak_analysis_report.md`
+- `soak_testing/reports/soak_testing_notes.md`
+- `tests/test_soak_analysis.py`
+
+Run:
+
+```bash
+make soak-demo
+pytest tests/test_soak_analysis.py -q
+This analyzes 1h, 6h, and 24h soak scenarios for latency drift, error accumulation, resource pressure, and release-block decisions.

@@ -102,3 +102,8 @@ aws-runtime-demo:
 
 apple-quality-demo:
 	python3 apple_quality_engineering/run_quality_matrix.py
+
+.PHONY: soak-demo
+
+soak-demo:
+	python3 soak_testing/run_soak_analysis.py

@@ -1,0 +1,31 @@
+{
+  "soak_runs": 3,
+  "blocked_runs": 1,
+  "watch_runs": 1,
+  "results": [
+    {
+      "duration": "1h",
+      "latency_drift_ms": 28,
+      "latency_drift_pct": 12.73,
+      "error_accumulation": 4,
+      "resource_pressure": "low",
+      "release_decision": "continue"
+    },
+    {
+      "duration": "6h",
+      "latency_drift_ms": 185,
+      "latency_drift_pct": 82.22,
+      "error_accumulation": 36,
+      "resource_pressure": "medium",
+      "release_decision": "watch"
+    },
+    {
+      "duration": "24h",
+      "latency_drift_ms": 550,
+      "latency_drift_pct": 239.13,
+      "error_accumulation": 212,
+      "resource_pressure": "high",
+      "release_decision": "block"
+    }
+  ]
+}

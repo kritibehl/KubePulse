@@ -1,0 +1,31 @@
+{
+  "scenarios": [
+    {
+      "duration": "1h",
+      "latency_p95_start_ms": 220,
+      "latency_p95_end_ms": 248,
+      "error_count_start": 0,
+      "error_count_end": 4,
+      "resource_pressure": "low",
+      "status": "pass"
+    },
+    {
+      "duration": "6h",
+      "latency_p95_start_ms": 225,
+      "latency_p95_end_ms": 410,
+      "error_count_start": 1,
+      "error_count_end": 37,
+      "resource_pressure": "medium",
+      "status": "watch"
+    },
+    {
+      "duration": "24h",
+      "latency_p95_start_ms": 230,
+      "latency_p95_end_ms": 780,
+      "error_count_start": 2,
+      "error_count_end": 214,
+      "resource_pressure": "high",
+      "status": "block"
+    }
+  ]
+}
