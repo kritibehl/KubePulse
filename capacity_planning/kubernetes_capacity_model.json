@@ -1,0 +1,34 @@
+{
+  "cluster": "kubepulse-validation-cluster",
+  "workload": "release-safety-api",
+  "current_state": {
+    "replicas": 3,
+    "cpu_request_millicores": 100,
+    "cpu_limit_millicores": 500,
+    "memory_request_mib": 128,
+    "memory_limit_mib": 512,
+    "p95_latency_ms": 640,
+    "p99_latency_ms": 910,
+    "error_rate": 0.04
+  },
+  "growth_scenarios": [
+    {
+      "traffic_multiplier": 1,
+      "recommended_replicas": 3,
+      "resource_pressure": "medium",
+      "release_decision": "watch"
+    },
+    {
+      "traffic_multiplier": 2,
+      "recommended_replicas": 5,
+      "resource_pressure": "high",
+      "release_decision": "block_until_scaled"
+    },
+    {
+      "traffic_multiplier": 3,
+      "recommended_replicas": 8,
+      "resource_pressure": "critical",
+      "release_decision": "block"
+    }
+  ]
+}

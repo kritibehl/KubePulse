@@ -1,0 +1,30 @@
+{
+  "dashboard": "kubernetes_service_health",
+  "tiles": [
+    {
+      "name": "p95_latency_ms",
+      "value": 640,
+      "status": "high"
+    },
+    {
+      "name": "p99_latency_ms",
+      "value": 910,
+      "status": "high"
+    },
+    {
+      "name": "error_rate",
+      "value": 0.04,
+      "status": "high"
+    },
+    {
+      "name": "replicas",
+      "value": 3,
+      "status": "watch"
+    },
+    {
+      "name": "release_decision",
+      "value": "block_until_scaled",
+      "status": "action_required"
+    }
+  ]
+}

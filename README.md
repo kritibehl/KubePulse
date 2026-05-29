@@ -892,3 +892,16 @@ Run:
 make soak-demo
 pytest tests/test_soak_analysis.py -q
 This analyzes 1h, 6h, and 24h soak scenarios for latency drift, error accumulation, resource pressure, and release-block decisions.
+
+## Kubernetes Capacity Planning
+
+KubePulse includes Kubernetes capacity-planning artifacts for workload growth, resource pressure, rollout safety, and service-health monitoring.
+
+Artifacts:
+
+- `capacity_planning/kubernetes_capacity_model.json`
+- `capacity_planning/workload_scaling_report.md`
+- `capacity_planning/resource_pressure_summary.md`
+- `capacity_planning/service_health_dashboard.json`
+
+These artifacts model replica recommendations, latency/error-budget pressure, resource constraints, and release-readiness decisions across Kubernetes-style monitoring pipelines.
