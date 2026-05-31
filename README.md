@@ -905,3 +905,21 @@ Artifacts:
 - `capacity_planning/service_health_dashboard.json`
 
 These artifacts model replica recommendations, latency/error-budget pressure, resource constraints, and release-readiness decisions across Kubernetes-style monitoring pipelines.
+
+## SRE Release Gates: Error Budgets, Progressive Delivery, Feature Flags, and Supply Chain
+
+KubePulse includes SRE-style release-safety gates:
+
+- `error_budget/` calculates burn-rate style release freeze decisions.
+- `progressive_delivery/` simulates Argo Rollouts-style canary analysis.
+- `feature_flags/` models OpenFeature-style kill-switch release controls.
+- `supply_chain_gate/` models SLSA-inspired build integrity checks.
+
+Run:
+
+```bash
+make error-budget-demo
+make progressive-delivery-demo
+make feature-flag-demo
+make supply-chain-demo
+These workflows connect SLO/error budgets, progressive delivery, feature-flag kill switches, and supply-chain validation into release-block decisions.

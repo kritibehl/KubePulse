@@ -1,0 +1,11 @@
+{
+  "slo": "99.9",
+  "error_budget_remaining": "4.2%",
+  "fast_burn_detected": true,
+  "p95_latency_ms": 620,
+  "error_rate": 0.05,
+  "dependency_risk_score": 91,
+  "release_decision": "block",
+  "freeze_release": true,
+  "reason": "p95 latency and error rate consumed budget too quickly"
+}

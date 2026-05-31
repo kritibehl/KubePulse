@@ -1,0 +1,19 @@
+{
+  "rollout": "kubepulse-progressive-rollout",
+  "steps": [
+    {
+      "step": "10% traffic",
+      "p95_regression": "+12%",
+      "analysis_result": "passed",
+      "rollback_triggered": false
+    },
+    {
+      "step": "25% traffic",
+      "p95_regression": "+184%",
+      "analysis_result": "failed",
+      "rollback_triggered": true
+    }
+  ],
+  "final_decision": "rollback",
+  "reason": "p95 regression exceeded canary analysis threshold"
+}

@@ -107,3 +107,18 @@ apple-quality-demo:
 
 soak-demo:
 	python3 soak_testing/run_soak_analysis.py
+
+.PHONY: error-budget-demo progressive-delivery-demo feature-flag-demo supply-chain-demo
+
+error-budget-demo:
+	python3 error_budget/release_freeze_decision.py
+
+progressive-delivery-demo:
+	python3 progressive_delivery/canary_simulator.py
+
+feature-flag-demo:
+	python3 feature_flags/kill_switch_policy.py
+	python3 feature_flags/rollout_guard.py
+
+supply-chain-demo:
+	python3 supply_chain_gate/provenance_check.py

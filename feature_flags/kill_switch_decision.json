@@ -1,0 +1,6 @@
+{
+  "candidate_release_enabled": false,
+  "rollback_kill_switch": true,
+  "release_decision": "block",
+  "reason": "SLO breach or dependency risk triggered kill switch"
+}

@@ -1,0 +1,10 @@
+required:
+  provenance: true
+  signed_artifact: true
+  dependency_review: true
+  build_reproducible: true
+
+block_on:
+  - missing_provenance
+  - unsigned_artifact
+  - dependency_policy_violation

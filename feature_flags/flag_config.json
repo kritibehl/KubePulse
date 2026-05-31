@@ -1,0 +1,11 @@
+{
+  "flags": {
+    "candidate_release_enabled": true,
+    "rollback_kill_switch": false,
+    "dependency_risk_guard": true
+  },
+  "policy": {
+    "disable_candidate_on_slo_breach": true,
+    "disable_candidate_on_dependency_risk": true
+  }
+}

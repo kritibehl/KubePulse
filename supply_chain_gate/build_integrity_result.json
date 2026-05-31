@@ -1,0 +1,11 @@
+{
+  "artifact": "kubepulse:latest",
+  "provenance_present": true,
+  "signed_artifact": false,
+  "dependency_review_passed": true,
+  "build_reproducible": true,
+  "violations": [
+    "unsigned_artifact"
+  ],
+  "release_decision": "block"
+}

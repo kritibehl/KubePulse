@@ -1,0 +1,6 @@
+slo: 99.9
+error_budget_remaining_percent: 4.2
+p95_latency_budget_ms: 250
+error_rate_budget: 0.02
+dependency_risk_threshold: 80
+fast_burn_threshold: true

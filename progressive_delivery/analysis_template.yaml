@@ -1,0 +1,10 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: kubepulse-release-analysis
+spec:
+  metrics:
+    - name: p95-latency
+      successCondition: result < 250
+    - name: error-rate
+      successCondition: result < 0.02
