@@ -130,3 +130,14 @@ incident-commander-demo:
 
 capacity-forecast-demo:
 	python3 capacity_forecasting/capacity_forecast.py
+
+.PHONY: network-incident-demo dependency-path-demo failover-demo
+
+network-incident-demo:
+	python3 network_reliability/network_incident_diagnostics.py
+
+dependency-path-demo:
+	python3 network_reliability/dependency_path_analysis.py
+
+failover-demo:
+	python3 network_reliability/failover_simulation.py

@@ -1,0 +1,11 @@
+{
+  "failed_region": "us-east",
+  "healthy_regions": [
+    "us-west",
+    "eu-central"
+  ],
+  "traffic_shifted": true,
+  "remaining_capacity": "safe",
+  "customer_impact": "minimal",
+  "release_decision": "continue_with_failover"
+}

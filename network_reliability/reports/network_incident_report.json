@@ -1,0 +1,52 @@
+{
+  "incidents_analyzed": 5,
+  "sev1_count": 4,
+  "rollback_required_count": 5,
+  "results": [
+    {
+      "incident": "dns_resolution_failure",
+      "affected_services": 8,
+      "severity": "sev1",
+      "customer_impact": "high",
+      "rollback_required": true,
+      "owner": "network_reliability",
+      "recommended_action": "rollback_or_failover"
+    },
+    {
+      "incident": "tls_handshake_failure",
+      "affected_services": 3,
+      "severity": "sev2",
+      "customer_impact": "medium",
+      "rollback_required": true,
+      "owner": "network_reliability",
+      "recommended_action": "rollback_or_failover"
+    },
+    {
+      "incident": "packet_loss",
+      "affected_services": 5,
+      "severity": "sev1",
+      "customer_impact": "high",
+      "rollback_required": true,
+      "owner": "network_reliability",
+      "recommended_action": "rollback_or_failover"
+    },
+    {
+      "incident": "dependency_timeout",
+      "affected_services": 4,
+      "severity": "sev1",
+      "customer_impact": "high",
+      "rollback_required": true,
+      "owner": "network_reliability",
+      "recommended_action": "rollback_or_failover"
+    },
+    {
+      "incident": "regional_outage",
+      "affected_services": 12,
+      "severity": "sev1",
+      "customer_impact": "high",
+      "rollback_required": true,
+      "owner": "network_reliability",
+      "recommended_action": "rollback_or_failover"
+    }
+  ]
+}

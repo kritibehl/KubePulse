@@ -945,3 +945,22 @@ Run:
 make incident-commander-demo
 make capacity-forecast-demo
 These workflows classify incident severity, assign release-engineering ownership, trigger rollback/freeze decisions, estimate customer impact, and forecast 7/30/90-day capacity needs from workload-growth trends.
+
+## Network Reliability Layer
+
+KubePulse includes a network-reliability module for release-safety and infrastructure diagnostics.
+
+Artifacts:
+
+- `network_reliability/network_incident_diagnostics.py`
+- `network_reliability/dependency_path_analysis.py`
+- `network_reliability/failover_simulation.py`
+- `network_reliability/reports/network_reliability_summary.md`
+
+Run:
+
+```bash
+make network-incident-demo
+make dependency-path-demo
+make failover-demo
+This classifies DNS failures, TLS handshake issues, packet loss, dependency timeouts, regional outages, critical dependency paths, and multi-region failover decisions.

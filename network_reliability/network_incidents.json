@@ -1,0 +1,39 @@
+{
+  "incidents": [
+    {
+      "incident": "dns_resolution_failure",
+      "affected_services": 8,
+      "signal": "dns_error_rate_high",
+      "customer_impact": "high",
+      "rollback_required": true
+    },
+    {
+      "incident": "tls_handshake_failure",
+      "affected_services": 3,
+      "signal": "tls_handshake_errors",
+      "customer_impact": "medium",
+      "rollback_required": true
+    },
+    {
+      "incident": "packet_loss",
+      "affected_services": 5,
+      "signal": "packet_loss_pct_above_threshold",
+      "customer_impact": "high",
+      "rollback_required": true
+    },
+    {
+      "incident": "dependency_timeout",
+      "affected_services": 4,
+      "signal": "downstream_timeout_spike",
+      "customer_impact": "high",
+      "rollback_required": true
+    },
+    {
+      "incident": "regional_outage",
+      "affected_services": 12,
+      "signal": "region_health_critical",
+      "customer_impact": "high",
+      "rollback_required": true
+    }
+  ]
+}

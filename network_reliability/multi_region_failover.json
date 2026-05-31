@@ -1,0 +1,18 @@
+{
+  "regions": {
+    "us-east": {
+      "status": "failed",
+      "capacity_percent": 0
+    },
+    "us-west": {
+      "status": "healthy",
+      "capacity_percent": 65
+    },
+    "eu-central": {
+      "status": "healthy",
+      "capacity_percent": 55
+    }
+  },
+  "failed_region": "us-east",
+  "required_failover_capacity_percent": 50
+}
