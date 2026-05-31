@@ -1,0 +1,7 @@
+{
+  "current_daily_requests": 1000000,
+  "daily_growth_rate": 0.04,
+  "current_replicas": 3,
+  "requests_per_replica_capacity": 350000,
+  "forecast_windows_days": [7, 30, 90]
+}

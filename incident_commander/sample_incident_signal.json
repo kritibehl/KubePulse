@@ -1,0 +1,8 @@
+{
+  "incident_id": "inc-204",
+  "latency": "+250%",
+  "error_rate": "+8%",
+  "cloudwatch_alarm_state": "ALARM",
+  "dependency_health": "critical",
+  "release_decision": "block"
+}

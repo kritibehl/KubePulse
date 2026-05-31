@@ -122,3 +122,11 @@ feature-flag-demo:
 
 supply-chain-demo:
 	python3 supply_chain_gate/provenance_check.py
+
+.PHONY: incident-commander-demo capacity-forecast-demo
+
+incident-commander-demo:
+	python3 incident_commander/incident_commander.py
+
+capacity-forecast-demo:
+	python3 capacity_forecasting/capacity_forecast.py

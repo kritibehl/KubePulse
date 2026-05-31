@@ -1,0 +1,15 @@
+{
+  "incident_id": "inc-204",
+  "severity": "sev1",
+  "owner": "release_engineering",
+  "rollback": true,
+  "freeze": true,
+  "customer_impact": "high",
+  "recommended_actions": [
+    "freeze rollout",
+    "rollback candidate release",
+    "notify release engineering owner",
+    "preserve release evidence",
+    "rerun health validation after recovery"
+  ]
+}

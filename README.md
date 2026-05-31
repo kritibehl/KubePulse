@@ -923,3 +923,25 @@ make progressive-delivery-demo
 make feature-flag-demo
 make supply-chain-demo
 These workflows connect SLO/error budgets, progressive delivery, feature-flag kill switches, and supply-chain validation into release-block decisions.
+
+## Incident Commander and Capacity Forecasting
+
+KubePulse includes incident-command and capacity-forecasting workflows for SRE-style operational response and planning.
+
+Artifacts:
+
+- `incident_commander/incident_commander.py`
+- `incident_commander/sample_incident_signal.json`
+- `incident_commander/incident_command_decision.json`
+- `incident_commander/incident_commander_report.md`
+- `capacity_forecasting/workload_growth_input.json`
+- `capacity_forecasting/capacity_forecast.py`
+- `capacity_forecasting/capacity_forecast_report.json`
+- `capacity_forecasting/capacity_forecast_report.md`
+
+Run:
+
+```bash
+make incident-commander-demo
+make capacity-forecast-demo
+These workflows classify incident severity, assign release-engineering ownership, trigger rollback/freeze decisions, estimate customer impact, and forecast 7/30/90-day capacity needs from workload-growth trends.

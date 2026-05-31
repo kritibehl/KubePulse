@@ -1,0 +1,27 @@
+{
+  "forecast_model": "compound_daily_growth",
+  "daily_growth_rate": 0.04,
+  "results": [
+    {
+      "window_days": 7,
+      "projected_daily_requests": 1315932,
+      "required_replicas": 4,
+      "current_replicas": 3,
+      "scale_up_required": true
+    },
+    {
+      "window_days": 30,
+      "projected_daily_requests": 3243398,
+      "required_replicas": 10,
+      "current_replicas": 3,
+      "scale_up_required": true
+    },
+    {
+      "window_days": 90,
+      "projected_daily_requests": 34119333,
+      "required_replicas": 98,
+      "current_replicas": 3,
+      "scale_up_required": true
+    }
+  ]
+}
