@@ -141,3 +141,8 @@ dependency-path-demo:
 
 failover-demo:
 	python3 network_reliability/failover_simulation.py
+
+.PHONY: hardware-demo
+
+hardware-demo:
+	python3 hardware_validation/hardware_release_gate.py

@@ -1,0 +1,13 @@
+{
+  "device": "amd_accelerator_node",
+  "checks": {
+    "device_visible": true,
+    "driver_runtime_ready": true,
+    "gpu_utilization_percent": 92,
+    "memory_pressure_percent": 88,
+    "temperature_celsius": 81,
+    "p95_latency_ms": 1422,
+    "throughput_delta_percent": -18,
+    "error_rate": 0.05
+  }
+}

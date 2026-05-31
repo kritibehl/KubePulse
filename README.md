@@ -964,3 +964,22 @@ make network-incident-demo
 make dependency-path-demo
 make failover-demo
 This classifies DNS failures, TLS handshake issues, packet loss, dependency timeouts, regional outages, critical dependency paths, and multi-region failover decisions.
+
+## Hardware-Adjacent Release Validation
+
+KubePulse includes hardware-adjacent release validation for accelerator-backed or hardware-sensitive workloads.
+
+Artifacts:
+
+- `hardware_validation/hardware_health_signal.json`
+- `hardware_validation/hardware_release_gate.py`
+- `hardware_validation/reports/hardware_release_decision.json`
+- `hardware_validation/reports/hardware_validation_report.md`
+
+Run:
+
+```bash
+make hardware-demo
+This validates device visibility, driver/runtime readiness, GPU utilization, memory pressure, latency regression, throughput delta, error-rate budget, and release-block decisions.
+
+Safe scope: this does not claim GPU kernel development, ROCm internals, driver work, compiler work, or production inference serving.

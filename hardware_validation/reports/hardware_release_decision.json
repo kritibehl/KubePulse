@@ -1,0 +1,12 @@
+{
+  "device": "amd_accelerator_node",
+  "violations": [
+    "high_memory_pressure",
+    "gpu_saturation",
+    "p95_latency_regression",
+    "error_rate_budget_violation"
+  ],
+  "hardware_risk": "high",
+  "release_decision": "block",
+  "rollback_required": true
+}
