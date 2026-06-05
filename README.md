@@ -1,22 +1,20 @@
-# Faultline
+# KubePulse
 
-Distributed execution correctness framework that prevents stale-worker corruption using fencing-token validation — **0.0% duplicate commits across 1,500+ injected failure scenarios**.
+Kubernetes release-safety platform that detects false-green deployments by comparing container probe state against user-visible health — **5 soak-test scenarios, 0 false-safe decisions, +608% regression blocked**.
 
-`Python` · `PostgreSQL` · `Go` · `Prometheus` · `OpenTelemetry` · `Kubernetes`
+`Python` · `Kubernetes` · `FastAPI` · `Prometheus` · `Docker Compose`
 
 ---
 
 ## Problem
 
-Lease-based workers can continue writing after ownership changes.
+Kubernetes readiness probes check whether a container is alive. They do not check whether the deployment is safe for users.
 
-When a worker crashes, stalls, or partitions from the cluster, its lease expires and another worker takes over. The original worker can recover and attempt to commit — the lease expiry only told the *next* worker to proceed. It did not stop the *previous* worker from writing.
-
-This causes duplicate commits, stale writes, and inconsistent state: double-charges, inventory miscounts, audit records that don't reconcile.
+A service passes every probe while downstream DNS is failing, p95 latency has tripled, and the error budget is at zero. The next deployment wave rolls out. The problem compounds.
 
 ## Goal
 
-Ensure exactly-once commit semantics under worker crashes, lease takeovers, retry storms, and partial failures — enforced at the database boundary, not the application layer.
+Measure user-visible health across four validation layers, compare against probe state, and issue an explicit `release_decision` — blocking rollout when probe health and actual health diverge.
 
 ---
 
@@ -24,29 +22,17 @@ Ensure exactly-once commit semantics under worker crashes, lease takeovers, retr
 
 ```mermaid
 graph TD
-    P[Producer / API] --> DB[(PostgreSQL)]
-    DB --> W[Worker Pool]
-    DB --> R[Reconciler]
-    W -->|claim token=N| DB
-    W -->|commit or REJECT| DB
-    R -->|repair expired claims| DB
-    DB --> G[Go Inspector API]
-    G --> OBS[Prometheus + OTEL]
+    DT[Deployment Trigger] --> L1[Layer 1: Health Signals\np50 · p95 · p99 · error rate]
+    L1 --> L2[Layer 2: Network Validation\nDNS · TCP · TLS · auth]
+    L2 --> L3[Layer 3: SLO Evaluation\nerror budget · resilience score]
+    L3 --> L4[Layer 4: Probe Integrity\nprobes_say_healthy vs safe_to_operate]
+    L4 -->|divergence detected| BLOCK[release_decision: BLOCK\n+ rollback recommendation]
+    L4 -->|all pass| CONT[release_decision: continue]
+    L1 --> PROM[Prometheus /metrics]
 
-    style DB fill:#f5f5f5,stroke:#333
-    note1["ledger: UNIQUE(job_id, fencing_token)"] --> DB
-```
-
-**How fencing works:**
-```
-Worker A  claims job  →  token=1
-Worker A  stalls (crash / partition)
-          lease expires
-Worker B  claims job  →  token=2
-Worker B  commits         ✓
-Worker A  recovers  →  tries to commit  token=1
-DB        UNIQUE(job_id, 1) already violated  →  REJECTED  ✗
-          0 duplicate commits
+    style L4 fill:#fff3cd,stroke:#856404
+    style BLOCK fill:#f8d7da,stroke:#842029
+    style CONT fill:#d1e7dd,stroke:#0a3622
 ```
 
 ---
@@ -55,67 +41,70 @@ DB        UNIQUE(job_id, 1) already violated  →  REJECTED  ✗
 
 | Metric | Result |
 |---|---|
-| Failure scenarios validated | **1,500+** |
-| Duplicate commits (Faultline) | **0.0%** |
-| Duplicate commits (naive queue, same conditions) | 1.0–2.5% |
-| Invariant violations | **0** |
-| Worker crash recovery | 1.1s |
-| Stale lease takeover recovery | 0.4s |
-| Coordination overhead (20% fault rate, measured) | 46.5% of runtime |
+| Soak-test scenarios validated | **5** |
+| False-safe decisions | **0** |
+| AMD MI300X burst p95 regression | **+608%** → `BLOCK` |
+| Multi-service cascade p95 drift | **+333%** · probes green throughout |
+| Error budget at detection | **0.0%** |
+| DNS failure detection | 0/25 requests vs 25/25 baseline |
 
 ---
 
 ## Screenshots
 
-| Stale-Worker Timeline | Benchmark Comparison |
+| Quality / Soak-Test Report | Network Diagnostic |
 |---|---|
-| ![Timeline](docs/images/timeline.png) | ![Benchmark](benchmarks/results/faultline_vs_naive.png) |
-
-| Prometheus Dashboard | Lease Risk Dashboard |
-|---|---|
-| ![Prometheus](docs/architecture/prometheus_dashboard.png) | ![Lease Risk](monitoring/lease_risk_dashboard.png) |
-
-![Failure Replay](docs/assets/failure_replay_screenshot.svg)
+| ![Quality](reports/quality_soak_report.png) | ![Network](reports/network_diagnostic_report.png) |
 
 ---
 
 ## Example Failure
 
-**Scenario:** stale lease takeover
+**Scenario:** multi-service cascade — probes green, users degraded
 
 ```
-1. Worker A claims job_id=abc, fencing_token=7
-2. Worker A stalls on network partition for 12s
-3. Lease TTL expires (10s)
-4. Worker B claims job_id=abc, fencing_token=8
-5. Worker B executes and commits → ledger: (abc, 8)  ✓
-6. Worker A partition heals, resumes, attempts commit
-7. INSERT INTO ledger (job_id, fencing_token) VALUES ('abc', 7)
-8. PostgreSQL: UNIQUE violation — (abc, 7) conflicts with existing (abc, 8)
-9. Worker A commit: REJECTED
+Deployment rolls out. All readiness probes: PASS.
+
+Behind the scenes:
+  edge-service → api-service → auth-service → postgres
+  auth-service connection pool exhausted under load
+  Cascade: api-service timeout → edge-service retry storm
+
+KubePulse Layer 1 detects:
+  p95 latency: 10.1ms → 780ms  (+7,623%)
+  error rate:  0% → 8%
+
+Layer 3 evaluates:
+  error_budget_remaining: 0.0%
+
+Layer 4 checks:
+  probes_say_healthy: true   ← what Kubernetes sees
+  safe_to_operate:    false  ← what users experience
 ```
 
-**Result:**
 ```json
 {
-  "scenario": "stale_lease_takeover",
-  "decision": "REJECT",
-  "duplicate_commits": 0,
-  "stale_writes_prevented": true,
-  "invariant_violations": 0
+  "probes_say_healthy": true,
+  "safe_to_operate": false,
+  "release_decision": "block",
+  "error_budget_remaining": "0.0%",
+  "what_probes_missed": "333% p95 drift · 8% error rate · 9% availability gap",
+  "rollback_recommended": true
 }
 ```
+
+Next deployment wave is blocked. Rollback recommendation issued with full signal context.
 
 ---
 
 ## Engineering Highlights
 
-- **Fencing-token correctness** — monotonically increasing per-lease tokens enforced by `UNIQUE(job_id, fencing_token)` DB constraint, not application logic
-- **Replayable failure corpus** — 1,500+ deterministic scenarios: crash, takeover, retry storm, timeout burst, partial write
-- **Go inspector API** — `/api/leases`, `/api/workers`, `/api/risk` with OpenAPI spec and lease-risk scoring
-- **OpenTelemetry traces** — full distributed trace per job, Jaeger-compatible export
-- **Comparison benchmark** — Faultline vs naive lease-only queue under identical fault injection
-- **Prometheus observability** — stale rejection count, claim latency histograms, coordination overhead gauge
+- **4-layer release gate** — each layer catches a failure class the others miss; removing any one creates a blind spot
+- **Probe integrity check** — explicit `probes_say_healthy` vs `safe_to_operate` comparison; surfaces the false-green gap
+- **`what_probes_missed` field** — tells downstream systems exactly what the probe layer didn't see
+- **YAML-driven scenarios** — new failure scenario = one YAML file, no backend changes
+- **Network diagnostic corpus** — DNS/TCP/TLS validation with structured block reasons
+- **AMD MI300X GPU serving gate** — same 4-layer contract applied to AI serving endpoints
 
 ---
 
@@ -126,64 +115,51 @@ make test
 ```
 
 ```text
-✓  stale worker rejection         — 0 duplicates at 5/10/20% fault rate
-✓  duplicate submission           — idempotency enforced
-✓  lease expiration during exec   — new worker claims, stale rejected
-✓  worker crash mid-commit        — reconciler re-routes, 0 corruption
-✓  retry storm (50+ concurrent)   — 0 duplicates under contention
-✓  partial write + crash          — reconciler converges state
-✓  coordination overhead          — 46.5% measured at 20% fault rate
+✓  readiness false positive     — probes=true · safe=false → BLOCK
+✓  DNS failure                  — 0/25 requests succeed → BLOCK
+✓  API latency injection        — p95 +22,831% → BLOCK
+✓  multi-service cascade        — resilience score 100→46 → BLOCK
+✓  AMD MI300X burst             — p95 +608% → BLOCK
 
-1,500+ scenarios · 0 invariant violations
+5 scenarios · 0 false-safe decisions
 ```
-
----
-
-## Why Not Lease-Only / Heartbeats
-
-| Approach | Stale write risk | Correctness model |
-|---|---|---|
-| Lease-only | Present — advisory expiry | Timing-dependent |
-| Heartbeat | Present — eviction gap | Timing-dependent |
-| Fencing tokens (Faultline) | **Structurally impossible** | Token ordering enforced at DB |
-
-Heartbeats extend lease duration for healthy workers. They don't change commit semantics. A worker that stops heartbeating gets evicted — but nothing prevents its stale write after recovery. Fencing tokens make that write structurally invalid.
 
 ---
 
 ## Tradeoffs
 
-- **Polling reconciler:** Recovery latency ~1s. Event-triggered (`LISTEN`/`NOTIFY`) would reduce to ~10ms — chosen polling for simplicity
-- **PostgreSQL required:** Fencing depends on transactional uniqueness. Broker-based queues need an external coordination store
-- **Coordination overhead is real:** 46.5% of runtime at 20% fault rate — measured and documented, not hidden
+- **Simulated injection, not production traffic:** Scenarios model realistic failure classes. Production would combine synthetic injection with real traffic sampling
+- **Composite resilience score is a heuristic:** Weights are configurable but not formally derived from an SLO model
+- **Terraform / EKS manifests are artifacts:** Proof of infrastructure design — not a managed production cluster
 
 ---
 
 ## What This Does Not Claim
 
-- Not Byzantine-fault-tolerant (fabricated tokens bypass the constraint)
-- Benchmark uses simulated fault injection — not production traffic
-- External side effects require idempotent job design — fencing prevents double-commit, not double-effect
+- Failure injection is simulated — not production traffic replay
+- AMD MI300X results are from a controlled burst test — not sustained production load
+- Terraform / EKS manifests are deployment artifacts — not a managed production cluster
+- Resilience score is a heuristic — not a formal SLO compliance system
 
 ---
 
 ## Future Work
 
-- Event-triggered reconciliation via `LISTEN`/`NOTIFY` — target <10ms recovery
-- Failure injection DSL for declarative scenario authoring
-- Distributed tracing viewer integrated into inspector dashboard
-- Multi-region simulation with cross-datacenter lease semantics
+- Real traffic sampling alongside synthetic injection for hybrid validation
+- Deployment wave visualization with per-wave health snapshots
+- SLO budget forecasting — project error budget depletion rate from current signal trends
+- Auto-remediation integration: block → reroute → rollback decision chain
 
 ---
 
 ## Quick Start
 
 ```bash
-git clone https://github.com/kritibehl/faultline && cd faultline
-docker compose up -d --build && make migrate
-make demo    # Faultline vs naive queue benchmark
-make test    # 1,500+ failure scenarios
-make report  # → reports/latest/benchmark_summary.json
+git clone https://github.com/kritibehl/KubePulse && cd KubePulse
+docker compose -f lab/network-lab/docker-compose.yml up -d --build
+make demo    # all 5 scenarios
+make test    # 0 false-safe decisions
+make report  # → reports/latest/quality_soak_report.json
 ```
 
 ---
@@ -191,18 +167,16 @@ make report  # → reports/latest/benchmark_summary.json
 ## Further Reading
 
 - [`docs/case_study.md`](docs/case_study.md) — full design walkthrough
-- [`docs/interview_walkthrough.md`](docs/interview_walkthrough.md) — 60s / 3min / 10min explanations
+- [`docs/interview_walkthrough.md`](docs/interview_walkthrough.md) — 60s / 3min explanations
 
 ## Repository Map
 
 ```
-faultline/
-├── workers/       worker pool + lease logic
-├── reconciler/    crash recovery + state convergence
-├── inspector/     Go API — lease risk, worker state
-├── benchmarks/    Faultline vs naive queue
-├── drills/        1,500+ failure scenarios
-├── monitoring/    Prometheus + Grafana
-├── docs/          architecture · screenshots · case study
-└── reports/       benchmark outputs
+KubePulse/
+├── lab/network-lab/  Docker Compose scenarios + scripts
+├── scenarios/        YAML scenario definitions
+├── gate/             4-layer release-quality gate
+├── diagnostics/      DNS · TCP · TLS · auth validation
+├── docs/             architecture · screenshots · case study
+└── reports/          soak-test + quality gate outputs
 ```
