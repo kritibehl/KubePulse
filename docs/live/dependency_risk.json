@@ -1,0 +1,11 @@
+{
+  "services": [
+    {"service": "edge-gateway", "risk": 25},
+    {"service": "api", "risk": 45},
+    {"service": "auth", "risk": 58},
+    {"service": "payments", "risk": 91},
+    {"service": "database", "risk": 70}
+  ],
+  "highest_risk_node": "payments",
+  "release_decision": "block"
+}

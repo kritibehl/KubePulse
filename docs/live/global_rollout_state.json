@@ -1,0 +1,11 @@
+{
+  "deployment_id": "deploy-428",
+  "waves": [
+    {"wave": "wave1", "region": "us-east-canary", "status": "PASS"},
+    {"wave": "wave2", "region": "us-west", "status": "BLOCK"},
+    {"wave": "wave3", "region": "eu-central", "status": "PENDING"}
+  ],
+  "rollback": true,
+  "freeze_next_wave": true,
+  "reason": "dependency health gate failure"
+}

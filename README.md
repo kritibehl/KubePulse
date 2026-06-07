@@ -1019,3 +1019,29 @@ make amd-ai-serving-demo
 This visualizes token latency versus GPU memory pressure and shows a release-block decision under accelerator-backed workload pressure.
 
 Safe scope: workload-level validation only; not CUDA, ROCm internals, GPU kernel, driver, compiler, or production inference-serving work.
+
+## Live README Visuals
+
+KubePulse generates README-rendered SVG and Mermaid visuals from JSON release artifacts.
+
+### Global Rollout Control Tower
+
+![Global Rollout Control Tower](docs/diagrams/global_rollout_control_tower.svg)
+
+### Dependency Risk Graph
+
+![Dependency Risk Graph](docs/diagrams/dependency_risk_graph.svg)
+
+### Capacity & Cost Forecast
+
+![Capacity Cost Forecast](docs/diagrams/capacity_cost_forecast.svg)
+
+Mermaid source:
+
+- `docs/diagrams/dependency_risk_graph.md`
+
+Regenerate:
+
+```bash
+python3 scripts/generate_live_readme_visuals.py
+

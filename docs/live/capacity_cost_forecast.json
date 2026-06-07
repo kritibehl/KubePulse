@@ -1,0 +1,7 @@
+{
+  "forecast": [
+    {"window": "30 days", "required_replicas": 10, "estimated_cost_usd": 2300},
+    {"window": "90 days", "required_replicas": 98, "estimated_cost_usd": 7900},
+    {"window": "180 days", "required_replicas": 180, "estimated_cost_usd": 14600}
+  ]
+}

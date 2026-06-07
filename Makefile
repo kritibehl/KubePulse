@@ -157,3 +157,8 @@ release-investigation-demo:
 amd-ai-serving-demo:
 	python3 scripts/render_amd_ai_serving_chart.py
 	python3 scripts/render_amd_release_block_report.py
+
+.PHONY: live-readme-visuals
+
+live-readme-visuals:
+	python3 scripts/generate_live_readme_visuals.py
