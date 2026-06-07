@@ -999,3 +999,23 @@ Run:
 
 ```bash
 make release-investigation-demo
+
+## AMD AI Serving Release Gate
+
+KubePulse includes a controlled workload-level validation layer for AMD/accelerator-backed AI-serving scenarios.
+
+Artifacts:
+
+- `amd_ai_serving/README.md`
+- `amd_ai_serving/amd_serving_metrics.json`
+- `amd_ai_serving/screenshots/token_latency_vs_memory_pressure.png`
+- `amd_ai_serving/screenshots/amd_release_decision_block.png`
+- `amd_ai_serving/reports/amd_ai_serving_release_report.md`
+
+Run:
+
+```bash
+make amd-ai-serving-demo
+This visualizes token latency versus GPU memory pressure and shows a release-block decision under accelerator-backed workload pressure.
+
+Safe scope: workload-level validation only; not CUDA, ROCm internals, GPU kernel, driver, compiler, or production inference-serving work.

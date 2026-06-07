@@ -151,3 +151,9 @@ hardware-demo:
 
 release-investigation-demo:
 	python3 release_investigation_center/investigate_release.py
+
+.PHONY: amd-ai-serving-demo
+
+amd-ai-serving-demo:
+	python3 scripts/render_amd_ai_serving_chart.py
+	python3 scripts/render_amd_release_block_report.py

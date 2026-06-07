@@ -1,0 +1,10 @@
+{
+  "workload": "long_prompt_inference_style_validation",
+  "device": "amd_accelerator_node",
+  "measurements": [
+    {"gpu_memory_pressure_percent": 45, "token_latency_ms": 180, "release_decision": "continue"},
+    {"gpu_memory_pressure_percent": 62, "token_latency_ms": 310, "release_decision": "watch"},
+    {"gpu_memory_pressure_percent": 78, "token_latency_ms": 640, "release_decision": "hold"},
+    {"gpu_memory_pressure_percent": 88, "token_latency_ms": 1422, "release_decision": "block"}
+  ]
+}
