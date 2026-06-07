@@ -983,3 +983,19 @@ make hardware-demo
 This validates device visibility, driver/runtime readiness, GPU utilization, memory pressure, latency regression, throughput delta, error-rate budget, and release-block decisions.
 
 Safe scope: this does not claim GPU kernel development, ROCm internals, driver work, compiler work, or production inference serving.
+
+## Release Investigation Center
+
+KubePulse includes a release investigation workflow that analyzes bad deployments and produces root-cause candidates, affected dependencies, rollback recommendations, blast-radius classification, degraded-region signals, and customer-impact decisions.
+
+Artifacts:
+
+- `release_investigation_center/bad_deployment_event.json`
+- `release_investigation_center/investigate_release.py`
+- `release_investigation_center/reports/investigation_result.json`
+- `release_investigation_center/reports/release_investigation_report.md`
+
+Run:
+
+```bash
+make release-investigation-demo

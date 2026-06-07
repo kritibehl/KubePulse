@@ -146,3 +146,8 @@ failover-demo:
 
 hardware-demo:
 	python3 hardware_validation/hardware_release_gate.py
+
+.PHONY: release-investigation-demo
+
+release-investigation-demo:
+	python3 release_investigation_center/investigate_release.py

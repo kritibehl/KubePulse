@@ -1,0 +1,25 @@
+{
+  "deployment_id": "deploy-428",
+  "release": "candidate-v2",
+  "signals": {
+    "p95_latency_regression_percent": 250,
+    "error_rate_increase_percent": 8,
+    "dns_failures": 3,
+    "tls_failures": 1,
+    "packet_loss_percent": 6.5,
+    "gpu_memory_pressure_percent": 88,
+    "token_latency_ms": 1422,
+    "dependency_risk_score": 91
+  },
+  "dependencies": [
+    {"service": "edge-gateway", "health": "healthy"},
+    {"service": "api", "health": "degraded"},
+    {"service": "payments", "health": "critical"},
+    {"service": "database", "health": "impacted"}
+  ],
+  "regions": {
+    "us-east": "degraded",
+    "us-west": "healthy",
+    "eu-central": "healthy"
+  }
+}

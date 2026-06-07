@@ -1,0 +1,25 @@
+{
+  "deployment_id": "deploy-428",
+  "likely_root_cause": "dns_resolution_instability",
+  "root_cause_candidates": [
+    "dns_resolution_instability",
+    "tls_handshake_failures",
+    "network_packet_loss",
+    "gpu_memory_pressure",
+    "ai_serving_latency_regression",
+    "critical_dependency_degradation"
+  ],
+  "affected_dependencies": [
+    "api",
+    "payments",
+    "database"
+  ],
+  "degraded_regions": [
+    "us-east"
+  ],
+  "blast_radius": "high",
+  "rollback_recommendation": true,
+  "freeze_next_wave": true,
+  "release_decision": "block",
+  "customer_impact": "high"
+}
