@@ -8,6 +8,4 @@
 | Multi-service cascade | PASS | false | BLOCK |
 | AMD MI300X burst | PASS | false | BLOCK |
 
-## Summary
-
 5 scenarios validated. 0 false-safe decisions.
