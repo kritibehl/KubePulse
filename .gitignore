@@ -15,3 +15,5 @@ kubepulse.db
 candidate.json
 __pycache__/
 .DS_Store
+!reports/
+!reports/**
