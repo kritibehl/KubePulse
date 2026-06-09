@@ -1,0 +1,13 @@
+{
+  "project": "KubePulse",
+  "release_decision": "BLOCK",
+  "probes_say_healthy": true,
+  "safe_to_operate": false,
+  "scenarios_validated": 5,
+  "false_safe_decisions": 0,
+  "p95_latency_impact": "+333%",
+  "error_rate_increase": "+8%",
+  "error_budget_remaining": "0.0%",
+  "recovery_time_seconds": 12,
+  "rollback_recommended": true
+}
