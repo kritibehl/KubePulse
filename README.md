@@ -190,3 +190,26 @@ make test
   "rollback_recommended": true
 }
 ```
+
+## Operations Proof: Release Gate, Alerts, and Incident Output
+
+KubePulse includes operational artifacts for deployment and reliability workflows:
+
+- CI/CD release gate demo
+- monitoring and alerting summary
+- service health dashboard summary
+- incident report output
+- incident response workflow
+
+Artifacts:
+
+- `ci_release_gate/release_gate_result.json`
+- `ci_release_gate/release_gate_report.md`
+- `monitoring_alerting/alert_summary.json`
+- `monitoring_alerting/alert_policy.md`
+- `monitoring_alerting/service_health_dashboard.md`
+- `incident_reports/incident_001.json`
+- `incident_reports/incident_001.md`
+- `docs/incident_response_workflow.md`
+
+These artifacts show how KubePulse converts validation results into rollout gates, alerts, and incident reports.

@@ -1,0 +1,36 @@
+{
+  "incident_id": "INC-001",
+  "service": "edge-api",
+  "severity": "high",
+  "status": "mitigated",
+  "root_cause": "dependency latency propagation",
+  "impact": "unsafe rollout prevented",
+  "release_decision": "block",
+  "safe_to_operate": false,
+  "p95_latency_delta_pct": 333.33,
+  "p99_latency_delta_pct": 275.0,
+  "error_rate_delta": 0.08,
+  "recovery_window_seconds": 12,
+  "timeline": [
+    {
+      "time": "T+0s",
+      "event": "candidate release validation started"
+    },
+    {
+      "time": "T+2s",
+      "event": "dependency latency propagated upstream"
+    },
+    {
+      "time": "T+5s",
+      "event": "p95 and p99 latency exceeded rollout budget"
+    },
+    {
+      "time": "T+8s",
+      "event": "probe mismatch detected"
+    },
+    {
+      "time": "T+12s",
+      "event": "release decision set to block"
+    }
+  ]
+}

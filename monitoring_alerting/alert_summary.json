@@ -1,0 +1,16 @@
+{
+  "alerts_triggered": 4,
+  "critical_alerts": 2,
+  "warning_alerts": 2,
+  "services_impacted": [
+    "edge-api",
+    "auth-service"
+  ],
+  "alert_reasons": [
+    "p95 latency drift exceeded rollout budget",
+    "p99 latency drift exceeded tail-latency budget",
+    "dependency reachability degraded",
+    "probe mismatch detected"
+  ],
+  "release_decision": "block"
+}

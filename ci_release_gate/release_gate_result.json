@@ -1,0 +1,12 @@
+{
+  "candidate_release": "v1.4",
+  "service": "edge-api",
+  "safe_to_operate": false,
+  "release_decision": "block",
+  "reason": "dependency cascade + latency drift",
+  "p95_latency_delta_pct": 333.33,
+  "p99_latency_delta_pct": 275.0,
+  "error_rate_delta": 0.08,
+  "recovery_window_seconds": 12,
+  "probes_say_healthy": true
+}
