@@ -213,3 +213,22 @@ Artifacts:
 - `docs/incident_response_workflow.md`
 
 These artifacts show how KubePulse converts validation results into rollout gates, alerts, and incident reports.
+
+## SLO Dashboard Artifacts
+
+KubePulse includes service-level objective artifacts for SRE and platform workflows:
+
+- `service_level_objectives/slo_report.md`
+- `service_level_objectives/error_budget_policy.md`
+- `service_level_objectives/burn_rate_alerts.md`
+
+Example SLO output:
+
+```json
+{
+  "availability": 99.92,
+  "error_budget_remaining": 63,
+  "release_decision": "block"
+}
+
+These artifacts map rollout decisions to availability, error-budget, burn-rate, latency, and recovery-window signals.
