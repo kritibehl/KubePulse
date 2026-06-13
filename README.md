@@ -232,3 +232,43 @@ Example SLO output:
 }
 
 These artifacts map rollout decisions to availability, error-budget, burn-rate, latency, and recovery-window signals.
+
+## Dataset SLA and Product Dashboard
+
+KubePulse includes product-style reliability views for validation data and rollout operations.
+
+Artifacts:
+
+- `dataset_sla/dataset_sla_report.json`
+- `dataset_sla/dataset_sla_report.md`
+- `product_dashboard/rollout_dashboard.json`
+- `product_dashboard/rollout_dashboard.md`
+- `product_dashboard/product_summary.md`
+- `pipelines/export_product_dashboard.py`
+
+Dataset SLA tracks:
+
+- freshness
+- completeness
+- pipeline latency
+- failed jobs
+
+Product dashboard tracks:
+
+- rollout count
+- approved releases
+- blocked releases
+- rollback-required releases
+- incident categories
+- time to detect
+
+Example output:
+
+```json
+{
+  "availability": 99.92,
+  "error_budget_remaining": 63,
+  "rollout_count": 12,
+  "blocked_releases": 4,
+  "mean_time_to_detect_seconds": 18
+}

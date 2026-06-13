@@ -1,0 +1,19 @@
+{
+  "dashboard": "release_safety_operations",
+  "rollout_count": 12,
+  "approved_releases": 7,
+  "blocked_releases": 4,
+  "rollback_required": 1,
+  "incident_categories": {
+    "dependency_latency": 3,
+    "dns_failure": 2,
+    "degraded_path": 2,
+    "probe_mismatch": 4,
+    "error_budget_burn": 1
+  },
+  "mean_time_to_detect_seconds": 18,
+  "median_time_to_detect_seconds": 12,
+  "p95_latency_delta_max_pct": 333.33,
+  "p99_latency_delta_max_pct": 275.0,
+  "latest_release_decision": "block"
+}
