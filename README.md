@@ -230,8 +230,9 @@ Example SLO output:
   "error_budget_remaining": 63,
   "release_decision": "block"
 }
+```
 
-These artifacts map rollout decisions to availability, error-budget, burn-rate, latency, and recovery-window signals.
+These artifacts map rollout decisions to availability, error-budget, burn-rate, latency and recovery-window signals.
 
 ## Dataset SLA and Product Dashboard
 
@@ -272,3 +273,4 @@ Example output:
   "blocked_releases": 4,
   "mean_time_to_detect_seconds": 18
 }
+```
