@@ -1,0 +1,7 @@
+{
+  "scenario": "dependency_timeout",
+  "dependency": "postgres:5432",
+  "timeout_seconds": 1,
+  "expected_failure": "dependency unreachable or timeout",
+  "release_decision": "block"
+}

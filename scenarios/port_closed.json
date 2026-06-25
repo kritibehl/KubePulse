@@ -1,0 +1,7 @@
+{
+  "scenario": "port_closed",
+  "host": "localhost",
+  "port": 5000,
+  "expected_failure": "TCP port closed",
+  "release_decision": "block"
+}

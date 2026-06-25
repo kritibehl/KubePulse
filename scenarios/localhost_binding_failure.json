@@ -1,0 +1,7 @@
+{
+  "scenario": "localhost_binding_failure",
+  "host": "localhost",
+  "expected_port": 5000,
+  "expected_failure": "service bound to localhost instead of 0.0.0.0",
+  "release_decision": "block"
+}

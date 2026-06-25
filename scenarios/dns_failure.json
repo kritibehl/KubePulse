@@ -1,0 +1,6 @@
+{
+  "scenario": "dns_failure",
+  "host": "missing-service.internal",
+  "expected_failure": "DNS resolution failure",
+  "release_decision": "block"
+}

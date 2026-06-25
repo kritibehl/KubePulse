@@ -1,0 +1,7 @@
+{
+  "scenario": "high_latency",
+  "observed_latency_ms": 780,
+  "threshold_ms": 300,
+  "expected_failure": "latency threshold exceeded",
+  "release_decision": "block"
+}
