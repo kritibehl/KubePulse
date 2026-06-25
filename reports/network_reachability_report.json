@@ -1,0 +1,50 @@
+{
+  "incident": "Service unreachable",
+  "service": "edge-api",
+  "root_cause": "Host binding failure or closed port",
+  "status": "fail",
+  "expected_port": 5000,
+  "evidence": [
+    {
+      "name": "dns_resolution",
+      "status": "pass",
+      "target": "localhost",
+      "evidence": "localhost resolved to 127.0.0.1",
+      "latency_ms": 0.0
+    },
+    {
+      "name": "tcp_reachability",
+      "status": "fail",
+      "target": "localhost:5000",
+      "evidence": "TCP connection failed: connection refused",
+      "latency_ms": 1.2
+    },
+    {
+      "name": "http_health",
+      "status": "fail",
+      "target": "http://localhost:5000/health",
+      "evidence": "HTTP health failed: connection refused",
+      "latency_ms": 1.4
+    },
+    {
+      "name": "latency",
+      "status": "pass",
+      "target": "localhost",
+      "evidence": "latency 10ms within threshold 100ms",
+      "latency_ms": 10.0
+    },
+    {
+      "name": "dependency_reachability",
+      "status": "fail",
+      "target": "db:5432",
+      "evidence": "dependency unreachable",
+      "latency_ms": 0.0
+    }
+  ],
+  "suggested_remediation": [
+    "bind service to 0.0.0.0 instead of localhost",
+    "verify firewall or security group rules",
+    "confirm process is listening on expected port",
+    "restart service after config fix"
+  ]
+}
