@@ -1,0 +1,6 @@
+{
+  "scenario": "blocked_port_iptables",
+  "detected_symptom": "host reachable but expected service port is blocked",
+  "probable_root_cause": "iptables/firewall/security-group rule blocks inbound traffic",
+  "release_decision": "hold"
+}

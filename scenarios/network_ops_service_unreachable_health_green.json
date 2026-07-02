@@ -1,0 +1,6 @@
+{
+  "scenario": "service_unreachable_health_green",
+  "detected_symptom": "application health remains green while dependency path is unreachable",
+  "probable_root_cause": "health check does not validate downstream dependency reachability",
+  "release_decision": "block"
+}

@@ -1,0 +1,114 @@
+{
+  "network_operations_incidents": [
+    {
+      "scenario": "dns_resolution_failure",
+      "incident_severity": "high",
+      "detected_symptom": "service hostname does not resolve",
+      "probable_root_cause": "DNS record missing, stale service discovery entry, or resolver issue",
+      "commands_used_for_diagnosis": [
+        "dig service.internal",
+        "nslookup service.internal",
+        "cat /etc/resolv.conf"
+      ],
+      "pre_change_verification": [
+        "confirm hostname fails resolution",
+        "verify resolver configuration"
+      ],
+      "post_change_verification": [
+        "hostname resolves to expected IP",
+        "HTTP health succeeds through resolved host"
+      ],
+      "recommended_escalation": "escalate to DNS/service-discovery owner if record is missing or resolver is degraded",
+      "operate_decision": "unsafe_to_operate",
+      "release_decision": "block"
+    },
+    {
+      "scenario": "tcp_connection_timeout",
+      "incident_severity": "high",
+      "detected_symptom": "TCP connection times out before application response",
+      "probable_root_cause": "routing issue, firewall drop, overloaded listener, or unreachable host",
+      "commands_used_for_diagnosis": [
+        "nc -vz host 5000",
+        "curl -v --connect-timeout 2 http://host:5000/health",
+        "traceroute host"
+      ],
+      "pre_change_verification": [
+        "TCP connect fails or times out",
+        "route to host is unstable or blocked"
+      ],
+      "post_change_verification": [
+        "TCP connect succeeds",
+        "HTTP health returns expected status"
+      ],
+      "recommended_escalation": "escalate to network/oncall owner if timeout persists across hosts",
+      "operate_decision": "unsafe_to_operate",
+      "release_decision": "block"
+    },
+    {
+      "scenario": "blocked_port_iptables",
+      "incident_severity": "medium",
+      "detected_symptom": "host reachable but expected service port is blocked",
+      "probable_root_cause": "iptables/firewall/security-group rule blocks inbound traffic",
+      "commands_used_for_diagnosis": [
+        "sudo iptables -L -n",
+        "ss -ltnp",
+        "nc -vz host 5000"
+      ],
+      "pre_change_verification": [
+        "process listens locally",
+        "remote TCP check fails"
+      ],
+      "post_change_verification": [
+        "firewall rule allows expected port",
+        "remote TCP check succeeds"
+      ],
+      "recommended_escalation": "escalate to host/network firewall owner if rule is managed centrally",
+      "operate_decision": "unsafe_to_operate",
+      "release_decision": "hold"
+    },
+    {
+      "scenario": "packet_loss_latency_spike",
+      "incident_severity": "medium",
+      "detected_symptom": "HTTP succeeds but p95/p99 latency and packet loss exceed threshold",
+      "probable_root_cause": "degraded route, congestion, packet loss, or dependency saturation",
+      "commands_used_for_diagnosis": [
+        "ping -c 20 host",
+        "mtr host",
+        "curl -w '%{time_total}\\n' http://host/health"
+      ],
+      "pre_change_verification": [
+        "packet loss or latency spike reproduced",
+        "p95/p99 latency exceeds budget"
+      ],
+      "post_change_verification": [
+        "packet loss returns within threshold",
+        "p95/p99 latency returns within budget"
+      ],
+      "recommended_escalation": "escalate to network reliability owner if loss is path-related",
+      "operate_decision": "degraded",
+      "release_decision": "hold"
+    },
+    {
+      "scenario": "service_unreachable_health_green",
+      "incident_severity": "critical",
+      "detected_symptom": "application health remains green while dependency path is unreachable",
+      "probable_root_cause": "health check does not validate downstream dependency reachability",
+      "commands_used_for_diagnosis": [
+        "curl -v http://app/health",
+        "nc -vz dependency 5432",
+        "dig dependency.internal"
+      ],
+      "pre_change_verification": [
+        "app health returns 200",
+        "dependency TCP or DNS check fails"
+      ],
+      "post_change_verification": [
+        "dependency reachability restored",
+        "readiness check includes dependency validation"
+      ],
+      "recommended_escalation": "escalate to service owner and dependency owner; block release until readiness reflects dependency state",
+      "operate_decision": "unsafe_to_operate",
+      "release_decision": "block"
+    }
+  ]
+}

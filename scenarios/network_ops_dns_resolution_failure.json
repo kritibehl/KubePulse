@@ -1,0 +1,6 @@
+{
+  "scenario": "dns_resolution_failure",
+  "detected_symptom": "service hostname does not resolve",
+  "probable_root_cause": "DNS record missing, stale service discovery entry, or resolver issue",
+  "release_decision": "block"
+}

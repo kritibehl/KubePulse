@@ -1,0 +1,6 @@
+{
+  "scenario": "packet_loss_latency_spike",
+  "detected_symptom": "HTTP succeeds but p95/p99 latency and packet loss exceed threshold",
+  "probable_root_cause": "degraded route, congestion, packet loss, or dependency saturation",
+  "release_decision": "hold"
+}

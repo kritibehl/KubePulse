@@ -1,0 +1,6 @@
+{
+  "scenario": "tcp_connection_timeout",
+  "detected_symptom": "TCP connection times out before application response",
+  "probable_root_cause": "routing issue, firewall drop, overloaded listener, or unreachable host",
+  "release_decision": "block"
+}
