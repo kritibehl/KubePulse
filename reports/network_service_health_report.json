@@ -1,0 +1,57 @@
+{
+  "service": "orders-api",
+  "proxy_style_reachability_path": "client -> ingress/proxy -> orders-api -> postgresql",
+  "checks": [
+    {
+      "check": "dns",
+      "status": "pass",
+      "target": "service.internal",
+      "evidence": "service.internal resolved to 10.0.1.15"
+    },
+    {
+      "check": "tcp",
+      "status": "pass",
+      "target": "service.internal:443",
+      "latency_ms": 12.0,
+      "evidence": "TCP connection succeeded"
+    },
+    {
+      "check": "tls",
+      "status": "pass",
+      "target": "service.internal:443",
+      "latency_ms": 18.0,
+      "evidence": "TLS handshake succeeded"
+    },
+    {
+      "check": "http",
+      "status": "pass",
+      "target": "https://service.internal/health",
+      "http_status": 200,
+      "latency_ms": 620.0,
+      "evidence": "HTTP response returned 200"
+    },
+    {
+      "check": "latency_budget",
+      "status": "fail",
+      "observed_ms": 620.0,
+      "budget_ms": 300.0,
+      "evidence": "latency 620ms exceeded 300ms budget"
+    },
+    {
+      "check": "dependency_health",
+      "status": "fail",
+      "dependency": "postgresql",
+      "reachable": false,
+      "latency_ms": 920.0,
+      "evidence": "postgresql dependency unreachable"
+    }
+  ],
+  "failed_checks": 2,
+  "probable_root_causes": [
+    "performance degradation or overloaded dependency",
+    "downstream integration failure"
+  ],
+  "operate_decision": "unsafe_to_operate",
+  "release_decision": "block",
+  "recommended_escalation": "escalate to service, network, or dependency owner based on failed layer"
+}
