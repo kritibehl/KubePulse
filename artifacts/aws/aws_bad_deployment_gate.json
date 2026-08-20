@@ -1,0 +1,8 @@
+{
+  "decision": "BLOCK",
+  "reason": "candidate_task_unhealthy",
+  "candidate_task_definition": "arn:aws:ecs:eu-north-1:091231398622:task-definition/kubepulse-demo-app:4",
+  "task_arn": "arn:aws:ecs:eu-north-1:091231398622:task/kubepulse-demo-cluster/88f893d171014054ac45978625ecd646",
+  "task_health": "UNHEALTHY",
+  "timestamp_utc": "2026-08-20T04:55:54.866829+00:00"
+}

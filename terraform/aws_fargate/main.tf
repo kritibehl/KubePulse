@@ -216,8 +216,13 @@ resource "aws_ecs_service" "app" {
   desired_count   = var.desired_count
   launch_type     = "FARGATE"
 
-  deployment_minimum_healthy_percent = 0
+  deployment_minimum_healthy_percent = 100
   deployment_maximum_percent         = 200
+
+  deployment_circuit_breaker {
+    enable   = true
+    rollback = true
+  }
 
   network_configuration {
     subnets          = data.aws_subnets.default.ids
@@ -226,6 +231,11 @@ resource "aws_ecs_service" "app" {
   }
 
   tags = local.tags
+
+  # Task-definition revisions are promoted by the release pipeline.
+  lifecycle {
+    ignore_changes = [task_definition]
+  }
 
   depends_on = [
     aws_iam_role_policy_attachment.ecs_execution

@@ -1,0 +1,63 @@
+{
+  "family": "kubepulse-demo-app",
+  "taskRoleArn": "arn:aws:iam::091231398622:role/kubepulse-demo-ecs-task",
+  "executionRoleArn": "arn:aws:iam::091231398622:role/kubepulse-demo-ecs-execution",
+  "networkMode": "awsvpc",
+  "containerDefinitions": [
+    {
+      "name": "kubepulse",
+      "image": "091231398622.dkr.ecr.eu-north-1.amazonaws.com/kubepulse-demo-app:bad-v2",
+      "cpu": 0,
+      "portMappings": [
+        {
+          "containerPort": 8080,
+          "hostPort": 8080,
+          "protocol": "tcp"
+        }
+      ],
+      "essential": true,
+      "environment": [
+        {
+          "name": "POSTGRES_HOST",
+          "value": "postgres.invalid"
+        },
+        {
+          "name": "POSTGRES_PORT",
+          "value": "5432"
+        }
+      ],
+      "mountPoints": [],
+      "volumesFrom": [],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/kubepulse-demo",
+          "awslogs-region": "eu-north-1",
+          "awslogs-stream-prefix": "app"
+        }
+      },
+      "healthCheck": {
+        "command": [
+          "CMD-SHELL",
+          "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8080/health', timeout=2)\" || exit 1"
+        ],
+        "interval": 15,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 10
+      },
+      "systemControls": []
+    }
+  ],
+  "volumes": [],
+  "placementConstraints": [],
+  "requiresCompatibilities": [
+    "FARGATE"
+  ],
+  "cpu": "256",
+  "memory": "512",
+  "runtimePlatform": {
+    "cpuArchitecture": "ARM64",
+    "operatingSystemFamily": "LINUX"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "experiment": "ecs_bad_release_automatic_rollback",
+  "platform": "AWS ECS Fargate",
+  "region": "eu-north-1",
+  "stable_task_definition": "arn:aws:ecs:eu-north-1:091231398622:task-definition/kubepulse-demo-app:3",
+  "bad_task_definition": "arn:aws:ecs:eu-north-1:091231398622:task-definition/kubepulse-demo-app:4",
+  "bad_deployment_started_utc": "2026-08-20T04:52:01Z",
+  "kubepulse_block": {
+    "timestamp_utc": "2026-08-20T04:55:54.866829+00:00",
+    "decision": "BLOCK",
+    "reason": "candidate_task_unhealthy"
+  },
+  "ecs_failure": {
+    "failed_candidate_tasks": 3,
+    "rollback_triggered_utc": "2026-08-20T04:58:46Z",
+    "reason": "deployment circuit breaker"
+  },
+  "comparison": {
+    "kubepulse_block_before_ecs_rollback_seconds": 172
+  },
+  "result": "PASS",
+  "conclusion": "KubePulse blocked the unhealthy candidate before ECS reached its deployment-circuit-breaker threshold; ECS then automatically rolled the service back to the last completed healthy revision."
+}
