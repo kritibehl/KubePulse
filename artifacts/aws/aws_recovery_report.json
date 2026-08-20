@@ -1,0 +1,28 @@
+{
+  "experiment": "ecs_fargate_forced_task_recovery",
+  "platform": "AWS ECS Fargate",
+  "region": "eu-north-1",
+  "cluster": "kubepulse-demo-cluster",
+  "service": "kubepulse-demo-service",
+  "failure_injection": {
+    "type": "controlled_task_termination",
+    "timestamp_utc": "2026-08-20T04:41:16Z"
+  },
+  "recovery": {
+    "replacement_task_observed_utc": "2026-08-20T04:41:29Z",
+    "replacement_api_listening_utc": "2026-08-20T04:41:43Z",
+    "service_stable_utc": "2026-08-20T04:41:45Z",
+    "recovery_to_stable_seconds": 29
+  },
+  "post_recovery_validation": {
+    "desired_tasks": 1,
+    "running_tasks": 1,
+    "pending_tasks": 0,
+    "rollout_state": "COMPLETED",
+    "http_health": 200,
+    "dependency_http_status": 503,
+    "dependency_ready": false
+  },
+  "result": "PASS",
+  "conclusion": "ECS automatically replaced the terminated Fargate task and restored service capacity while KubePulse continued to detect the intentionally unavailable PostgreSQL dependency."
+}
