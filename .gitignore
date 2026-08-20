@@ -22,3 +22,8 @@ __pycache__/
 tfplan
 tfplan-*
 crash.log
+
+# Local/generated noise
+.DS_Store
+__pycache__/
+*.py[cod]
