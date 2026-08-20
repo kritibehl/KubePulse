@@ -1,0 +1,7 @@
+{
+  "decision": "BLOCK",
+  "reason": "postgresql_dependency_unavailable",
+  "http_health": 200,
+  "pod_ready": true,
+  "dependency_ready": false
+}

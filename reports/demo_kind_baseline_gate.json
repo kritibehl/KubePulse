@@ -1,0 +1,7 @@
+{
+  "decision": "ALLOW",
+  "reason": "release_policy_satisfied",
+  "http_health": 200,
+  "pod_ready": true,
+  "dependency_ready": true
+}

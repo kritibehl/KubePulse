@@ -1,0 +1,10 @@
+.PHONY: demo-kind demo-kind-clean release-gate
+
+demo-kind:
+	./scripts/demo_kind.sh
+
+demo-kind-clean:
+	./scripts/cleanup_kind.sh
+
+release-gate:
+	python3 scripts/release_gate.py
