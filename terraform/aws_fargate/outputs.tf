@@ -37,3 +37,13 @@ output "security_group_id" {
 output "subnet_ids" {
   value = data.aws_subnets.default.ids
 }
+
+output "github_oidc_provider_arn" {
+  description = "GitHub Actions OIDC provider ARN"
+  value       = aws_iam_openid_connect_provider.github.arn
+}
+
+output "github_actions_role_arn" {
+  description = "IAM role assumed by GitHub Actions through OIDC"
+  value       = aws_iam_role.github_deploy.arn
+}

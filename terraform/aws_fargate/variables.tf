@@ -27,3 +27,15 @@ variable "desired_count" {
   type        = number
   default     = 0
 }
+
+variable "github_repository" {
+  description = "GitHub repository allowed to assume the AWS deployment role"
+  type        = string
+  default     = "kritibehl/KubePulse"
+}
+
+variable "github_branch" {
+  description = "GitHub branch allowed to deploy to AWS"
+  type        = string
+  default     = "master"
+}
