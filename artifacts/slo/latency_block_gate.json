@@ -1,0 +1,68 @@
+{
+  "deployment_revision": "candidate-latency-v2",
+  "observations": {
+    "availability_percent": 99.94,
+    "p95_latency_ms": 780,
+    "error_rate_percent": 0.7,
+    "recovery_time_seconds": 29
+  },
+  "decision": "BLOCK",
+  "safe_to_release": false,
+  "slo_count": 4,
+  "passed_slo_count": 3,
+  "failed_slo_count": 1,
+  "evaluations": [
+    {
+      "metric": "availability_percent",
+      "label": "Availability",
+      "observed": 99.94,
+      "threshold": 99.9,
+      "operator": ">=",
+      "unit": "%",
+      "status": "PASS",
+      "passed": true
+    },
+    {
+      "metric": "p95_latency_ms",
+      "label": "p95 latency",
+      "observed": 780.0,
+      "threshold": 300.0,
+      "operator": "<=",
+      "unit": "ms",
+      "status": "FAIL",
+      "passed": false
+    },
+    {
+      "metric": "error_rate_percent",
+      "label": "Error rate",
+      "observed": 0.7,
+      "threshold": 1.0,
+      "operator": "<=",
+      "unit": "%",
+      "status": "PASS",
+      "passed": true
+    },
+    {
+      "metric": "recovery_time_seconds",
+      "label": "Recovery time",
+      "observed": 29.0,
+      "threshold": 60.0,
+      "operator": "<=",
+      "unit": "seconds",
+      "status": "PASS",
+      "passed": true
+    }
+  ],
+  "violations": [
+    {
+      "metric": "p95_latency_ms",
+      "label": "p95 latency",
+      "observed": 780.0,
+      "threshold": 300.0,
+      "operator": "<=",
+      "unit": "ms",
+      "status": "FAIL",
+      "passed": false
+    }
+  ]
+}

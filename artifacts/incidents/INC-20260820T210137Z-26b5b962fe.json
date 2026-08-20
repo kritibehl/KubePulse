@@ -1,0 +1,66 @@
+{
+  "incident_id": "INC-20260820T210137Z-26b5b962fe",
+  "deployment_revision": "candidate-latency-v2",
+  "detected_at": "2026-08-20T21:01:37.473443+00:00",
+  "source": "kubepulse_slo_evaluator",
+  "release_decision": "BLOCK",
+  "violated_slo": "p95_latency_ms",
+  "observed_value": 780.0,
+  "threshold": 300.0,
+  "rollback_triggered": true,
+  "recovery_seconds": 29.0,
+  "final_status": "healthy",
+  "violated_slos": [
+    {
+      "metric": "p95_latency_ms",
+      "label": "p95 latency",
+      "observed": 780.0,
+      "operator": "<=",
+      "threshold": 300.0,
+      "unit": "ms",
+      "status": "FAIL"
+    }
+  ],
+  "slo_evaluations": [
+    {
+      "metric": "availability_percent",
+      "label": "Availability",
+      "observed": 99.94,
+      "threshold": 99.9,
+      "operator": ">=",
+      "unit": "%",
+      "status": "PASS",
+      "passed": true
+    },
+    {
+      "metric": "p95_latency_ms",
+      "label": "p95 latency",
+      "observed": 780.0,
+      "threshold": 300.0,
+      "operator": "<=",
+      "unit": "ms",
+      "status": "FAIL",
+      "passed": false
+    },
+    {
+      "metric": "error_rate_percent",
+      "label": "Error rate",
+      "observed": 0.7,
+      "threshold": 1.0,
+      "operator": "<=",
+      "unit": "%",
+      "status": "PASS",
+      "passed": true
+    },
+    {
+      "metric": "recovery_time_seconds",
+      "label": "Recovery time",
+      "observed": 29.0,
+      "threshold": 60.0,
+      "operator": "<=",
+      "unit": "seconds",
+      "status": "PASS",
+      "passed": true
+    }
+  ]
+}

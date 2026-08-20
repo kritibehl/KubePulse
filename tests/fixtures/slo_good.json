@@ -1,0 +1,6 @@
+{
+  "availability_percent": 99.97,
+  "p95_latency_ms": 184,
+  "error_rate_percent": 0.3,
+  "recovery_time_seconds": 29
+}
