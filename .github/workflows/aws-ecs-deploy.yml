@@ -1,0 +1,387 @@
+name: AWS ECS Release Safety Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      candidate:
+        description: "Candidate image to deploy"
+        required: true
+        default: "good"
+        type: choice
+        options:
+          - good
+          - bad
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: kubepulse-aws-demo-deploy
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: eu-north-1
+  AWS_ACCOUNT_ID: "091231398622"
+  AWS_ROLE_ARN: arn:aws:iam::091231398622:role/kubepulse-demo-github-deploy
+  ECR_REPOSITORY: kubepulse-demo-app
+  ECS_CLUSTER: kubepulse-demo-cluster
+  ECS_SERVICE: kubepulse-demo-service
+
+jobs:
+  deploy:
+    name: Build, Deploy, Validate
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          fi
+          pip install pytest
+
+      - name: Run tests
+        run: |
+          pytest -q
+
+      - name: Configure AWS credentials with GitHub OIDC
+        uses: aws-actions/configure-aws-credentials@v6.2.3
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          role-session-name: kubepulse-${{ github.run_id }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Verify AWS identity
+        run: |
+          aws sts get-caller-identity
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2.1.6
+
+      - name: Define immutable image
+        run: |
+          if [[ "${{ inputs.candidate }}" == "bad" ]]; then
+            IMAGE_TAG="${GITHUB_SHA}-bad"
+          else
+            IMAGE_TAG="${GITHUB_SHA}"
+          fi
+
+          IMAGE_URI="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:${IMAGE_TAG}"
+
+          echo "IMAGE_TAG=$IMAGE_TAG" >> "$GITHUB_ENV"
+          echo "IMAGE_URI=$IMAGE_URI" >> "$GITHUB_ENV"
+
+          echo "Candidate: ${{ inputs.candidate }}"
+          echo "Image:     $IMAGE_URI"
+
+      - name: Build and push candidate image
+        run: |
+          if [[ "${{ inputs.candidate }}" == "bad" ]]; then
+            docker buildx build \
+              --platform linux/arm64 \
+              -f demo/Dockerfile.bad \
+              -t "$IMAGE_URI" \
+              --push \
+              demo
+          else
+            docker buildx build \
+              --platform linux/arm64 \
+              -t "$IMAGE_URI" \
+              --push \
+              demo
+          fi
+
+      - name: Verify image in ECR
+        run: |
+          aws ecr describe-images \
+            --repository-name "$ECR_REPOSITORY" \
+            --image-ids imageTag="$IMAGE_TAG" \
+            --region "$AWS_REGION" \
+            --query 'imageDetails[0].{Digest:imageDigest,Size:imageSizeInBytes,Pushed:imagePushedAt}' \
+            --output json
+
+      - name: Capture currently healthy task definition
+        run: |
+          PREVIOUS_TASKDEF="$(
+            aws ecs describe-services \
+              --cluster "$ECS_CLUSTER" \
+              --services "$ECS_SERVICE" \
+              --region "$AWS_REGION" \
+              --query 'services[0].taskDefinition' \
+              --output text
+          )"
+
+          echo "PREVIOUS_TASKDEF=$PREVIOUS_TASKDEF" >> "$GITHUB_ENV"
+          echo "Previous revision: $PREVIOUS_TASKDEF"
+
+      - name: Build candidate task definition
+        run: |
+          mkdir -p artifacts/aws/github
+
+          aws ecs describe-task-definition \
+            --task-definition "$PREVIOUS_TASKDEF" \
+            --region "$AWS_REGION" \
+            --query taskDefinition \
+            > /tmp/current-taskdef.json
+
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          src = json.loads(
+              Path("/tmp/current-taskdef.json").read_text()
+          )
+
+          allowed = [
+              "family",
+              "taskRoleArn",
+              "executionRoleArn",
+              "networkMode",
+              "containerDefinitions",
+              "volumes",
+              "placementConstraints",
+              "requiresCompatibilities",
+              "cpu",
+              "memory",
+              "runtimePlatform",
+          ]
+
+          out = {
+              key: src[key]
+              for key in allowed
+              if key in src
+          }
+
+          out["containerDefinitions"][0]["image"] = os.environ["IMAGE_URI"]
+
+          path = Path(
+              "artifacts/aws/github/candidate-taskdef.json"
+          )
+
+          path.write_text(
+              json.dumps(out, indent=2) + "\n"
+          )
+
+          print(
+              "Candidate image:",
+              out["containerDefinitions"][0]["image"],
+          )
+          PY
+
+      - name: Register candidate task definition
+        run: |
+          CANDIDATE_TASKDEF="$(
+            aws ecs register-task-definition \
+              --cli-input-json file://artifacts/aws/github/candidate-taskdef.json \
+              --region "$AWS_REGION" \
+              --query 'taskDefinition.taskDefinitionArn' \
+              --output text
+          )"
+
+          echo "CANDIDATE_TASKDEF=$CANDIDATE_TASKDEF" >> "$GITHUB_ENV"
+          echo "Candidate task definition: $CANDIDATE_TASKDEF"
+
+      - name: Deploy candidate
+        run: |
+          aws ecs update-service \
+            --cluster "$ECS_CLUSTER" \
+            --service "$ECS_SERVICE" \
+            --task-definition "$CANDIDATE_TASKDEF" \
+            --region "$AWS_REGION" \
+            >/dev/null
+
+          echo "Candidate deployment started"
+
+      - name: Run KubePulse AWS release gate
+        id: gate
+        continue-on-error: true
+        run: |
+          python3 scripts/aws_release_gate.py \
+            --region "$AWS_REGION" \
+            --cluster "$ECS_CLUSTER" \
+            --service "$ECS_SERVICE" \
+            --candidate "$CANDIDATE_TASKDEF" \
+            --timeout 300 \
+            --report artifacts/aws/github/release-gate.json
+
+          RC=$?
+
+          echo "gate_rc=$RC" >> "$GITHUB_OUTPUT"
+
+          exit "$RC"
+
+      - name: Show gate decision
+        if: always()
+        run: |
+          echo "===== KUBEPULSE GATE ====="
+
+          if [ -f artifacts/aws/github/release-gate.json ]; then
+            cat artifacts/aws/github/release-gate.json
+          else
+            echo "Gate report was not generated"
+          fi
+
+      - name: Wait for rollback after BLOCK
+        if: steps.gate.outcome == 'failure'
+        run: |
+          echo "KubePulse blocked the candidate."
+          echo "Waiting for ECS circuit-breaker recovery..."
+
+          aws ecs wait services-stable \
+            --cluster "$ECS_CLUSTER" \
+            --services "$ECS_SERVICE" \
+            --region "$AWS_REGION"
+
+          CURRENT_TASKDEF="$(
+            aws ecs describe-services \
+              --cluster "$ECS_CLUSTER" \
+              --services "$ECS_SERVICE" \
+              --region "$AWS_REGION" \
+              --query 'services[0].taskDefinition' \
+              --output text
+          )"
+
+          echo "Before candidate: $PREVIOUS_TASKDEF"
+          echo "After rollback:    $CURRENT_TASKDEF"
+
+          if [[ "$CURRENT_TASKDEF" != "$PREVIOUS_TASKDEF" ]]; then
+            echo "ERROR: service did not return to previous healthy revision"
+            exit 1
+          fi
+
+          echo "Automatic rollback verified"
+
+      - name: Fail workflow for blocked release
+        if: steps.gate.outcome == 'failure'
+        run: |
+          echo "Release blocked by KubePulse."
+          exit 1
+
+      - name: Verify candidate task
+        if: steps.gate.outcome == 'success'
+        run: |
+          TASK_ARN="$(
+            python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          data = json.loads(
+              Path("artifacts/aws/github/release-gate.json").read_text()
+          )
+
+          print(data["task_arn"])
+          PY
+          )"
+
+          echo "Candidate task: $TASK_ARN"
+
+          TASKDEF="$(
+            aws ecs describe-tasks \
+              --cluster "$ECS_CLUSTER" \
+              --tasks "$TASK_ARN" \
+              --region "$AWS_REGION" \
+              --query 'tasks[0].taskDefinitionArn' \
+              --output text
+          )"
+
+          HEALTH="$(
+            aws ecs describe-tasks \
+              --cluster "$ECS_CLUSTER" \
+              --tasks "$TASK_ARN" \
+              --region "$AWS_REGION" \
+              --query 'tasks[0].healthStatus' \
+              --output text
+          )"
+
+          echo "Expected task definition: $CANDIDATE_TASKDEF"
+          echo "Actual task definition:   $TASKDEF"
+          echo "Task health:              $HEALTH"
+
+          if [[ "$TASKDEF" != "$CANDIDATE_TASKDEF" ]]; then
+            echo "ERROR: wrong task revision is running"
+            exit 1
+          fi
+
+          if [[ "$HEALTH" != "HEALTHY" ]]; then
+            echo "ERROR: candidate task is not healthy"
+            exit 1
+          fi
+
+      - name: Smoke test deployed service
+        if: steps.gate.outcome == 'success'
+        run: |
+          TASK_ARN="$(
+            python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          data = json.loads(
+              Path("artifacts/aws/github/release-gate.json").read_text()
+          )
+
+          print(data["task_arn"])
+          PY
+          )"
+
+          ENI_ID="$(
+            aws ecs describe-tasks \
+              --cluster "$ECS_CLUSTER" \
+              --tasks "$TASK_ARN" \
+              --region "$AWS_REGION" \
+              --query 'tasks[0].attachments[0].details[?name==`networkInterfaceId`].value | [0]' \
+              --output text
+          )"
+
+          PUBLIC_IP="$(
+            aws ec2 describe-network-interfaces \
+              --network-interface-ids "$ENI_ID" \
+              --region "$AWS_REGION" \
+              --query 'NetworkInterfaces[0].Association.PublicIp' \
+              --output text
+          )"
+
+          echo "Task ENI:  $ENI_ID"
+          echo "Public IP: $PUBLIC_IP"
+
+          curl \
+            --fail \
+            --show-error \
+            --retry 5 \
+            --retry-delay 3 \
+            "http://${PUBLIC_IP}:8080/health"
+
+          echo
+          echo "AWS smoke test passed"
+
+      - name: Final ECS state
+        if: always()
+        run: |
+          aws ecs describe-services \
+            --cluster "$ECS_CLUSTER" \
+            --services "$ECS_SERVICE" \
+            --region "$AWS_REGION" \
+            --query 'services[0].{
+              TaskDefinition:taskDefinition,
+              Desired:desiredCount,
+              Running:runningCount,
+              Pending:pendingCount,
+              Deployments:deployments[*].{
+                Status:status,
+                TaskDefinition:taskDefinition,
+                Running:runningCount,
+                Rollout:rolloutState
+              }
+            }' \
+            --output json
