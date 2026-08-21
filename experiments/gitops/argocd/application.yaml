@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kubepulse-gitops
+  namespace: argocd
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/kritibehl/KubePulse.git
+    targetRevision: master
+    path: experiments/gitops/app
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kubepulse-gitops
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+
+    syncOptions:
+      - CreateNamespace=true

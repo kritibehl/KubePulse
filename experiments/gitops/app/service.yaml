@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: kubepulse-gitops-demo
+  namespace: kubepulse-gitops
+spec:
+  selector:
+    app: kubepulse-gitops-demo
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
