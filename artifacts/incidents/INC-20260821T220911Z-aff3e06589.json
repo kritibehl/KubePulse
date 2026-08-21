@@ -1,0 +1,72 @@
+{
+  "incident_id": "INC-20260821T220911Z-aff3e06589",
+  "deployment_revision": "candidate-fast-burn-v3",
+  "detected_at": "2026-08-21T22:09:11.423636+00:00",
+  "source": "kubepulse_reliability_gate",
+  "release_decision": "BLOCK",
+  "violation_type": "error_budget",
+  "violated_slo": null,
+  "observed_value": null,
+  "threshold": null,
+  "rollback_triggered": true,
+  "recovery_seconds": 29.0,
+  "final_status": "healthy",
+  "violated_slos": [],
+  "slo_evaluations": [
+    {
+      "metric": "availability_percent",
+      "label": "Availability",
+      "observed": 99.97,
+      "threshold": 99.9,
+      "operator": ">=",
+      "unit": "%",
+      "status": "PASS",
+      "passed": true
+    },
+    {
+      "metric": "p95_latency_ms",
+      "label": "p95 latency",
+      "observed": 184.0,
+      "threshold": 300.0,
+      "operator": "<=",
+      "unit": "ms",
+      "status": "PASS",
+      "passed": true
+    },
+    {
+      "metric": "error_rate_percent",
+      "label": "Error rate",
+      "observed": 0.3,
+      "threshold": 1.0,
+      "operator": "<=",
+      "unit": "%",
+      "status": "PASS",
+      "passed": true
+    },
+    {
+      "metric": "recovery_time_seconds",
+      "label": "Recovery time",
+      "observed": 29.0,
+      "threshold": 60.0,
+      "operator": "<=",
+      "unit": "seconds",
+      "status": "PASS",
+      "passed": true
+    }
+  ],
+  "error_budget": {
+    "availability_slo_percent": 99.9,
+    "allowed_error_percent": 0.1,
+    "observed_availability_percent": 99.93,
+    "budget_consumed_percent": 70.0,
+    "budget_remaining_percent": 30.0,
+    "budget_exhausted": false
+  },
+  "burn_rates": {
+    "1h": 6.0,
+    "6h": 3.0,
+    "24h": 1.5
+  },
+  "burn_status": "FAST_BURN",
+  "burn_reason": "multi_window_fast_burn_detected"
+}

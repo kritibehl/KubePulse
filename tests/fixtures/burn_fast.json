@@ -1,0 +1,21 @@
+{
+  "availability_slo_percent": 99.9,
+  "cumulative": {
+    "requests": 30000000,
+    "errors": 21000
+  },
+  "windows": {
+    "1h": {
+      "requests": 100000,
+      "errors": 600
+    },
+    "6h": {
+      "requests": 600000,
+      "errors": 1800
+    },
+    "24h": {
+      "requests": 2400000,
+      "errors": 3600
+    }
+  }
+}

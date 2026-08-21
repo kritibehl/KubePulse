@@ -1,0 +1,99 @@
+{
+  "deployment_revision": "reliability-elevated-v2",
+  "decision": "ALLOW_WITH_WARNING",
+  "slo_result": {
+    "decision": "ALLOW",
+    "safe_to_release": true,
+    "slo_count": 4,
+    "passed_slo_count": 4,
+    "failed_slo_count": 0,
+    "evaluations": [
+      {
+        "metric": "availability_percent",
+        "label": "Availability",
+        "observed": 99.97,
+        "threshold": 99.9,
+        "operator": ">=",
+        "unit": "%",
+        "status": "PASS",
+        "passed": true
+      },
+      {
+        "metric": "p95_latency_ms",
+        "label": "p95 latency",
+        "observed": 184.0,
+        "threshold": 300.0,
+        "operator": "<=",
+        "unit": "ms",
+        "status": "PASS",
+        "passed": true
+      },
+      {
+        "metric": "error_rate_percent",
+        "label": "Error rate",
+        "observed": 0.3,
+        "threshold": 1.0,
+        "operator": "<=",
+        "unit": "%",
+        "status": "PASS",
+        "passed": true
+      },
+      {
+        "metric": "recovery_time_seconds",
+        "label": "Recovery time",
+        "observed": 29.0,
+        "threshold": 60.0,
+        "operator": "<=",
+        "unit": "seconds",
+        "status": "PASS",
+        "passed": true
+      }
+    ],
+    "violations": []
+  },
+  "error_budget_result": {
+    "availability_slo_percent": 99.9,
+    "allowed_error_percent": 0.1,
+    "cumulative": {
+      "requests": 30000000,
+      "errors": 18000,
+      "observed_availability_percent": 99.94,
+      "allowed_failures": 30000.0,
+      "budget_consumed_percent": 60.0,
+      "budget_remaining_percent": 40.0,
+      "budget_exhausted": false
+    },
+    "windows": {
+      "1h": {
+        "requests": 100000,
+        "errors": 150,
+        "availability_percent": 99.85,
+        "error_rate_percent": 0.15,
+        "burn_rate": 1.5
+      },
+      "6h": {
+        "requests": 600000,
+        "errors": 600,
+        "availability_percent": 99.9,
+        "error_rate_percent": 0.1,
+        "burn_rate": 1.0
+      },
+      "24h": {
+        "requests": 2400000,
+        "errors": 1800,
+        "availability_percent": 99.925,
+        "error_rate_percent": 0.075,
+        "burn_rate": 0.75
+      }
+    },
+    "max_burn_rate": 1.5,
+    "burn_status": "ELEVATED",
+    "release_action": "ALLOW_WITH_WARNING",
+    "reason": "error_budget_burn_elevated",
+    "policy": {
+      "elevated_burn_rate": 1.0,
+      "fast_burn_1h": 4.0,
+      "fast_burn_6h": 2.0
+    }
+  }
+}
