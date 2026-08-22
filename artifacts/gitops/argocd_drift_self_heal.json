@@ -1,0 +1,427 @@
+{
+  "experiment": "argocd_gitops_drift_self_heal",
+  "desired_state": {
+    "source": "Git",
+    "manifest": "experiments/gitops/app/deployment.yaml",
+    "replicas": 2
+  },
+  "baseline": {
+    "deployment": {
+      "spec_replicas": 2,
+      "ready_replicas": 2,
+      "available_replicas": 2
+    },
+    "application": {
+      "sync": "Synced",
+      "health": "Healthy",
+      "revision": "a0fc221fd3ead34bf17998ca12c26f7af02111e5"
+    }
+  },
+  "injected_drift": {
+    "started_at": "2026-08-22T02:41:25.696265+00:00",
+    "self_heal_disabled": true,
+    "live_spec_replicas": 1,
+    "live_ready_replicas": 1,
+    "argocd_sync_status": "OutOfSync",
+    "git_desired_replicas": 2
+  },
+  "self_heal": {
+    "enabled_at": "2026-08-22T02:41:26.695298+00:00",
+    "restored_replicas": 2,
+    "workload_restoration_seconds": 6.291,
+    "full_argocd_convergence_seconds": 6.291
+  },
+  "final_state": {
+    "deployment": {
+      "spec_replicas": 2,
+      "ready_replicas": 2,
+      "available_replicas": 2
+    },
+    "application": {
+      "sync": "Synced",
+      "health": "Healthy",
+      "revision": "a0fc221fd3ead34bf17998ca12c26f7af02111e5"
+    }
+  },
+  "result": "PASS",
+  "completed_at": "2026-08-22T02:41:33.078734+00:00",
+  "observations": [
+    {
+      "elapsed_seconds": 0.14,
+      "deployment": {
+        "spec_replicas": 1,
+        "ready_replicas": 1,
+        "available_replicas": 1
+      },
+      "application": {
+        "sync": "OutOfSync",
+        "health": "Healthy",
+        "revision": "a0fc221fd3ead34bf17998ca12c26f7af02111e5"
+      }
+    },
+    {
+      "elapsed_seconds": 0.511,
+      "deployment": {
+        "spec_replicas": 1,
+        "ready_replicas": 1,
+        "available_replicas": 1
+      },
+      "application": {
+        "sync": "OutOfSync",
+        "health": "Healthy",
+        "revision": "a0fc221fd3ead34bf17998ca12c26f7af02111e5"
+      }
+    },
+    {
+      "elapsed_seconds": 0.763,
+      "deployment": {
+        "spec_replicas": 2,
+        "ready_replicas": 1,
+        "available_replicas": 1
+      },
+      "application": {
+        "sync": "OutOfSync",
+        "health": "Healthy",
+        "revision": "a0fc221fd3ead34bf17998ca12c26f7af02111e5"
+      }
+    },
+    {
+      "elapsed_seconds": 0.965,
+      "deployment": {
+        "spec_replicas": 2,
+        "ready_replicas": 1,
+        "available_replicas": 1
+      },
+      "application": {
+        "sync": "Synced",
+        "health": "Progressing",
+        "revision": "a0fc221fd3ead34bf17998ca12c26f7af02111e5"
+      }
+    },
+    {
+      "elapsed_seconds": 1.218,
+      "deployment": {
+        "spec_replicas": 2,
+        "ready_replicas": 1,
+        "available_replicas": 1
+      },
+      "application": {
+        "sync": "Synced",
+        "health": "Progressing",
+        "revision": "a0fc221fd3ead34bf17998ca12c26f7af02111e5"
+      }
+    },
+    {
+      "elapsed_seconds": 1.428,
+      "deployment": {
+        "spec_replicas": 2,
+        "ready_replicas": 1,
+        "available_replicas": 1
+      },
+      "application": {
+        "sync": "Synced",
+        "health": "Progressing",
+        "revision": "a0fc221fd3ead34bf17998ca12c26f7af02111e5"
+      }
+    },
+    {
+      "elapsed_seconds": 1.643,
+      "deployment": {
+        "spec_replicas": 2,
+        "ready_replicas": 1,
+        "available_replicas": 1
+      },
+      "application": {
+        "sync": "Synced",
+        "health": "Progressing",
+        "revision": "a0fc221fd3ead34bf17998ca12c26f7af02111e5"
+      }
+    },
+    {
+      "elapsed_seconds": 1.849,
+      "deployment": {
+        "spec_replicas": 2,
+        "ready_replicas": 1,
+        "available_replicas": 1
+      },
+      "application": {
+        "sync": "Synced",
+        "health": "Progressing",
+        "revision": "a0fc221fd3ead34bf17998ca12c26f7af02111e5"
+      }
+    },
+    {
+      "elapsed_seconds": 2.051,
+      "deployment": {
+        "spec_replicas": 2,
+        "ready_replicas": 1,
+        "available_replicas": 1
+      },
+      "application": {
+        "sync": "Synced",
+        "health": "Progressing",
+        "revision": "a0fc221fd3ead34bf17998ca12c26f7af02111e5"
+      }
+    },
+    {
+      "elapsed_seconds": 2.259,
+      "deployment": {
+        "spec_replicas": 2,
+        "ready_replicas": 1,
+        "available_replicas": 1
+      },
+      "application": {
+        "sync": "Synced",
+        "health": "Progressing",
+        "revision": "a0fc221fd3ead34bf17998ca12c26f7af02111e5"
+      }
+    },
+    {
+      "elapsed_seconds": 2.456,
+      "deployment": {
+        "spec_replicas": 2,
+        "ready_replicas": 1,
+        "available_replicas": 1
+      },
+      "application": {
+        "sync": "Synced",
+        "health": "Progressing",
+        "revision": "a0fc221fd3ead34bf17998ca12c26f7af02111e5"
+      }
+    },
+    {
+      "elapsed_seconds": 2.672,
+      "deployment": {
+        "spec_replicas": 2,
+        "ready_replicas": 1,
+        "available_replicas": 1
+      },
+      "application": {
+        "sync": "Synced",
+        "health": "Progressing",
+        "revision": "a0fc221fd3ead34bf17998ca12c26f7af02111e5"
+      }
+    },
+    {
+      "elapsed_seconds": 2.883,
+      "deployment": {
+        "spec_replicas": 2,
+        "ready_replicas": 1,
+        "available_replicas": 1
+      },
+      "application": {
+        "sync": "Synced",
+        "health": "Progressing",
+        "revision": "a0fc221fd3ead34bf17998ca12c26f7af02111e5"
+      }
+    },
+    {
+      "elapsed_seconds": 3.095,
+      "deployment": {
+        "spec_replicas": 2,
+        "ready_replicas": 1,
+        "available_replicas": 1
+      },
+      "application": {
+        "sync": "Synced",
+        "health": "Progressing",
+        "revision": "a0fc221fd3ead34bf17998ca12c26f7af02111e5"
+      }
+    },
+    {
+      "elapsed_seconds": 3.299,
+      "deployment": {
+        "spec_replicas": 2,
+        "ready_replicas": 1,
+        "available_replicas": 1
+      },
+      "application": {
+        "sync": "Synced",
+        "health": "Progressing",
+        "revision": "a0fc221fd3ead34bf17998ca12c26f7af02111e5"
+      }
+    },
+    {
+      "elapsed_seconds": 3.499,
+      "deployment": {
+        "spec_replicas": 2,
+        "ready_replicas": 1,
+        "available_replicas": 1
+      },
+      "application": {
+        "sync": "Synced",
+        "health": "Progressing",
+        "revision": "a0fc221fd3ead34bf17998ca12c26f7af02111e5"
+      }
+    },
+    {
+      "elapsed_seconds": 3.709,
+      "deployment": {
+        "spec_replicas": 2,
+        "ready_replicas": 1,
+        "available_replicas": 1
+      },
+      "application": {
+        "sync": "Synced",
+        "health": "Progressing",
+        "revision": "a0fc221fd3ead34bf17998ca12c26f7af02111e5"
+      }
+    },
+    {
+      "elapsed_seconds": 3.92,
+      "deployment": {
+        "spec_replicas": 2,
+        "ready_replicas": 1,
+        "available_replicas": 1
+      },
+      "application": {
+        "sync": "Synced",
+        "health": "Progressing",
+        "revision": "a0fc221fd3ead34bf17998ca12c26f7af02111e5"
+      }
+    },
+    {
+      "elapsed_seconds": 4.121,
+      "deployment": {
+        "spec_replicas": 2,
+        "ready_replicas": 1,
+        "available_replicas": 1
+      },
+      "application": {
+        "sync": "Synced",
+        "health": "Progressing",
+        "revision": "a0fc221fd3ead34bf17998ca12c26f7af02111e5"
+      }
+    },
+    {
+      "elapsed_seconds": 4.328,
+      "deployment": {
+        "spec_replicas": 2,
+        "ready_replicas": 1,
+        "available_replicas": 1
+      },
+      "application": {
+        "sync": "Synced",
+        "health": "Progressing",
+        "revision": "a0fc221fd3ead34bf17998ca12c26f7af02111e5"
+      }
+    },
+    {
+      "elapsed_seconds": 4.54,
+      "deployment": {
+        "spec_replicas": 2,
+        "ready_replicas": 1,
+        "available_replicas": 1
+      },
+      "application": {
+        "sync": "Synced",
+        "health": "Progressing",
+        "revision": "a0fc221fd3ead34bf17998ca12c26f7af02111e5"
+      }
+    },
+    {
+      "elapsed_seconds": 4.791,
+      "deployment": {
+        "spec_replicas": 2,
+        "ready_replicas": 1,
+        "available_replicas": 1
+      },
+      "application": {
+        "sync": "Synced",
+        "health": "Progressing",
+        "revision": "a0fc221fd3ead34bf17998ca12c26f7af02111e5"
+      }
+    },
+    {
+      "elapsed_seconds": 4.997,
+      "deployment": {
+        "spec_replicas": 2,
+        "ready_replicas": 1,
+        "available_replicas": 1
+      },
+      "application": {
+        "sync": "Synced",
+        "health": "Progressing",
+        "revision": "a0fc221fd3ead34bf17998ca12c26f7af02111e5"
+      }
+    },
+    {
+      "elapsed_seconds": 5.206,
+      "deployment": {
+        "spec_replicas": 2,
+        "ready_replicas": 1,
+        "available_replicas": 1
+      },
+      "application": {
+        "sync": "Synced",
+        "health": "Progressing",
+        "revision": "a0fc221fd3ead34bf17998ca12c26f7af02111e5"
+      }
+    },
+    {
+      "elapsed_seconds": 5.432,
+      "deployment": {
+        "spec_replicas": 2,
+        "ready_replicas": 1,
+        "available_replicas": 1
+      },
+      "application": {
+        "sync": "Synced",
+        "health": "Progressing",
+        "revision": "a0fc221fd3ead34bf17998ca12c26f7af02111e5"
+      }
+    },
+    {
+      "elapsed_seconds": 5.641,
+      "deployment": {
+        "spec_replicas": 2,
+        "ready_replicas": 1,
+        "available_replicas": 1
+      },
+      "application": {
+        "sync": "Synced",
+        "health": "Progressing",
+        "revision": "a0fc221fd3ead34bf17998ca12c26f7af02111e5"
+      }
+    },
+    {
+      "elapsed_seconds": 5.858,
+      "deployment": {
+        "spec_replicas": 2,
+        "ready_replicas": 1,
+        "available_replicas": 1
+      },
+      "application": {
+        "sync": "Synced",
+        "health": "Progressing",
+        "revision": "a0fc221fd3ead34bf17998ca12c26f7af02111e5"
+      }
+    },
+    {
+      "elapsed_seconds": 6.069,
+      "deployment": {
+        "spec_replicas": 2,
+        "ready_replicas": 1,
+        "available_replicas": 1
+      },
+      "application": {
+        "sync": "Synced",
+        "health": "Progressing",
+        "revision": "a0fc221fd3ead34bf17998ca12c26f7af02111e5"
+      }
+    },
+    {
+      "elapsed_seconds": 6.291,
+      "deployment": {
+        "spec_replicas": 2,
+        "ready_replicas": 2,
+        "available_replicas": 2
+      },
+      "application": {
+        "sync": "Synced",
+        "health": "Healthy",
+        "revision": "a0fc221fd3ead34bf17998ca12c26f7af02111e5"
+      }
+    }
+  ]
+}
