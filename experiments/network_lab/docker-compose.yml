@@ -1,0 +1,123 @@
+services:
+
+  h1:
+    build:
+      context: ./image
+    container_name: kubepulse-net-h1
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    command:
+      - bash
+      - -lc
+      - |
+        ip route del default 2>/dev/null || true
+        ip route add default via 10.10.1.1
+        tail -f /dev/null
+    networks:
+      h1_net:
+        ipv4_address: 10.10.1.10
+
+  r1:
+    build:
+      context: ./image
+    container_name: kubepulse-net-r1
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    sysctls:
+      net.ipv4.ip_forward: "1"
+      net.ipv4.conf.all.rp_filter: "0"
+    command:
+      - bash
+      - -lc
+      - |
+        ip route del default 2>/dev/null || true
+        cp /lab-config/frr.conf /etc/frr/frr.conf
+        chown frr:frrvty /etc/frr/frr.conf
+        chmod 640 /etc/frr/frr.conf
+        sed -i 's/^zebra=no/zebra=yes/' /etc/frr/daemons
+        sed -i 's/^bgpd=no/bgpd=yes/' /etc/frr/daemons
+        /usr/lib/frr/frrinit.sh start
+        tail -f /dev/null
+    volumes:
+      - ./r1:/lab-config:ro
+      - ../../artifacts/network_lab:/artifacts
+    networks:
+      h1_net:
+        ipv4_address: 10.10.1.1
+      transit_net:
+        ipv4_address: 10.12.0.1
+
+  r2:
+    build:
+      context: ./image
+    container_name: kubepulse-net-r2
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    sysctls:
+      net.ipv4.ip_forward: "1"
+      net.ipv4.conf.all.rp_filter: "0"
+    command:
+      - bash
+      - -lc
+      - |
+        ip route del default 2>/dev/null || true
+        cp /lab-config/frr.conf /etc/frr/frr.conf
+        chown frr:frrvty /etc/frr/frr.conf
+        chmod 640 /etc/frr/frr.conf
+        sed -i 's/^zebra=no/zebra=yes/' /etc/frr/daemons
+        sed -i 's/^bgpd=no/bgpd=yes/' /etc/frr/daemons
+        /usr/lib/frr/frrinit.sh start
+        tail -f /dev/null
+    volumes:
+      - ./r2:/lab-config:ro
+      - ../../artifacts/network_lab:/artifacts
+    networks:
+      transit_net:
+        ipv4_address: 10.12.0.2
+      h2_net:
+        ipv4_address: 10.20.2.1
+
+  h2:
+    build:
+      context: ./image
+    container_name: kubepulse-net-h2
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    command:
+      - bash
+      - -lc
+      - |
+        ip route del default 2>/dev/null || true
+        ip route add default via 10.20.2.1
+        tail -f /dev/null
+    networks:
+      h2_net:
+        ipv4_address: 10.20.2.10
+
+
+networks:
+
+  h1_net:
+    internal: true
+    ipam:
+      config:
+        - subnet: 10.10.1.0/24
+          gateway: 10.10.1.254
+
+  transit_net:
+    internal: true
+    ipam:
+      config:
+        - subnet: 10.12.0.0/29
+          gateway: 10.12.0.6
+
+  h2_net:
+    internal: true
+    ipam:
+      config:
+        - subnet: 10.20.2.0/24
+          gateway: 10.20.2.254
