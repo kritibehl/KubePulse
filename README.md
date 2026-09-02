@@ -1,5 +1,37 @@
 # KubePulse
 
+<!-- NETWORK-OPS-START -->
+
+## Network Operations Engineering
+
+KubePulse is a **network resilience and release-safety validation platform** for exercising routing, switching, service reachability, failure isolation, recovery, and operational change procedures with reproducible evidence.
+
+### Validated Networking Labs
+
+- **eBGP resilience:** Built a two-AS topology with **FRRouting (FRR)** and Linux network namespaces, configured explicit import/export prefix policies, traced routes from the BGP RIB into the Linux kernel FIB, captured TCP/179 route withdrawals, and validated end-to-end recovery. Across 10 fault-injection runs, observed data-plane recovery measured **251 ms median / 270 ms p95** including host-side command and polling overhead.
+
+- **LAN switching & VLANs:** Built VLAN-aware Linux bridges with **VLAN 10/20 access ports and 802.1Q tagged trunks**, validated dynamic MAC/FDB learning and broadcast-domain isolation, and captured tagged Ethernet traffic on the trunk.
+
+- **Inter-VLAN routing:** Implemented **router-on-a-stick** using 802.1Q subinterfaces and verified bidirectional Layer-3 forwarding between VLANs. Packet captures show traffic entering the router as VLAN 10 and leaving as VLAN 20 with the expected TTL decrement.
+
+- **Fault isolation & rollback:** Deliberately removed VLAN 10 from one trunk endpoint, producing **100% loss only for VLAN 10 while VLAN 20 and the physical trunk remained healthy**. Diagnosed the configuration mismatch using VLAN forwarding state and packet captures, restored trunk membership, and verified recovery.
+
+- **Layered network diagnostics:** Validate DNS, TCP, TLS, HTTP, latency, firewall reachability, and downstream dependency health with MOP-style pre-change, post-change, rollback, and incident evidence workflows.
+
+### Network Evidence
+
+- `artifacts/network_lab/bgp_convergence_benchmark.json`
+- `artifacts/network_lab/bgp_withdrawal_manual.pcap`
+- `artifacts/network_lab/l2/l2_trunk_tags.pcap`
+- `artifacts/network_lab/l2/vlan10_trunk_fault.pcap`
+- `artifacts/network_lab/l2/inter_vlan_routing.pcap`
+- `docs/network_change_mop.md`
+
+> The networking experiments are controlled lab validation, not claims of production BGP or enterprise switch administration.
+
+<!-- NETWORK-OPS-END -->
+
+
 **Detects dangerous releases that pass readiness probes but are unsafe for users.**
 
 5 scenarios · 0 false-safe decisions.
