@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "experiment": "ebgp_prefix_withdrawal_and_restore",
+  "timestamp_utc": "2026-09-02T22:57:46.154730+00:00",
+  "topology": {
+    "r1_as": 65001,
+    "r2_as": 65002,
+    "r1_peer": "10.12.0.2",
+    "r2_peer": "10.12.0.1",
+    "advertised_prefix": "10.20.2.0/24",
+    "probe_destination": "10.20.2.10"
+  },
+  "measurement": {
+    "clock": "python_time.monotonic_ns",
+    "observation_point": "host-driven docker exec polling",
+    "requested_poll_interval_ms": 20.0,
+    "note": "Observed latencies include docker exec and command execution overhead; they are lab-observed convergence times, not wire-speed protocol processing times."
+  },
+  "baseline": {
+    "peer_established": true,
+    "bgp_route_present": true,
+    "fib_route_present": true,
+    "data_plane_reachable": true
+  },
+  "withdrawal": {
+    "bgp_route_removed_ms": 437.77,
+    "fib_route_removed_ms": 272.041,
+    "data_plane_failure_ms": 332.143,
+    "command_duration_ms": 89.787,
+    "peer_established_after_withdrawal": true
+  },
+  "restoration": {
+    "bgp_route_restored_ms": 167.991,
+    "fib_route_restored_ms": 223.233,
+    "data_plane_recovery_ms": 275.054,
+    "command_duration_ms": 88.661,
+    "peer_established_after_restore": true
+  },
+  "final": {
+    "peer_established": true,
+    "bgp_route_present": true,
+    "fib_route_present": true,
+    "data_plane_reachable": true
+  },
+  "derived": {
+    "control_plane_withdrawal_ms": 437.77,
+    "fib_withdrawal_ms": 272.041,
+    "data_plane_failure_ms": 332.143,
+    "control_plane_restore_ms": 167.991,
+    "fib_restore_ms": 223.233,
+    "data_plane_recovery_ms": 275.054
+  },
+  "benchmark_run": 1
+}

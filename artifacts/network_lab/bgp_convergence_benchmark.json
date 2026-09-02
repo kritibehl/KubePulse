@@ -1,0 +1,142 @@
+{
+  "schema_version": 1,
+  "experiment": "ebgp_prefix_withdrawal_restore_benchmark",
+  "runs": 10,
+  "measurement_warning": "Measurements are host-observed lab latencies. Each state probe invokes docker exec and therefore includes command startup and polling overhead. Do not interpret differences between BGP, FIB and data-plane observation timestamps as exact internal protocol processing order.",
+  "summary": {
+    "control_plane_withdrawal_ms": {
+      "min_ms": 321.019,
+      "median_ms": 346.618,
+      "p95_ms": 409.402,
+      "max_ms": 437.77,
+      "mean_ms": 356.302
+    },
+    "fib_withdrawal_ms": {
+      "min_ms": 189.67,
+      "median_ms": 197.888,
+      "p95_ms": 327.356,
+      "max_ms": 372.613,
+      "mean_ms": 221.541
+    },
+    "data_plane_failure_ms": {
+      "min_ms": 221.821,
+      "median_ms": 249.608,
+      "p95_ms": 296.524,
+      "max_ms": 332.143,
+      "mean_ms": 254.5
+    },
+    "control_plane_restore_ms": {
+      "min_ms": 132.641,
+      "median_ms": 141.661,
+      "p95_ms": 162.499,
+      "max_ms": 167.991,
+      "mean_ms": 144.753
+    },
+    "fib_restore_ms": {
+      "min_ms": 179.134,
+      "median_ms": 198.267,
+      "p95_ms": 215.834,
+      "max_ms": 223.233,
+      "mean_ms": 198.771
+    },
+    "data_plane_recovery_ms": {
+      "min_ms": 236.593,
+      "median_ms": 250.553,
+      "p95_ms": 270.356,
+      "max_ms": 275.054,
+      "mean_ms": 251.648
+    }
+  },
+  "run_results": [
+    {
+      "run": 1,
+      "control_plane_withdrawal_ms": 437.77,
+      "fib_withdrawal_ms": 272.041,
+      "data_plane_failure_ms": 332.143,
+      "control_plane_restore_ms": 167.991,
+      "fib_restore_ms": 223.233,
+      "data_plane_recovery_ms": 275.054
+    },
+    {
+      "run": 2,
+      "control_plane_withdrawal_ms": 343.656,
+      "fib_withdrawal_ms": 197.386,
+      "data_plane_failure_ms": 249.727,
+      "control_plane_restore_ms": 146.133,
+      "fib_restore_ms": 200.084,
+      "data_plane_recovery_ms": 255.387
+    },
+    {
+      "run": 3,
+      "control_plane_withdrawal_ms": 321.019,
+      "fib_withdrawal_ms": 372.613,
+      "data_plane_failure_ms": 221.821,
+      "control_plane_restore_ms": 134.795,
+      "fib_restore_ms": 186.715,
+      "data_plane_recovery_ms": 239.247
+    },
+    {
+      "run": 4,
+      "control_plane_withdrawal_ms": 345.218,
+      "fib_withdrawal_ms": 201.821,
+      "data_plane_failure_ms": 248.2,
+      "control_plane_restore_ms": 147.596,
+      "fib_restore_ms": 206.755,
+      "data_plane_recovery_ms": 255.023
+    },
+    {
+      "run": 5,
+      "control_plane_withdrawal_ms": 352.651,
+      "fib_withdrawal_ms": 194.602,
+      "data_plane_failure_ms": 252.913,
+      "control_plane_restore_ms": 140.662,
+      "fib_restore_ms": 196.449,
+      "data_plane_recovery_ms": 246.082
+    },
+    {
+      "run": 6,
+      "control_plane_withdrawal_ms": 344.281,
+      "fib_withdrawal_ms": 201.877,
+      "data_plane_failure_ms": 251.845,
+      "control_plane_restore_ms": 142.544,
+      "fib_restore_ms": 205.732,
+      "data_plane_recovery_ms": 264.375
+    },
+    {
+      "run": 7,
+      "control_plane_withdrawal_ms": 348.017,
+      "fib_withdrawal_ms": 193.572,
+      "data_plane_failure_ms": 249.49,
+      "control_plane_restore_ms": 138.604,
+      "fib_restore_ms": 188.174,
+      "data_plane_recovery_ms": 236.593
+    },
+    {
+      "run": 8,
+      "control_plane_withdrawal_ms": 374.731,
+      "fib_withdrawal_ms": 189.67,
+      "data_plane_failure_ms": 246.156,
+      "control_plane_restore_ms": 155.786,
+      "fib_restore_ms": 206.79,
+      "data_plane_recovery_ms": 264.613
+    },
+    {
+      "run": 9,
+      "control_plane_withdrawal_ms": 356.507,
+      "fib_withdrawal_ms": 198.39,
+      "data_plane_failure_ms": 252.989,
+      "control_plane_restore_ms": 140.779,
+      "fib_restore_ms": 194.648,
+      "data_plane_recovery_ms": 241.189
+    },
+    {
+      "run": 10,
+      "control_plane_withdrawal_ms": 339.169,
+      "fib_withdrawal_ms": 193.439,
+      "data_plane_failure_ms": 239.715,
+      "control_plane_restore_ms": 132.641,
+      "fib_restore_ms": 179.134,
+      "data_plane_recovery_ms": 238.915
+    }
+  ]
+}
