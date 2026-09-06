@@ -1,0 +1,6 @@
+relay_version=hubble-relay v1.20.0+g450c5314 connected_nodes=1 unavailable_nodes=0 flows_per_second=92.83
+window_since=2026-09-06T03:13:24.195677Z
+window_until=2026-09-06T03:13:44.195677Z
+stable selector="k8s:cohort=stable" flow_events=877 lost_events=0 stats={TotalFlows:877 DNSQueries:0 DNSFailures:0 TCPAttempts:85 TCPFailures:0 HTTPRequests:0 HTTP5xx:0 DroppedFlows:0}
+canary selector="k8s:cohort=canary" flow_events=853 lost_events=0 stats={TotalFlows:853 DNSQueries:0 DNSFailures:0 TCPAttempts:83 TCPFailures:0 HTTPRequests:0 HTTP5xx:0 DroppedFlows:0}
+real_cohort_collection=PASS

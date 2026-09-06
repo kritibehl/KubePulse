@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisRun
+metadata:
+  name: kubepulse-real-network-regression
+  namespace: kubepulse-e2e
+spec:
+  metrics:
+    - name: kubepulse-network-regression
+      count: 1
+      failureLimit: 0
+      inconclusiveLimit: 0
+      provider:
+        plugin:
+          kubepulse/network-regression:
+            hubbleRelay: hubble-relay.kube-system.svc.cluster.local:80
+            stableSelector: "k8s:cohort=stable"
+            canarySelector: "k8s:cohort=canary"
+            windowSeconds: 25
+            queryTimeoutSeconds: 15
+            maxLostEvents: 0
+            thresholds:
+              minFlows: 20
+              minDNSQueries: 1
+              minTCPAttempts: 10
+              minHTTPRequests: 1
+              dnsFailureDelta: 0.10
+              dropRateDelta: 0.10
+              tcpFailureDelta: 0.10
+              http5xxDelta: 0.10

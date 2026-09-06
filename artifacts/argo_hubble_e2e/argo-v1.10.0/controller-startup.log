@@ -1,0 +1,14 @@
+time="2026-09-06T05:06:03Z" level=info msg="Argo Rollouts controller starting" healthzPort=8080 instanceID= metricsPort=8090 namespace= version=v1.10.0+d90700a
+time="2026-09-06T05:06:03Z" level=info msg="Creating event broadcaster"
+time="2026-09-06T05:06:03Z" level=info msg="Setting up event handlers"
+time="2026-09-06T05:06:03Z" level=info msg="Setting up experiments event handlers"
+time="2026-09-06T05:06:03Z" level=info msg="Setting up analysis event handlers"
+time="2026-09-06T05:06:04Z" level=info msg="Copied plugin from /plugins/kubepulse-network-regression to /home/argo-rollouts/plugin-bin/kubepulse/network-regression"
+time="2026-09-06T05:06:04Z" level=info msg="Starting Healthz Server at 0.0.0.0:8080"
+time="2026-09-06T05:06:04Z" level=info msg="Starting Metric Server at 0.0.0.0:8090"
+time="2026-09-06T05:06:04Z" level=info msg="Leaderelection get id argo-rollouts-55bf49c7bd-d2jwx_55d4e968-c886-4c0a-ad3d-3d8e7d33425f"
+time="2026-09-06T05:06:04Z" level=info msg="Using leader election lease lock name argo-rollouts-controller-lock"
+time="2026-09-06T05:06:04Z" level=info msg="attempting to acquire leader lease argo-rollouts/argo-rollouts-controller-lock..."
+time="2026-09-06T05:06:04Z" level=warning msg="Unable to Process Create request: invalid character 'k' looking for beginning of value" Kind=leases
+time="2026-09-06T05:06:04Z" level=error msg="error initially creating leader election record: leases.coordination.k8s.io \"argo-rollouts-controller-lock\" already exists" error="<nil>"
+time="2026-09-06T05:06:07Z" level=info msg="New leader elected: argo-rollouts-6bdb4cdb74-xdzlp_ac53e3c1-f89a-415d-a7f9-98e87b0c59d5"

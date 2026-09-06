@@ -1,0 +1,44 @@
+===== POLICY =====
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"cilium.io/v2","kind":"CiliumNetworkPolicy","metadata":{"annotations":{},"name":"canary-egress-regression","namespace":"kubepulse-e2e"},"spec":{"egress":[{"toEndpoints":[{"matchLabels":{"k8s:io.kubernetes.pod.namespace":"kube-system","k8s:k8s-app":"kube-dns"}}],"toPorts":[{"ports":[{"port":"53","protocol":"UDP"},{"port":"53","protocol":"TCP"}]}]}],"endpointSelector":{"matchLabels":{"cohort":"canary"}}}}
+  creationTimestamp: "2026-09-06T04:54:22Z"
+  generation: 1
+  name: canary-egress-regression
+  namespace: kubepulse-e2e
+  resourceVersion: "15582"
+  uid: dfc4a35f-e4f0-4dbb-b786-e906dac17eb5
+spec:
+  egress:
+  - toEndpoints:
+    - matchLabels:
+        k8s:io.kubernetes.pod.namespace: kube-system
+        k8s:k8s-app: kube-dns
+    toPorts:
+    - ports:
+      - port: "53"
+        protocol: UDP
+      - port: "53"
+        protocol: TCP
+  endpointSelector:
+    matchLabels:
+      cohort: canary
+status:
+  conditions:
+  - lastTransitionTime: "2026-09-06T04:54:22Z"
+    message: Policy validation succeeded
+    status: "True"
+    type: Valid
+
+===== POD READINESS =====
+NAME                      READY   STATUS    RESTARTS   AGE    IP             NODE                                  NOMINATED NODE   READINESS GATES   COHORT
+backend-776d69754-vc68c   1/1     Running   0          121m   10.244.0.117   kubepulse-argo-hubble-control-plane   <none>           <none>            
+canary-6776d675d9-fgnns   1/1     Running   0          121m   10.244.0.179   kubepulse-argo-hubble-control-plane   <none>           <none>            canary
+stable-fdcd6498b-nl7sz    1/1     Running   0          121m   10.244.0.90    kubepulse-argo-hubble-control-plane   <none>           <none>            stable
+
+===== NODE =====
+NAME                                  STATUS   ROLES           AGE    VERSION
+kubepulse-argo-hubble-control-plane   Ready    control-plane   4h2m   v1.34.0

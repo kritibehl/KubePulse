@@ -1,0 +1,87 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisRun
+metadata:
+  annotations:
+    rollout.argoproj.io/revision: "2"
+  creationTimestamp: "2026-09-06T22:36:43Z"
+  generation: 2
+  labels:
+    app: kubepulse-rollout-client
+    rollout-type: Step
+    rollouts-pod-template-hash: 659b89cbb4
+    step-index: "2"
+  name: kubepulse-network-rollout-659b89cbb4-2-2
+  namespace: kubepulse-e2e
+  ownerReferences:
+  - apiVersion: argoproj.io/v1alpha1
+    blockOwnerDeletion: true
+    controller: true
+    kind: Rollout
+    name: kubepulse-network-rollout
+    uid: 34c876ab-d6e3-4460-8fb5-9ae2a4188b61
+  resourceVersion: "26291"
+  uid: 801c37dc-e4b0-4166-83c2-39b9c2317496
+spec:
+  metrics:
+  - count: 1
+    failureLimit: 0
+    inconclusiveLimit: 0
+    name: kubepulse-network-regression
+    provider:
+      plugin:
+        kubepulse/network-regression:
+          canarySelector: k8s:kubepulse-rollout-role=canary
+          hubbleRelay: hubble-relay.kube-system.svc.cluster.local:80
+          maxLostEvents: 0
+          queryTimeoutSeconds: 15
+          stableSelector: k8s:kubepulse-rollout-role=stable
+          thresholds:
+            dnsFailureDelta: 0.1
+            dropRateDelta: 0.1
+            http5xxDelta: 0.1
+            minDNSQueries: 1
+            minFlows: 20
+            minHTTPRequests: 1
+            minTCPAttempts: 10
+            tcpFailureDelta: 0.1
+          windowSeconds: 25
+status:
+  completedAt: "2026-09-06T22:36:43Z"
+  dryRunSummary: {}
+  message: 'Metric "kubepulse-network-regression" assessed Failed due to failed (1)
+    > failureLimit (0): "Error Message: network regression detected: drop_rate"'
+  metricResults:
+  - count: 1
+    failed: 1
+    measurements:
+    - finishedAt: "2026-09-06T22:36:43Z"
+      message: 'network regression detected: drop_rate'
+      metadata:
+        canaryFlowEvents: "106"
+        canaryLostEvents: "0"
+        canarySelector: k8s:kubepulse-rollout-role=canary
+        decision: FAIL
+        evaluatedSignals: drop_rate,tcp_failure_rate
+        hubbleRelay: hubble-relay.kube-system.svc.cluster.local:80
+        provider: kubepulse/network-regression
+        regressions: drop_rate
+        stableFlowEvents: "2219"
+        stableLostEvents: "0"
+        stableSelector: k8s:kubepulse-rollout-role=stable
+        windowSeconds: "25"
+      phase: Failed
+      startedAt: "2026-09-06T22:36:43Z"
+      value: '{"decision":"FAIL","stable":{"dnsFailureRate":0,"dropRate":0,"tcpFailureRate":0,"http5xxRate":0},"canary":{"dnsFailureRate":0,"dropRate":0.4339622641509434,"tcpFailureRate":0,"http5xxRate":0},"deltas":{"dnsFailureDelta":0,"dropRateDelta":0.4339622641509434,"tcpFailureDelta":0,"http5xxDelta":0},"evaluatedSignals":["drop_rate","tcp_failure_rate"],"regressions":["drop_rate"],"reasons":["network
+        regression detected in 1 signal(s)"]}'
+    message: 'network regression detected: drop_rate'
+    metadata:
+      analysis: stable-vs-canary-network-regression
+      provider: kubepulse/network-regression
+      telemetry: cilium-hubble
+    name: kubepulse-network-regression
+    phase: Failed
+  phase: Failed
+  runSummary:
+    count: 1
+    failed: 1
+  startedAt: "2026-09-06T22:36:43Z"

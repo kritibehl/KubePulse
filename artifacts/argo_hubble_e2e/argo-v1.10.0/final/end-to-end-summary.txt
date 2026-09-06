@@ -1,0 +1,13 @@
+===== KUBEPULSE END-TO-END CANARY SAFETY PROOF =====
+
+stable_revision_before=7b9b748495
+stable_revision_after=7b9b748495
+rollout_abort=true
+aborted_at=2026-09-06T22:36:43Z
+analysis_phase=Failed
+metric_phase=Failed
+decision=FAIL
+regressions=drop_rate
+stable_flow_events=2219
+canary_flow_events=106
+measurement_value={"decision":"FAIL","stable":{"dnsFailureRate":0,"dropRate":0,"tcpFailureRate":0,"http5xxRate":0},"canary":{"dnsFailureRate":0,"dropRate":0.4339622641509434,"tcpFailureRate":0,"http5xxRate":0},"deltas":{"dnsFailureDelta":0,"dropRateDelta":0.4339622641509434,"tcpFailureDelta":0,"http5xxDelta":0},"evaluatedSignals":["drop_rate","tcp_failure_rate"],"regressions":["drop_rate"],"reasons":["network regression detected in 1 signal(s)"]}

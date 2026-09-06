@@ -1,0 +1,9 @@
+===== REPLICASETS =====
+NAME                                   DESIRED   CURRENT   READY    HASH         ROLE
+kubepulse-network-rollout-659b89cbb4   0         0         <none>   659b89cbb4   canary
+kubepulse-network-rollout-7b9b748495   2         2         2        7b9b748495   stable
+
+===== PODS =====
+NAME                                         READY   STATUS    RESTARTS   AGE   IP       NODE                                  NOMINATED NODE   READINESS GATES   COHORT   KUBEPULSE-ROLLOUT-ROLE
+kubepulse-network-rollout-7b9b748495-dm2hd   0/1     Unknown   0          39m   <none>   kubepulse-argo-hubble-control-plane   <none>           <none>            stable   stable
+kubepulse-network-rollout-7b9b748495-jkxl4   0/1     Unknown   0          46m   <none>   kubepulse-argo-hubble-control-plane   <none>           <none>            stable   stable

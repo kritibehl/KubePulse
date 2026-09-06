@@ -1,0 +1,40 @@
+relay_version=hubble-relay v1.20.0+g450c5314 connected_nodes=1 unavailable_nodes=0 flows_per_second=52.18
+window_since=2026-09-06T04:57:31.526992Z
+window_until=2026-09-06T04:57:56.526992Z
+stable selector="k8s:cohort=stable" flow_events=1005 lost_events=0 stats={TotalFlows:1005 DNSQueries:0 DNSFailures:0 TCPAttempts:98 TCPFailures:0 HTTPRequests:0 HTTP5xx:0 DroppedFlows:0}
+canary selector="k8s:cohort=canary" flow_events=99 lost_events=0 stats={TotalFlows:99 DNSQueries:0 DNSFailures:0 TCPAttempts:42 TCPFailures:0 HTTPRequests:0 HTTP5xx:0 DroppedFlows:42}
+thresholds={MinFlows:20 MinDNSQueries:1 MinTCPAttempts:10 MinHTTPRequests:1 DNSFailureDelta:0.1 DropRateDelta:0.1 TCPFailureDelta:0.1 HTTP5xxDelta:0.1}
+===== KUBEPULSE ANALYSIS REPORT =====
+{
+  "decision": "FAIL",
+  "stable": {
+    "dnsFailureRate": 0,
+    "dropRate": 0,
+    "tcpFailureRate": 0,
+    "http5xxRate": 0
+  },
+  "canary": {
+    "dnsFailureRate": 0,
+    "dropRate": 0.42424242424242425,
+    "tcpFailureRate": 0,
+    "http5xxRate": 0
+  },
+  "deltas": {
+    "dnsFailureDelta": 0,
+    "dropRateDelta": 0.42424242424242425,
+    "tcpFailureDelta": 0,
+    "http5xxDelta": 0
+  },
+  "evaluatedSignals": [
+    "drop_rate",
+    "tcp_failure_rate"
+  ],
+  "regressions": [
+    "drop_rate"
+  ],
+  "reasons": [
+    "network regression detected in 1 signal(s)"
+  ]
+}
+real_network_regression_decision=FAIL
+real_hubble_to_analyzer=PASS
