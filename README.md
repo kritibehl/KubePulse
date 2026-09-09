@@ -306,3 +306,35 @@ Example output:
   "mean_time_to_detect_seconds": 18
 }
 ```
+
+<!-- kubepulse-control-data-plane -->
+
+## Control-Plane / Data-Plane Rollout Verification
+
+KubePulse is a **Go-based safety gate for Kubernetes progressive delivery** that combines **Argo Rollouts**, **Cilium/eBPF**, **Hubble Relay**, and the Kubernetes **Service/EndpointSlice APIs**.
+
+It answers a harder question than ordinary readiness monitoring:
+
+> Can Kubernetes report a rollout as healthy while the observed network data plane is degraded or semantically inconsistent with control-plane intent?
+
+### Live rollout proof
+
+A real canary remained **1/1 Ready** while Hubble observed a regression from **0% stable to 43.4% canary flow-event drop rate** across **2,219 stable and 106 canary Hubble flow events**.
+
+KubePulse returned `FAIL`, the Argo `AnalysisRun` transitioned to `Failed`, and the rollout was automatically `Aborted` while the healthy stable ReplicaSet remained available.
+
+### Topology consistency engine
+
+KubePulse also:
+
+- resolves intended destinations from Kubernetes `Service` and `EndpointSlice` objects
+- filters eligible Ready / non-terminating backends
+- resolves Pod identity and IP
+- reconstructs directed source-to-destination topology from Hubble protobuf flows
+- compares successfully `FORWARDED` data-plane edges with control-plane expectations
+- emits `CONTROL_DATA_PLANE_DIVERGENCE` when observed traffic reaches an unexpected backend
+- preserves explicit `PASS`, `FAIL`, and `INCONCLUSIVE` semantics for insufficient evidence
+
+The topology logic is integrated into the Argo metric-provider plugin and covered by deterministic comparator, Kubernetes resolver, Hubble gRPC, and Argo plugin tests.
+
+See [`docs/TOPOLOGY_VERIFICATION.md`](docs/TOPOLOGY_VERIFICATION.md) for the architecture, comparison semantics, evidence, and experiment design.
