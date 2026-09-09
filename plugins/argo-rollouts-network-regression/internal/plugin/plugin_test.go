@@ -4,11 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/kritibehl/KubePulse/plugins/argo-rollouts-network-regression/internal/analysis"
 	"github.com/kritibehl/KubePulse/plugins/argo-rollouts-network-regression/internal/hubble"
+	"github.com/kritibehl/KubePulse/plugins/argo-rollouts-network-regression/internal/topology"
 
 	"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1"
 )
@@ -17,8 +19,12 @@ type fakeCollector struct {
 	results map[string]hubble.Collection
 	errors  map[string]error
 
-	calls  []string
-	closed bool
+	topologyResults map[string]hubble.TopologyCollection
+	topologyErrors  map[string]error
+
+	calls         []string
+	topologyCalls []string
+	closed        bool
 }
 
 func (f *fakeCollector) CollectCohortStats(
@@ -39,9 +45,51 @@ func (f *fakeCollector) CollectCohortStats(
 	return f.results[selector], nil
 }
 
+func (f *fakeCollector) CollectObservedEdges(
+	ctx context.Context,
+	sourceSelector string,
+	since time.Time,
+	until time.Time,
+) (hubble.TopologyCollection, error) {
+	f.topologyCalls = append(
+		f.topologyCalls,
+		sourceSelector,
+	)
+
+	if err := f.topologyErrors[sourceSelector]; err != nil {
+		return hubble.TopologyCollection{}, err
+	}
+
+	return f.topologyResults[sourceSelector], nil
+}
+
 func (f *fakeCollector) Close() error {
 	f.closed = true
 	return nil
+}
+
+type fakeTopologyResolver struct {
+	endpoints []topology.ExpectedEndpoint
+	err       error
+
+	calls []string
+}
+
+func (f *fakeTopologyResolver) ResolveServiceEndpoints(
+	ctx context.Context,
+	namespace string,
+	serviceName string,
+) ([]topology.ExpectedEndpoint, error) {
+	f.calls = append(
+		f.calls,
+		namespace+"/"+serviceName,
+	)
+
+	if f.err != nil {
+		return nil, f.err
+	}
+
+	return f.endpoints, nil
 }
 
 func thresholds() analysis.Thresholds {
@@ -433,6 +481,371 @@ func TestPluginType(t *testing.T) {
 		t.Fatalf(
 			"expected RPCPlugin, got %q",
 			got,
+		)
+	}
+}
+
+func TestRunFailsForControlDataPlaneDivergence(
+	t *testing.T,
+) {
+	config := baseConfig()
+
+	config.Topology = &TopologyConfig{
+		Enabled:         true,
+		Namespace:       "shop",
+		ExpectedService: "payment-v2",
+		SourceSelector:  "k8s:topology-role=checkout-v2",
+		MaxLostEvents:   0,
+	}
+
+	collector := &fakeCollector{
+		results: map[string]hubble.Collection{
+			config.StableSelector: stableCollection(),
+
+			config.CanarySelector: healthyCanaryCollection(),
+		},
+
+		topologyResults: map[string]hubble.TopologyCollection{
+			config.Topology.SourceSelector: {
+				FlowEvents: 1,
+
+				Edges: []topology.ObservedEdge{
+					{
+						SourceNamespace: "shop",
+
+						SourcePod: "checkout-v2",
+
+						SourceIP: "10.244.0.10",
+
+						DestinationNamespace: "shop",
+
+						DestinationPod: "payment-v1",
+
+						DestinationIP: "10.244.0.30",
+
+						DestinationService: "shop/payment-v1",
+
+						Verdict: "FORWARDED",
+					},
+				},
+			},
+		},
+	}
+
+	resolver := &fakeTopologyResolver{
+		endpoints: []topology.ExpectedEndpoint{
+			{
+				Namespace: "shop",
+				Pod:       "payment-v2",
+				IP:        "10.244.0.20",
+			},
+		},
+	}
+
+	p := pluginWithCollector(collector)
+
+	p.NewTopologyResolver = func() (
+		TopologyResolver,
+		error,
+	) {
+		return resolver, nil
+	}
+
+	got := p.Run(
+		nil,
+		metricFor(t, config),
+	)
+
+	if got.Phase !=
+		v1alpha1.AnalysisPhaseFailed {
+		t.Fatalf(
+			"expected Failed phase, got %s: %+v",
+			got.Phase,
+			got,
+		)
+	}
+
+	if got.Metadata["decision"] != "FAIL" {
+		t.Fatalf(
+			"expected FAIL decision, got %+v",
+			got.Metadata,
+		)
+	}
+
+	if got.Metadata["topologyReason"] !=
+		topology.ReasonControlDataPlaneDivergence {
+		t.Fatalf(
+			"expected topology divergence reason, got %+v",
+			got.Metadata,
+		)
+	}
+
+	if got.Metadata["unexpectedEdges"] != "1" {
+		t.Fatalf(
+			"expected 1 unexpected edge, got %+v",
+			got.Metadata,
+		)
+	}
+
+	if !strings.Contains(
+		got.Value,
+		topology.ReasonControlDataPlaneDivergence,
+	) {
+		t.Fatalf(
+			"expected encoded topology report, got %q",
+			got.Value,
+		)
+	}
+
+	if len(resolver.calls) != 1 ||
+		resolver.calls[0] != "shop/payment-v2" {
+		t.Fatalf(
+			"unexpected resolver calls: %+v",
+			resolver.calls,
+		)
+	}
+}
+
+func TestRunTopologyPassContinuesNetworkGate(
+	t *testing.T,
+) {
+	config := baseConfig()
+
+	config.Topology = &TopologyConfig{
+		Enabled:         true,
+		Namespace:       "shop",
+		ExpectedService: "payment-v2",
+		SourceSelector:  "k8s:topology-role=checkout-v2",
+	}
+
+	collector := &fakeCollector{
+		results: map[string]hubble.Collection{
+			config.StableSelector: stableCollection(),
+
+			config.CanarySelector: healthyCanaryCollection(),
+		},
+
+		topologyResults: map[string]hubble.TopologyCollection{
+			config.Topology.SourceSelector: {
+				FlowEvents: 1,
+
+				Edges: []topology.ObservedEdge{
+					{
+						SourceNamespace: "shop",
+
+						SourcePod: "checkout-v2",
+
+						DestinationNamespace: "shop",
+
+						DestinationPod: "payment-v2",
+
+						DestinationIP: "10.244.0.20",
+
+						Verdict: "FORWARDED",
+					},
+				},
+			},
+		},
+	}
+
+	resolver := &fakeTopologyResolver{
+		endpoints: []topology.ExpectedEndpoint{
+			{
+				Namespace: "shop",
+				Pod:       "payment-v2",
+				IP:        "10.244.0.20",
+			},
+		},
+	}
+
+	p := pluginWithCollector(collector)
+
+	p.NewTopologyResolver = func() (
+		TopologyResolver,
+		error,
+	) {
+		return resolver, nil
+	}
+
+	got := p.Run(
+		nil,
+		metricFor(t, config),
+	)
+
+	if got.Phase !=
+		v1alpha1.AnalysisPhaseSuccessful {
+		t.Fatalf(
+			"expected Successful phase, got %s: %+v",
+			got.Phase,
+			got,
+		)
+	}
+
+	if got.Metadata["topologyDecision"] !=
+		"PASS" {
+		t.Fatalf(
+			"expected topology PASS, got %+v",
+			got.Metadata,
+		)
+	}
+
+	if got.Metadata["decision"] != "PASS" {
+		t.Fatalf(
+			"expected final PASS, got %+v",
+			got.Metadata,
+		)
+	}
+}
+
+func TestRunTopologyWithoutExpectedEndpointsIsInconclusive(
+	t *testing.T,
+) {
+	config := baseConfig()
+
+	config.Topology = &TopologyConfig{
+		Enabled:         true,
+		Namespace:       "shop",
+		ExpectedService: "payment-v2",
+		SourceSelector:  "k8s:topology-role=checkout-v2",
+	}
+
+	collector := &fakeCollector{
+		results: map[string]hubble.Collection{
+			config.StableSelector: stableCollection(),
+
+			config.CanarySelector: healthyCanaryCollection(),
+		},
+
+		topologyResults: map[string]hubble.TopologyCollection{
+			config.Topology.SourceSelector: {
+				FlowEvents: 1,
+
+				Edges: []topology.ObservedEdge{
+					{
+						SourcePod: "checkout-v2",
+
+						DestinationPod: "payment-v1",
+
+						Verdict: "FORWARDED",
+					},
+				},
+			},
+		},
+	}
+
+	resolver := &fakeTopologyResolver{}
+
+	p := pluginWithCollector(collector)
+
+	p.NewTopologyResolver = func() (
+		TopologyResolver,
+		error,
+	) {
+		return resolver, nil
+	}
+
+	got := p.Run(
+		nil,
+		metricFor(t, config),
+	)
+
+	if got.Phase !=
+		v1alpha1.AnalysisPhaseInconclusive {
+		t.Fatalf(
+			"expected Inconclusive phase, got %s: %+v",
+			got.Phase,
+			got,
+		)
+	}
+
+	if got.Metadata["topologyReason"] !=
+		topology.ReasonNoExpectedEndpoints {
+		t.Fatalf(
+			"unexpected topology reason: %+v",
+			got.Metadata,
+		)
+	}
+}
+
+func TestRunTopologyLostEventsIsInconclusive(
+	t *testing.T,
+) {
+	config := baseConfig()
+
+	config.Topology = &TopologyConfig{
+		Enabled:         true,
+		Namespace:       "shop",
+		ExpectedService: "payment-v2",
+		SourceSelector:  "k8s:topology-role=checkout-v2",
+		MaxLostEvents:   0,
+	}
+
+	collector := &fakeCollector{
+		results: map[string]hubble.Collection{
+			config.StableSelector: stableCollection(),
+
+			config.CanarySelector: healthyCanaryCollection(),
+		},
+
+		topologyResults: map[string]hubble.TopologyCollection{
+			config.Topology.SourceSelector: {
+				FlowEvents: 10,
+				LostEvents: 2,
+			},
+		},
+	}
+
+	p := pluginWithCollector(collector)
+
+	got := p.Run(
+		nil,
+		metricFor(t, config),
+	)
+
+	if got.Phase !=
+		v1alpha1.AnalysisPhaseInconclusive {
+		t.Fatalf(
+			"expected Inconclusive phase, got %s: %+v",
+			got.Phase,
+			got,
+		)
+	}
+
+	if got.Metadata["topologyDecision"] !=
+		"INCONCLUSIVE" {
+		t.Fatalf(
+			"expected topology INCONCLUSIVE, got %+v",
+			got.Metadata,
+		)
+	}
+}
+
+func TestTopologyConfigurationRequiresExpectedService(
+	t *testing.T,
+) {
+	config := baseConfig()
+
+	config.Topology = &TopologyConfig{
+		Enabled:        true,
+		Namespace:      "shop",
+		SourceSelector: "k8s:topology-role=checkout-v2",
+	}
+
+	err := validateConfig(config)
+
+	if err == nil {
+		t.Fatal(
+			"expected invalid topology configuration",
+		)
+	}
+
+	if !strings.Contains(
+		err.Error(),
+		"topology.expectedService",
+	) {
+		t.Fatalf(
+			"unexpected validation error: %v",
+			err,
 		)
 	}
 }
