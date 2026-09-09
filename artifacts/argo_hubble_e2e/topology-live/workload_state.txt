@@ -1,0 +1,6 @@
+NAME                         READY   STATUS    RESTARTS   AGE   IP             NODE                                    NOMINATED NODE   READINESS GATES
+pod/client-bb6c4cf46-b6r8l   1/1     Running   0          30s   10.244.0.11    kubepulse-topology-live-control-plane   <none>           <none>
+pod/server-f69f6f59b-knz5j   1/1     Running   0          30s   10.244.0.217   kubepulse-topology-live-control-plane   <none>           <none>
+
+NAME             TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)   AGE   SELECTOR
+service/server   ClusterIP   10.96.224.31   <none>        80/TCP    30s   app=server

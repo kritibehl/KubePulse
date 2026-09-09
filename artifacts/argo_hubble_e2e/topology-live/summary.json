@@ -1,0 +1,18 @@
+{
+  "cilium": "v1.20.0",
+  "client_server_flow_records": 160,
+  "cluster": "kubepulse-topology-live",
+  "experiment": "cilium_hubble_topology_live",
+  "host_arch": "arm64",
+  "hubble_records": 200,
+  "invalid_hubble_records": 0,
+  "kubernetes": "v1.34.3",
+  "namespace_flow_records": 200,
+  "requests_attempted": 20,
+  "requests_failed": 0,
+  "requests_succeeded": 20,
+  "result": "PASS",
+  "verdicts": {
+    "FORWARDED": 200
+  }
+}

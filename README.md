@@ -338,3 +338,18 @@ KubePulse also:
 The topology logic is integrated into the Argo metric-provider plugin and covered by deterministic comparator, Kubernetes resolver, Hubble gRPC, and Argo plugin tests.
 
 See [`docs/TOPOLOGY_VERIFICATION.md`](docs/TOPOLOGY_VERIFICATION.md) for the architecture, comparison semantics, evidence, and experiment design.
+
+<!-- CILIUM_HUBBLE_LIVE_START -->
+
+### Cilium + Hubble Datapath Observability
+
+Built a reproducible Kind Kubernetes lab with **Cilium v1.20.0** and **Hubble Relay** on arm64 to validate live service-to-service datapath visibility. The controlled `client -> Service -> server` workload completed **20/20 HTTP requests successfully**, while Hubble captured **200 namespace flow records**.
+
+Evidence:
+- `artifacts/argo_hubble_e2e/topology-live/summary.json`
+- `artifacts/argo_hubble_e2e/topology-live/hubble_flows.jsonl`
+- `docs/cilium_hubble_topology_live.md`
+
+> Controlled local Kubernetes networking lab; not a claim of production Cilium administration.
+
+<!-- CILIUM_HUBBLE_LIVE_END -->
