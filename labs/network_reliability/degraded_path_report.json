@@ -1,0 +1,18 @@
+{
+  "scenario": "degraded_path",
+  "failure_class": "degraded_network_route",
+  "probes_say_healthy": true,
+  "safe_to_operate": false,
+  "release_decision": "block",
+  "reason": "Traffic shifted to degraded path with unsafe tail latency",
+  "latency_p95_drift_pct": 333.33,
+  "latency_p99_drift_pct": 275.0,
+  "error_rate_delta": 0.08,
+  "degraded_path_requests": 37,
+  "path_extra_latency_ms": 410,
+  "recovery_window_seconds": 12,
+  "what_probes_missed": [
+    "Probe remained healthy while traffic used a degraded path",
+    "Tail latency exceeded rollout budget before readiness changed"
+  ]
+}

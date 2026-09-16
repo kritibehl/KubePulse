@@ -1,0 +1,12 @@
+{
+  "platform": "amd_mi300x",
+  "model": "microsoft/Phi-3-mini-4k-instruct",
+  "requests_total": 4,
+  "success_total": 4,
+  "latency_p50_ms": 197.17,
+  "latency_p95_ms": 200.76,
+  "latency_p99_ms": 200.76,
+  "safe_to_operate": true,
+  "release_decision": "continue",
+  "reason": "baseline serving within expected bounds"
+}
