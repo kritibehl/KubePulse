@@ -28,3 +28,4 @@ crash.log
 __pycache__/
 *.py[cod]
 .tools/
+*.log
